@@ -14,7 +14,7 @@
   <artifactId>indoqa-boot</artifactId>
   <version>0.1-SNAPSHOT</version>
   
-  <name>Indoqa Spark</name>
+  <name>Indoqa Boot</name>
   <url>https://github.com/indoqa/indoqa-boot</url>
   <description>Basic infrastructure for RESTful applications based on Spark and Spring.</description>
 
