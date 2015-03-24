@@ -45,7 +45,7 @@ import spark.Spark;
 public abstract class AbstractIndoqaBootApplication {
 
     private final Logger logger = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class);
-    private final Logger initialzationLogger = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class.getName() + "_INIT");
+    private final Logger initializationLogger = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class.getName() + "_INIT");
 
     private final Date START_TIME = new Date();
 
@@ -58,14 +58,6 @@ public abstract class AbstractIndoqaBootApplication {
 
     public AbstractIndoqaBootApplication() {
         super();
-    }
-
-    public void afterInitialzation() {
-        // empty implementation
-    }
-
-    public void beforeInitialization() {
-        // empty implementation
     }
 
     public void invoke() {
@@ -89,6 +81,14 @@ public abstract class AbstractIndoqaBootApplication {
         this.afterInitialzation();
     }
 
+    protected void afterInitialzation() {
+        // empty implementation
+    }
+
+    protected void beforeInitialization() {
+        // empty implementation
+    }
+
     protected AnnotationConfigApplicationContext getApplicationContext() {
         return this.context;
     }
@@ -97,8 +97,8 @@ public abstract class AbstractIndoqaBootApplication {
 
     protected abstract String getComponentScanBasePackage();
 
-    protected Logger getInitialzationLogger() {
-        return this.initialzationLogger;
+    protected Logger getInitializationLogger() {
+        return this.initializationLogger;
     }
 
     protected abstract void initializeSpringBeans();
@@ -218,7 +218,7 @@ public abstract class AbstractIndoqaBootApplication {
             return;
         }
 
-        this.initialzationLogger.info(this.getApplicationName() + " {} started at {} (initialized in {} ms, listening on port {}, "
+        this.initializationLogger.info(this.getApplicationName() + " {} started at {} (initialized in {} ms, listening on port {}, "
                 + "active profile(s): {}, running on Java {})", this.systemInfo.getVersion(), this.systemInfo.getStarted(),
                 this.systemInfo.getInitializationDuration(), this.systemInfo.getPort(), this.systemInfo.getProfiles(),
                 this.systemInfo.getJavaVersion());
