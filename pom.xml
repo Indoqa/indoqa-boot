@@ -33,6 +33,13 @@
   <name>Indoqa Boot</name>
   <url>https://github.com/indoqa/indoqa-boot</url>
   <description>Basic infrastructure for RESTful applications based on Spark and Spring.</description>
+  
+  <scm>
+    <connection>scm:git:git@github.com:Indoqa/indoqa-boot.git</connection>
+    <developerConnection>scm:git:git@github.com:Indoqa/indoqa-boot.git</developerConnection>
+    <url>https://github.com/Indoqa/indoqa-boot</url>
+  </scm>
+
 
   <properties>
     <project.build.compiler.version>1.8</project.build.compiler.version>
