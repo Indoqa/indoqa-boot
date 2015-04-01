@@ -126,11 +126,11 @@ public class SystemInfo {
 
     private String getApplicationVersion() {
         try {
-            String version = getAttribute(SystemInfo.class, "Implementation-Build");
-            if (version == null) {
+            String versionAttribute = getAttribute(SystemInfo.class, "Implementation-Build");
+            if (versionAttribute == null) {
                 return "DEVELOPMENT";
             }
-            return version;
+            return versionAttribute;
         } catch (IOException e) {
             throw new ApplicationInitializationException("Cannot read from manifest.", e);
         }
