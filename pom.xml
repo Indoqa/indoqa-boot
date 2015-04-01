@@ -23,7 +23,7 @@
   <parent>
     <groupId>com.indoqa</groupId>
     <artifactId>indoqa-oss-parent</artifactId>
-    <version>1-SNAPSHOT</version>
+    <version>1</version>
   </parent>  
 
   <groupId>com.indoqa</groupId>
