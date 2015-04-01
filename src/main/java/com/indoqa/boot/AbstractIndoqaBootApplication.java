@@ -54,7 +54,6 @@ public abstract class AbstractIndoqaBootApplication {
     private SystemInfo systemInfo;
 
     private int beansHashCode;
-    private Timer reloadingTimer;
 
     public AbstractIndoqaBootApplication() {
         super();
@@ -130,8 +129,7 @@ public abstract class AbstractIndoqaBootApplication {
         this.logger.info("Application reloading is enabled based on Hotswap Agent.");
         this.beansHashCode = this.getBeansHashCode();
         // create a TimerTask that frequently checks if the Spring application context has changed
-        this.reloadingTimer = new Timer();
-        this.reloadingTimer.scheduleAtFixedRate(new ReloadingTimerTask(), 0, SECONDS.toMillis(1));
+        new Timer().scheduleAtFixedRate(new ReloadingTimerTask(), 0, SECONDS.toMillis(1));
     }
 
     private int getBeansHashCode() {
