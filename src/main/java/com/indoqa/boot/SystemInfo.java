@@ -28,6 +28,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -105,7 +106,7 @@ public class SystemInfo {
         this.version = this.getApplicationVersion();
         this.javaVersion = System.getProperty("java.version");
         this.profiles = this.getActiveProfiles();
-        this.port = this.environment.getProperty("port");
+        this.port = this.lookupPort();
     }
 
     public void setInitializationDuration(long duration) {
@@ -134,5 +135,14 @@ public class SystemInfo {
         } catch (IOException e) {
             throw new ApplicationInitializationException("Cannot read from manifest.", e);
         }
+    }
+
+    private String lookupPort() {
+        String port = this.environment.getProperty("port");
+        if (StringUtils.isBlank(port)) {
+            // default Spark port
+            return "4567";
+        }
+        return port;
     }
 }
