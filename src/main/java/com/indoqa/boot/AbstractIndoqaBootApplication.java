@@ -175,7 +175,7 @@ public abstract class AbstractIndoqaBootApplication {
     private void initializeProfile() {
         if (this.hasNoActiveProfile()) {
             String detectedProfile = this.isDevEnvironment() ? "dev" : "prod";
-            this.logger.info("Detected Spring profile: {}", detectedProfile);
+            this.logger.info("Explictely set Spring profile: {}", detectedProfile);
             this.context.getEnvironment().setActiveProfiles(detectedProfile);
         }
         this.logger.info("Active Spring profile(s): {}", String.join(" & ", this.context.getEnvironment().getActiveProfiles()));
