@@ -34,8 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.support.ResourcePropertySource;
@@ -182,7 +180,7 @@ public abstract class AbstractIndoqaBootApplication {
     }
 
     private void initializePropertyPlaceholderConfigurer() {
-        this.getApplicationContext().register(PropertyPlaceholderConfiguration.class);
+        this.getApplicationContext().register(PropertySourcesPlaceholderConfigurer.class);
     }
 
     private void initializeSparkConfiguration() {
@@ -246,15 +244,6 @@ public abstract class AbstractIndoqaBootApplication {
 
         public ApplicationInitializationException(String message, Throwable cause) {
             super(message, cause);
-        }
-    }
-
-    @Configuration
-    public static class PropertyPlaceholderConfiguration {
-
-        @Bean
-        public static PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
-            return new PropertySourcesPlaceholderConfigurer();
         }
     }
 
