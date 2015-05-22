@@ -138,11 +138,12 @@ public class SystemInfo {
     }
 
     private String lookupPort() {
-        String port = this.environment.getProperty("port");
-        if (StringUtils.isBlank(port)) {
-            // default Spark port
-            return "4567";
+        String result = this.environment.getProperty("port");
+        if (StringUtils.isNotBlank(result)) {
+            return result;
         }
-        return port;
+
+        // default Spark port
+        return "4567";
     }
 }
