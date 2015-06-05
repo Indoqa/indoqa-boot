@@ -58,8 +58,6 @@ public abstract class AbstractIndoqaBootApplication {
     }
 
     public void invoke() {
-        LogPathValidator.checkLogDir();
-
         this.beforeInitialization();
         this.logInitializationStart();
 
@@ -75,10 +73,10 @@ public abstract class AbstractIndoqaBootApplication {
         this.enableApplicationReloading();
 
         this.logInitializationFinished();
-        this.afterInitialzation();
+        this.afterInitialization();
     }
 
-    protected void afterInitialzation() {
+    protected void afterInitialization() {
         // empty implementation
     }
 
@@ -221,6 +219,8 @@ public abstract class AbstractIndoqaBootApplication {
     }
 
     private void logInitializationStart() {
+        LogPathValidator.checkLogDir();
+
         this.logger.info("Initializing " + this.getApplicationName());
     }
 
