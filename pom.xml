@@ -45,13 +45,13 @@
   <properties>
     <project.build.compiler.version>1.8</project.build.compiler.version>
 
-    <spark-version>2.1</spark-version>
-    <spring-version>4.1.4.RELEASE</spring-version>
-    <jackson-version>2.4.4</jackson-version>
-    <slf4j-version>1.7.7</slf4j-version>
-    <aspectj-version>1.6.12</aspectj-version>
-    <cglib-version>2.2</cglib-version>
-    <apache-commons-lang3-version>3.3.2</apache-commons-lang3-version>
+    <spark-version>2.2</spark-version>
+    <spring-version>4.2.0.RELEASE</spring-version>
+    <jackson-version>2.6.1</jackson-version>
+    <slf4j-version>1.7.12</slf4j-version>
+    <aspectj-version>1.8.6</aspectj-version>
+    <cglib-version>3.1</cglib-version>
+    <apache-commons-lang3-version>3.4</apache-commons-lang3-version>
     <junit-version>4.12</junit-version>
   </properties>  
 
@@ -112,11 +112,6 @@
         <artifactId>spring-web</artifactId>
         <version>${spring-version}</version>
       </dependency>
-      <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-test</artifactId>
-        <version>${spring-version}</version>
-      </dependency>
 
       <!-- Jackson -->
       <dependency>
@@ -136,16 +131,6 @@
       </dependency>
 
       <!-- AOP -->
-      <dependency>
-        <groupId>org.aspectj</groupId>
-        <artifactId>aspectjrt</artifactId>
-        <version>${aspectj-version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.aspectj</groupId>
-        <artifactId>aspectjweaver</artifactId>
-        <version>${aspectj-version}</version>
-      </dependency>
       <dependency>
         <groupId>cglib</groupId>
         <artifactId>cglib</artifactId>
@@ -177,7 +162,13 @@
         <artifactId>junit</artifactId>
         <version>${junit-version}</version>
         <scope>test</scope>
-      </dependency>          
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-test</artifactId>
+        <version>${spring-version}</version>
+        <scope>test</scope>
+      </dependency>               
   </dependencies>
 
 </project>

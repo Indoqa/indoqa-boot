@@ -61,6 +61,7 @@ public abstract class AbstractIndoqaBootApplication {
         this.beforeInitialization();
         this.logInitializationStart();
 
+        this.beforeSpringInitialization();
         this.initializeApplicationContext();
         this.initializeProfile();
         this.initializeExternalProperties();
@@ -70,6 +71,8 @@ public abstract class AbstractIndoqaBootApplication {
         this.initializeSpringComponentScan();
         this.refreshApplicationContext();
         this.completeSystemInfoInitialization();
+        this.afterSpringInitialization();
+
         this.enableApplicationReloading();
 
         this.logInitializationFinished();
@@ -80,7 +83,15 @@ public abstract class AbstractIndoqaBootApplication {
         // empty implementation
     }
 
+    protected void afterSpringInitialization() {
+        // empty implementation
+    }
+
     protected void beforeInitialization() {
+        // empty implementation
+    }
+
+    protected void beforeSpringInitialization() {
         // empty implementation
     }
 
