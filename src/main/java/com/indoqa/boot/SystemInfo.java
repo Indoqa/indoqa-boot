@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
@@ -44,6 +46,7 @@ public class SystemInfo {
     private String javaVersion;
     private String[] profiles;
     private String port;
+    private Map<String, String> more = new HashMap<>();
 
     @JsonIgnore
     @Inject
@@ -76,6 +79,10 @@ public class SystemInfo {
         }
     }
 
+    public void addProperty(String key, String value) {
+        this.more.put(key, value);
+    }
+
     @JsonProperty("initialization-duration")
     public long getInitializationDuration() {
         return this.initializationDuration;
@@ -83,6 +90,10 @@ public class SystemInfo {
 
     public String getJavaVersion() {
         return this.javaVersion;
+    }
+
+    public Map<String, String> getMore() {
+        return this.more;
     }
 
     public String getPort() {
