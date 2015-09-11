@@ -95,13 +95,21 @@ public abstract class AbstractIndoqaBootApplication {
         // empty implementation
     }
 
+    protected boolean checkLoggerInitialization() {
+        return true;
+    }
+
+    protected CharSequence getAdditionalStatusMessages() {
+        return null;
+    }
+
     protected AnnotationConfigApplicationContext getApplicationContext() {
         return this.context;
     }
 
     protected abstract String getApplicationName();
 
-    protected abstract String getComponentScanBasePackage();
+    protected abstract String[] getComponentScanBasePackages();
 
     protected Logger getInitializationLogger() {
         return this.initializationLogger;
@@ -129,7 +137,7 @@ public abstract class AbstractIndoqaBootApplication {
         // check if Hotswap-Agent is available at all
         if (!this.isHotswapAgentInstalled()) {
             this.logger.info("Application reloading is NOT enabled. Install Hotswap Agent by following "
-                    + "the instructions at https://github.com/HotswapProjects/HotswapAgent");
+                + "the instructions at https://github.com/HotswapProjects/HotswapAgent");
             return;
         }
 
@@ -141,8 +149,9 @@ public abstract class AbstractIndoqaBootApplication {
 
     private int getBeansHashCode() {
         List<String> beanDefinitions = Arrays.asList(this.getApplicationContext().getBeanFactory().getBeanDefinitionNames());
-        List<Object> beans = beanDefinitions.stream().map(bd -> this.getApplicationContext().getBeanFactory().getBean(bd))
-                .collect(Collectors.toList());
+        List<Object> beans = beanDefinitions.stream()
+            .map(bd -> this.getApplicationContext().getBeanFactory().getBean(bd))
+            .collect(Collectors.toList());
         return beans.hashCode();
     }
 
@@ -175,7 +184,7 @@ public abstract class AbstractIndoqaBootApplication {
             this.logger.info("Using external properties from {}", propertiesLocation);
         } else {
             this.logger.info("No external properties set. Use the system property 'properties' "
-                    + "to provide application properties as a Java properties file.");
+                + "to provide application properties as a Java properties file.");
         }
     }
 
@@ -198,7 +207,7 @@ public abstract class AbstractIndoqaBootApplication {
 
     private void initializeSpringComponentScan() {
         this.context.scan(AbstractIndoqaBootApplication.class.getPackage().getName());
-        this.context.scan(this.getComponentScanBasePackage());
+        this.context.scan(this.getComponentScanBasePackages());
     }
 
     private boolean isDevProfileEnabled() {
@@ -223,14 +232,35 @@ public abstract class AbstractIndoqaBootApplication {
             return;
         }
 
-        this.initializationLogger.info(this.getApplicationName() + " {} started at {} (initialized in {} ms, listening on port {}, "
-                + "active profile(s): {}, running on Java {})", this.systemInfo.getVersion(), this.systemInfo.getStarted(),
-                this.systemInfo.getInitializationDuration(), this.systemInfo.getPort(), this.systemInfo.getProfiles(),
-                this.systemInfo.getJavaVersion());
+        StringBuilder statusMessages = new StringBuilder().append(this.getApplicationName())
+            .append(" ")
+            .append(this.systemInfo.getVersion())
+            .append(" started at ")
+            .append(this.systemInfo.getStarted())
+            .append(" (initialized in ")
+            .append(this.systemInfo.getInitializationDuration())
+            .append(" ms")
+            .append(", listening on port ")
+            .append(this.systemInfo.getPort())
+            .append(", active profile(s): ")
+            .append(String.join("|", Arrays.asList(this.systemInfo.getProfiles())))
+            .append(", running on Java ")
+            .append(this.systemInfo.getJavaVersion());
+
+        CharSequence additionalStatusMessages = this.getAdditionalStatusMessages();
+        if (additionalStatusMessages != null) {
+            statusMessages.append(additionalStatusMessages);
+        }
+
+        statusMessages.append(")");
+
+        this.initializationLogger.info(statusMessages.toString());
     }
 
     private void logInitializationStart() {
-        LogPathValidator.checkLogDir();
+        if (this.checkLoggerInitialization()) {
+            LogPathValidator.checkLogDir();
+        }
 
         this.logger.info("Initializing " + this.getApplicationName());
     }
