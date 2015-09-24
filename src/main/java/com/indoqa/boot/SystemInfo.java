@@ -35,7 +35,6 @@ import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.indoqa.boot.AbstractIndoqaBootApplication.ApplicationInitializationException;
 
 @Named
 public class SystemInfo {

@@ -21,7 +21,7 @@ import javax.inject.Inject;
 import spark.Route;
 import spark.Spark;
 
-public abstract class AbstractJsonResourcesBase {
+public abstract class AbstractJsonResourcesBase extends AbstractResourcesBase {
 
     private static final String CONTENT_TYPE_JSON = "application/json";
 
@@ -29,19 +29,19 @@ public abstract class AbstractJsonResourcesBase {
     private JsonTransformer transformer;
 
     public void delete(String path, Route route) {
-        Spark.delete(path, CONTENT_TYPE_JSON, route, this.transformer);
+        Spark.delete(this.resolvePath(path), CONTENT_TYPE_JSON, route, this.transformer);
     }
 
     public void get(String path, Route route) {
-        Spark.get(path, CONTENT_TYPE_JSON, route, this.transformer);
+        Spark.get(this.resolvePath(path), CONTENT_TYPE_JSON, route, this.transformer);
     }
 
     public void post(String path, Route route) {
-        Spark.post(path, CONTENT_TYPE_JSON, route, this.transformer);
+        Spark.post(this.resolvePath(path), CONTENT_TYPE_JSON, route, this.transformer);
     }
 
     public void put(String path, Route route) {
-        Spark.put(path, CONTENT_TYPE_JSON, route, this.transformer);
+        Spark.put(this.resolvePath(path), CONTENT_TYPE_JSON, route, this.transformer);
     }
 
     protected JsonTransformer getTransformer() {

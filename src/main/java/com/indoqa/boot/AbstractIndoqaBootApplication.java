@@ -279,15 +279,6 @@ public abstract class AbstractIndoqaBootApplication {
         this.invoke();
     }
 
-    public static class ApplicationInitializationException extends RuntimeException {
-
-        private static final long serialVersionUID = 1L;
-
-        public ApplicationInitializationException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
-
     public class ReloadingTimerTask extends TimerTask {
 
         @Override
