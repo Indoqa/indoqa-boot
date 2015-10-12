@@ -18,30 +18,47 @@ package com.indoqa.boot;
 
 import javax.inject.Inject;
 
+import spark.ResponseTransformer;
 import spark.Route;
 import spark.Spark;
 
 public abstract class AbstractJsonResourcesBase extends AbstractResourcesBase {
 
-    private static final String CONTENT_TYPE_JSON = "application/json";
+    protected static final String CONTENT_TYPE_JSON = "application/json";
 
     @Inject
     private JsonTransformer transformer;
 
     public void delete(String path, Route route) {
-        Spark.delete(this.resolvePath(path), CONTENT_TYPE_JSON, route, this.transformer);
+        this.delete(path, route, this.transformer);
+    }
+
+    public void delete(String path, Route route, ResponseTransformer responseTransformer) {
+        Spark.delete(this.resolvePath(path), CONTENT_TYPE_JSON, route, responseTransformer);
     }
 
     public void get(String path, Route route) {
-        Spark.get(this.resolvePath(path), CONTENT_TYPE_JSON, route, this.transformer);
+        this.get(path, route, this.transformer);
+    }
+
+    public void get(String path, Route route, ResponseTransformer responseTransformer) {
+        Spark.get(this.resolvePath(path), CONTENT_TYPE_JSON, route, responseTransformer);
     }
 
     public void post(String path, Route route) {
-        Spark.post(this.resolvePath(path), CONTENT_TYPE_JSON, route, this.transformer);
+        this.post(path, route, this.transformer);
+    }
+
+    public void post(String path, Route route, ResponseTransformer responseTransformer) {
+        Spark.post(this.resolvePath(path), CONTENT_TYPE_JSON, route, responseTransformer);
     }
 
     public void put(String path, Route route) {
-        Spark.put(this.resolvePath(path), CONTENT_TYPE_JSON, route, this.transformer);
+        this.put(path, route, this.transformer);
+    }
+
+    public void put(String path, Route route, ResponseTransformer responseTransformer) {
+        Spark.put(this.resolvePath(path), CONTENT_TYPE_JSON, route, responseTransformer);
     }
 
     protected JsonTransformer getTransformer() {
