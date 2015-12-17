@@ -19,11 +19,7 @@ package com.indoqa.boot;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -40,7 +36,7 @@ import org.springframework.core.io.support.ResourcePropertySource;
 
 import spark.Spark;
 
-public abstract class AbstractIndoqaBootApplication {
+public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     private final Logger logger = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class);
     private final Logger initializationLogger = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class.getName() + "_INIT");
@@ -53,16 +49,13 @@ public abstract class AbstractIndoqaBootApplication {
 
     private int beansHashCode;
 
-    public AbstractIndoqaBootApplication() {
-        super();
-    }
-
     public void invoke() {
         this.beforeInitialization();
         this.logInitializationStart();
 
         this.beforeSpringInitialization();
         this.initializeApplicationContext();
+        this.initializeVersionProvider();
         this.initializeProfile();
         this.initializeExternalProperties();
         this.initializePropertyPlaceholderConfigurer();
@@ -115,6 +108,10 @@ public abstract class AbstractIndoqaBootApplication {
         return this.initializationLogger;
     }
 
+    protected VersionProvider getVersionProvider() {
+        return this;
+    }
+
     protected abstract void initializeSpringBeans();
 
     protected boolean isDevEnvironment() {
@@ -149,7 +146,8 @@ public abstract class AbstractIndoqaBootApplication {
 
     private int getBeansHashCode() {
         List<String> beanDefinitions = Arrays.asList(this.getApplicationContext().getBeanFactory().getBeanDefinitionNames());
-        List<Object> beans = beanDefinitions.stream()
+        List<Object> beans = beanDefinitions
+            .stream()
             .map(bd -> this.getApplicationContext().getBeanFactory().getBean(bd))
             .collect(Collectors.toList());
         return beans.hashCode();
@@ -210,6 +208,10 @@ public abstract class AbstractIndoqaBootApplication {
         this.context.scan(this.getComponentScanBasePackages());
     }
 
+    private void initializeVersionProvider() {
+        this.context.getBeanFactory().registerSingleton(VersionProvider.class.getName(), this.getVersionProvider());
+    }
+
     private boolean isDevProfileEnabled() {
         return ArrayUtils.contains(this.context.getEnvironment().getActiveProfiles(), "dev");
     }
@@ -232,7 +234,8 @@ public abstract class AbstractIndoqaBootApplication {
             return;
         }
 
-        StringBuilder statusMessages = new StringBuilder().append(this.getApplicationName())
+        StringBuilder statusMessages = new StringBuilder()
+            .append(this.getApplicationName())
             .append(" ")
             .append(this.systemInfo.getVersion())
             .append(" started at ")

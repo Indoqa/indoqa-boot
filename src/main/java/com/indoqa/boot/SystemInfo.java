@@ -51,6 +51,9 @@ public class SystemInfo {
     @Inject
     private Environment environment;
 
+    @Inject
+    private AbstractIndoqaBootApplication indoqaBootApplication;
+
     private static String getAttribute(Class<?> archivedClass, String property) throws IOException {
         Manifest manifest = getManifest(archivedClass);
         if (manifest == null) {
@@ -137,7 +140,7 @@ public class SystemInfo {
 
     private String getApplicationVersion() {
         try {
-            String versionAttribute = getAttribute(SystemInfo.class, "Implementation-Build");
+            String versionAttribute = getAttribute(this.indoqaBootApplication.getClass(), "Implementation-Build");
             if (versionAttribute == null) {
                 return "DEVELOPMENT";
             }
