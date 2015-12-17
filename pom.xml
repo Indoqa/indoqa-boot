@@ -28,7 +28,7 @@
 
   <groupId>com.indoqa</groupId>
   <artifactId>indoqa-boot</artifactId>
-  <version>0.4.1</version>
+  <version>0.4.2-SNAPSHOT</version>
   
   <name>Indoqa Boot</name>
   <url>https://github.com/indoqa/indoqa-boot</url>
@@ -38,7 +38,7 @@
     <connection>scm:git:git@github.com:Indoqa/indoqa-boot.git</connection>
     <developerConnection>scm:git:git@github.com:Indoqa/indoqa-boot.git</developerConnection>
     <url>https://github.com/Indoqa/indoqa-boot</url>
-    <tag>indoqa-boot-0.4.1</tag>
+    <tag>HEAD</tag>
   </scm>
 
 
