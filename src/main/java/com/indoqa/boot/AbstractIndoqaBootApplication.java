@@ -56,11 +56,13 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.beforeSpringInitialization();
         this.initializeApplicationContext();
         this.initializeVersionProvider();
+        this.initializeSystemInfo();
         this.initializeProfile();
         this.initializeExternalProperties();
         this.initializePropertyPlaceholderConfigurer();
         this.initializeSparkConfiguration();
         this.initializeSpringBeans();
+        this.initializeDefaultResources();
         this.initializeSpringComponentScan();
         this.refreshApplicationContext();
         this.completeSystemInfoInitialization();
@@ -174,6 +176,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.context = new AnnotationConfigApplicationContext();
     }
 
+    private void initializeDefaultResources() {
+        this.context.register(SystemInfoResource.class);
+    }
+
     private void initializeExternalProperties() {
         if (this.isExternalPropertiesFileProvided()) {
             String propertiesLocation = System.getProperty("properties");
@@ -206,6 +212,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     private void initializeSpringComponentScan() {
         this.context.scan(AbstractIndoqaBootApplication.class.getPackage().getName());
         this.context.scan(this.getComponentScanBasePackages());
+    }
+
+    private void initializeSystemInfo() {
+        this.context.register(SystemInfo.class);
     }
 
     private void initializeVersionProvider() {

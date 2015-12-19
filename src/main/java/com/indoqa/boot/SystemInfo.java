@@ -28,7 +28,6 @@ import java.util.jar.Manifest;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.env.Environment;
@@ -36,7 +35,6 @@ import org.springframework.core.env.Environment;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Named
 public class SystemInfo {
 
     private String version;
@@ -52,7 +50,7 @@ public class SystemInfo {
     private Environment environment;
 
     @Inject
-    private AbstractIndoqaBootApplication indoqaBootApplication;
+    private VersionProvider versionProvider;
 
     private static String getAttribute(Class<?> archivedClass, String property) throws IOException {
         Manifest manifest = getManifest(archivedClass);
@@ -140,7 +138,7 @@ public class SystemInfo {
 
     private String getApplicationVersion() {
         try {
-            String versionAttribute = getAttribute(this.indoqaBootApplication.getClass(), "Implementation-Build");
+            String versionAttribute = getAttribute(this.versionProvider.getClass(), "Implementation-Build");
             if (versionAttribute == null) {
                 return "DEVELOPMENT";
             }
