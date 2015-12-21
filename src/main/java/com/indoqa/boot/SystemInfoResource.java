@@ -16,8 +16,12 @@
  */
 package com.indoqa.boot;
 
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+
+import spark.Response;
 
 public class SystemInfoResource extends AbstractJsonResourcesBase {
 
@@ -26,6 +30,14 @@ public class SystemInfoResource extends AbstractJsonResourcesBase {
 
     @PostConstruct
     public void mount() {
-        this.get("/system-info", (request, response) -> this.systemInfo);
+        this.get("/system-info", (request, response) -> this.sendSystemInfo(response));
+    }
+
+    private SystemInfo sendSystemInfo(Response response) {
+        if (this.systemInfo.isInitialized()) {
+            return this.systemInfo;
+        }
+        response.status(HTTP_NOT_FOUND);
+        return null;
     }
 }

@@ -125,6 +125,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.systemInfo = this.context.getBean(SystemInfo.class);
         this.systemInfo.setInitializationDuration(duration);
         this.systemInfo.setStarted(this.START_TIME);
+        this.systemInfo.setInitialized(true);
     }
 
     private void enableApplicationReloading() {

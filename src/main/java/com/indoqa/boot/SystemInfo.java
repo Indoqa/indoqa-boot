@@ -44,6 +44,7 @@ public class SystemInfo {
     private String[] profiles;
     private String port;
     private Map<String, String> more = new HashMap<>();
+    private boolean initialized;
 
     @JsonIgnore
     @Inject
@@ -105,6 +106,10 @@ public class SystemInfo {
     }
 
     public String getStarted() {
+        if (this.started == null) {
+            return null;
+        }
+
         return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZZ").format(this.started);
     }
 
@@ -120,8 +125,16 @@ public class SystemInfo {
         this.port = this.lookupPort();
     }
 
+    public boolean isInitialized() {
+        return this.initialized;
+    }
+
     public void setInitializationDuration(long duration) {
         this.initializationDuration = duration;
+    }
+
+    public void setInitialized(boolean initialized) {
+        this.initialized = initialized;
     }
 
     public void setStarted(Date started) {
