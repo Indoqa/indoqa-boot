@@ -151,11 +151,17 @@ public class SystemInfo {
 
     private String getApplicationVersion() {
         try {
-            String versionAttribute = getAttribute(this.versionProvider.getClass(), "Implementation-Build");
-            if (versionAttribute == null) {
-                return "DEVELOPMENT";
+            String versionAttribute = getAttribute(this.versionProvider.getClass(), "Implementation-Version");
+            if (versionAttribute != null) {
+                return versionAttribute;
             }
-            return versionAttribute;
+
+            versionAttribute = getAttribute(this.versionProvider.getClass(), "Implementation-Build");
+            if (versionAttribute != null) {
+                return versionAttribute;
+            }
+
+            return "UNKNOWN_VERSION";
         } catch (IOException e) {
             throw new ApplicationInitializationException("Cannot read from manifest.", e);
         }

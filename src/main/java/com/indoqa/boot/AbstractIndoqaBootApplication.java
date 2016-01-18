@@ -38,8 +38,8 @@ import spark.Spark;
 
 public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
-    private final Logger logger = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class);
-    private final Logger initializationLogger = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class.getName() + "_INIT");
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class);
+    private static final Logger INIT_LOGGER = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class.getName() + "_INIT");
 
     private final Date START_TIME = new Date();
 
@@ -48,6 +48,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     private SystemInfo systemInfo;
 
     private int beansHashCode;
+
+    protected static Logger getInitializationLogger() {
+        return INIT_LOGGER;
+    }
 
     public void invoke() {
         this.beforeInitialization();
@@ -102,19 +106,21 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         return this.context;
     }
 
-    protected abstract String getApplicationName();
+    protected String getApplicationName() {
+        return this.getClass().getSimpleName();
+    }
 
-    protected abstract String[] getComponentScanBasePackages();
-
-    protected Logger getInitializationLogger() {
-        return this.initializationLogger;
+    protected String[] getComponentScanBasePackages() {
+        return new String[] {this.getClass().getPackage().getName()};
     }
 
     protected VersionProvider getVersionProvider() {
         return this;
     }
 
-    protected abstract void initializeSpringBeans();
+    protected void initializeSpringBeans() {
+        // empty implementation
+    }
 
     protected boolean isDevEnvironment() {
         return false;
@@ -136,12 +142,13 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
         // check if Hotswap-Agent is available at all
         if (!this.isHotswapAgentInstalled()) {
-            this.logger.info("Application reloading is NOT enabled. Install Hotswap Agent by following "
-                + "the instructions at https://github.com/HotswapProjects/HotswapAgent");
+            LOGGER.info(
+                "Application reloading is NOT enabled. Install Hotswap Agent by following "
+                    + "the instructions at https://github.com/HotswapProjects/HotswapAgent");
             return;
         }
 
-        this.logger.info("Application reloading is enabled based on Hotswap Agent.");
+        LOGGER.info("Application reloading is enabled based on Hotswap Agent.");
         this.beansHashCode = this.getBeansHashCode();
         // create a TimerTask that frequently checks if the Spring application context has changed
         new Timer().scheduleAtFixedRate(new ReloadingTimerTask(), 0, SECONDS.toMillis(1));
@@ -186,20 +193,21 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             String propertiesLocation = System.getProperty("properties");
             this.propertySource = this.getProperties(propertiesLocation);
             this.context.getEnvironment().getPropertySources().addFirst(this.propertySource);
-            this.logger.info("Using external properties from {}", propertiesLocation);
+            LOGGER.info("Using external properties from {}", propertiesLocation);
         } else {
-            this.logger.info("No external properties set. Use the system property 'properties' "
-                + "to provide application properties as a Java properties file.");
+            LOGGER.info(
+                "No external properties set. Use the system property 'properties' "
+                    + "to provide application properties as a Java properties file.");
         }
     }
 
     private void initializeProfile() {
         if (this.hasNoActiveProfile()) {
             String detectedProfile = this.isDevEnvironment() ? "dev" : "prod";
-            this.logger.info("Explicitly set Spring profile: {}", detectedProfile);
+            LOGGER.info("Explicitly set Spring profile: {}", detectedProfile);
             this.context.getEnvironment().setActiveProfiles(detectedProfile);
         }
-        this.logger.info("Active Spring profile(s): {}", String.join(" & ", this.context.getEnvironment().getActiveProfiles()));
+        LOGGER.info("Active Spring profile(s): {}", String.join(" & ", this.context.getEnvironment().getActiveProfiles()));
     }
 
     private void initializePropertyPlaceholderConfigurer() {
@@ -268,7 +276,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
         statusMessages.append(")");
 
-        this.initializationLogger.info(statusMessages.toString());
+        INIT_LOGGER.info(statusMessages.toString());
     }
 
     private void logInitializationStart() {
@@ -276,7 +284,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             LogPathValidator.checkLogDir();
         }
 
-        this.logger.info("Initializing " + this.getApplicationName());
+        LOGGER.info("Initializing " + this.getApplicationName());
     }
 
     private void refreshApplicationContext() {
