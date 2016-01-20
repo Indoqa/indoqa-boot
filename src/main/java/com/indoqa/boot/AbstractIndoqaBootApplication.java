@@ -34,6 +34,9 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.support.ResourcePropertySource;
 
+import com.indoqa.boot.json.JacksonTransformer;
+
+import spark.ResponseTransformer;
 import spark.Spark;
 
 public abstract class AbstractIndoqaBootApplication implements VersionProvider {
@@ -65,6 +68,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.initializeExternalProperties();
         this.initializePropertyPlaceholderConfigurer();
         this.initializeSparkConfiguration();
+        this.initializeJsonTransformer();
         this.initializeSpringBeans();
         this.initializeDefaultResources();
         this.initializeSpringComponentScan();
@@ -112,6 +116,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     protected String[] getComponentScanBasePackages() {
         return new String[] {this.getClass().getPackage().getName()};
+    }
+
+    protected Class<? extends ResponseTransformer> getJsonTransformerClass() {
+        return JacksonTransformer.class;
     }
 
     protected VersionProvider getVersionProvider() {
@@ -199,6 +207,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
                 "No external properties set. Use the system property 'properties' "
                     + "to provide application properties as a Java properties file.");
         }
+    }
+
+    private void initializeJsonTransformer() {
+        this.context.register(this.getJsonTransformerClass());
     }
 
     private void initializeProfile() {

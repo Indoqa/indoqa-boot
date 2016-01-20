@@ -14,18 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot;
+package com.indoqa.boot.json;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static spark.Spark.after;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Named;
 
+import spark.Response;
+
 @Named
-public class JsonAfterInterceptor {
+public class DefaultContentTypeAfterInterceptor {
 
     @PostConstruct
     public void intercept() {
-        after((request, response) -> response.type("application/json"));
+        after((request, response) -> this.setContentType(response));
+    }
+
+    private void setContentType(Response response) {
+        if (isBlank(response.raw().getContentType())) {
+            response.type("application/json");
+        }
     }
 }

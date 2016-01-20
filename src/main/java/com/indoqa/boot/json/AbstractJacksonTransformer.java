@@ -14,43 +14,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot;
+package com.indoqa.boot.json;
 
 import java.io.IOException;
 
-import javax.inject.Named;
-
-import spark.ResponseTransformer;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
-@Named
-public class JsonTransformer implements ResponseTransformer {
+public abstract class AbstractJacksonTransformer implements JsonTransformer {
 
-    private ObjectMapper mapper;
+    protected ObjectMapper objectMapper;
 
-    public JsonTransformer() {
-        this.mapper = new ObjectMapper();
-        this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    public AbstractJacksonTransformer() {
+        this.objectMapper = new ObjectMapper();
+        this.configure();
     }
 
     @Override
     public String render(Object model) {
         try {
-            return this.mapper.writeValueAsString(model);
+            return this.objectMapper.writeValueAsString(model);
         } catch (JsonProcessingException e) {
             throw new JsonTransformerException("Can't marshal object as JSON string.", e);
         }
     }
 
+    @Override
     public <T> T toObject(String json, Class<T> type) {
         try {
-            return this.mapper.readValue(json, type);
+            return this.objectMapper.readValue(json, type);
         } catch (IOException e) {
             throw new JsonTransformerException("Can't unmarshal object from JSON string:\n" + json, e);
         }
+    }
+
+    protected abstract void configure();
+
+    protected ObjectMapper getObjectMapper() {
+        return this.objectMapper;
     }
 
     public static class JsonTransformerException extends RuntimeException {
@@ -61,4 +62,5 @@ public class JsonTransformer implements ResponseTransformer {
             super(message, cause);
         }
     }
+
 }

@@ -26,7 +26,7 @@ public abstract class AbstractResourcesBase {
 
     private static final String DEFAULT_BASE_PATH = "";
 
-    final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public AbstractResourcesBase() {
         super();

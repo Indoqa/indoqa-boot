@@ -18,6 +18,8 @@ package com.indoqa.boot;
 
 import javax.inject.Inject;
 
+import com.indoqa.boot.json.JsonTransformer;
+
 import spark.ResponseTransformer;
 import spark.Route;
 import spark.Spark;
