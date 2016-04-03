@@ -52,6 +52,7 @@
     <aspectj-version>1.8.6</aspectj-version>
     <cglib-version>3.1</cglib-version>
     <apache-commons-lang3-version>3.4</apache-commons-lang3-version>
+    <indoqa-spring-version>4.1.0.0-SNAPSHOT</indoqa-spring-version>    
     <junit-version>4.12</junit-version>
   </properties>  
 
@@ -154,7 +155,12 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>${apache-commons-lang3-version}</version>
-    </dependency>          
+    </dependency>       
+    <dependency>
+      <groupId>com.indoqa</groupId>
+      <artifactId>indoqa-spring</artifactId>
+      <version>${indoqa-spring-version}</version>
+    </dependency>       
 
     <!-- Test dependencies -->
     <dependency>
