@@ -48,7 +48,9 @@ public final class JsAppUtils {
         String initialStateJson = EMPTY_INITIAL_STATE;
         if (initialStateProvider != null && transformer != null) {
             Object initialStateObject = initialStateProvider.initialState(req);
-            initialStateJson = transformer.render(initialStateObject);
+            if (initialStateObject != null) {
+                initialStateJson = transformer.render(initialStateObject);
+            }
         }
         return initialStateJson;
     }
