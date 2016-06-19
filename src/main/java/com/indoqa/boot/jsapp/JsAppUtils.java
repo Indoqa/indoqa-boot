@@ -25,7 +25,7 @@ public final class JsAppUtils {
 
     private static final String EMPTY_INITIAL_STATE = "{}";
     private static final String RESPONSE_HEADER_CONTENT_TYPE = "Content-Type";
-    private static final String CONTENT_TYPE_HTML = "text/html";
+    private static final String CONTENT_TYPE_HTML = "text/html; charset=utf-8";
 
     private JsAppUtils() {
         // hide utility class constructor
@@ -58,6 +58,11 @@ public final class JsAppUtils {
     private static String createSinglePageHtml(String rootElementId, String cssFile, String javascriptFile, String initialStateJson) {
         return new StringBuilder()
             .append("<!DOCTYPE html><html><head>")
+            .append("<meta http-equiv=\"")
+            .append(RESPONSE_HEADER_CONTENT_TYPE)
+            .append("\" content=\"")
+            .append(CONTENT_TYPE_HTML)
+            .append("\">")
             .append("<link rel=\"stylesheet\" href=\"")
             .append(cssFile)
             .append("\" />")
