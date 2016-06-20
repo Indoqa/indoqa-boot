@@ -41,7 +41,7 @@ public abstract class AbstractResourcesBase {
 
         if (!StringUtils.startsWith(resourceBase, "/")) {
             throw new ApplicationInitializationException(
-                "The Spark resource base path '" + resourceBase + "is invalid. It must start with a '/'.");
+                "The Spark resource base path '" + resourceBase + "' is invalid. It must start with a '/'.");
         }
 
         if (StringUtils.endsWith(resourceBase, "/")) {
