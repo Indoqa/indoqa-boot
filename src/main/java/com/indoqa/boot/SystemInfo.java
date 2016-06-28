@@ -19,9 +19,7 @@ package com.indoqa.boot;
 import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
@@ -41,6 +39,8 @@ public class SystemInfo {
     private Date started;
     private long initializationDuration;
     private String javaVersion;
+    private Map<String, String> systemProperties;
+    private Map<String, String> javaEnvironment;
     private String[] profiles;
     private String port;
     private Map<String, String> more = new HashMap<>();
@@ -48,7 +48,7 @@ public class SystemInfo {
 
     @JsonIgnore
     @Inject
-    private Environment environment;
+    private Environment springEnvironment;
 
     @Inject
     private VersionProvider versionProvider;
@@ -89,6 +89,12 @@ public class SystemInfo {
         return this.initializationDuration;
     }
 
+    @JsonProperty("environment")
+    public Map<String, String> getJavaEnvironment() {
+        return this.javaEnvironment;
+    }
+
+    @JsonProperty("java-version")
     public String getJavaVersion() {
         return this.javaVersion;
     }
@@ -113,6 +119,11 @@ public class SystemInfo {
         return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZZ").format(this.started);
     }
 
+    @JsonProperty("system-properties")
+    public Map<String, String> getSystemProperties() {
+        return this.systemProperties;
+    }
+
     public String getVersion() {
         return this.version;
     }
@@ -123,6 +134,8 @@ public class SystemInfo {
         this.javaVersion = System.getProperty("java.version");
         this.profiles = this.getActiveProfiles();
         this.port = this.lookupPort();
+        this.javaEnvironment = System.getenv();
+        this.systemProperties = this.createSystemPropertiesMap();
     }
 
     public boolean isInitialized() {
@@ -145,8 +158,21 @@ public class SystemInfo {
         return this.started;
     }
 
+    private Map<String, String> createSystemPropertiesMap() {
+        Properties systemProps = System.getProperties();
+        Enumeration<Object> keys = systemProps.keys();
+
+        Map<String, String> result = new HashMap<>();
+        while (keys.hasMoreElements()) {
+            String key = keys.nextElement().toString();
+            result.put(key, System.getProperty(key));
+        }
+
+        return result;
+    }
+
     private String[] getActiveProfiles() {
-        return this.environment.getActiveProfiles();
+        return this.springEnvironment.getActiveProfiles();
     }
 
     private String getApplicationVersion() {
@@ -168,7 +194,7 @@ public class SystemInfo {
     }
 
     private String lookupPort() {
-        String result = this.environment.getProperty("port");
+        String result = this.springEnvironment.getProperty("port");
         if (StringUtils.isNotBlank(result)) {
             return result;
         }
