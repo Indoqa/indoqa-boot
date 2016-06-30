@@ -19,6 +19,7 @@ package com.indoqa.boot;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,6 +39,7 @@ import com.indoqa.boot.json.JacksonTransformer;
 
 import spark.ResponseTransformer;
 import spark.Spark;
+import spark.utils.IOUtils;
 
 public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
@@ -58,6 +60,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     public void invoke() {
         this.beforeInitialization();
+        this.printLogo();
         this.logInitializationStart();
 
         this.beforeSpringInitialization();
@@ -112,6 +115,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     protected String getApplicationName() {
         return this.getClass().getSimpleName();
+    }
+
+    protected String getAsciiLogoPath() {
+        return null;
     }
 
     protected String[] getComponentScanBasePackages() {
@@ -297,6 +304,24 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         }
 
         LOGGER.info("Initializing " + this.getApplicationName());
+    }
+
+    private void printLogo() {
+        String asciiLogoPath = this.getAsciiLogoPath();
+
+        if (asciiLogoPath == null) {
+            return;
+        }
+
+        try (InputStream asciiLogoInputStream = AbstractIndoqaBootApplication.class.getResourceAsStream(asciiLogoPath)) {
+            String asciiLogo = IOUtils.toString(asciiLogoInputStream);
+            if (asciiLogo == null) {
+                return;
+            }
+            getInitializationLogger().info(asciiLogo);
+        } catch (IOException | NullPointerException e) {
+            throw new ApplicationInitializationException("Error while reading ASCII logo from " + asciiLogoPath, e);
+        }
     }
 
     private void refreshApplicationContext() {
