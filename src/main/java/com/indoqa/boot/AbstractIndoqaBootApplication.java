@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -39,7 +40,6 @@ import com.indoqa.boot.json.JacksonTransformer;
 
 import spark.ResponseTransformer;
 import spark.Spark;
-import spark.utils.IOUtils;
 
 public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
@@ -59,8 +59,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     public void invoke() {
-        this.beforeInitialization();
         this.printLogo();
+        this.beforeInitialization();
         this.logInitializationStart();
 
         this.beforeSpringInitialization();
@@ -314,7 +314,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         }
 
         try (InputStream asciiLogoInputStream = AbstractIndoqaBootApplication.class.getResourceAsStream(asciiLogoPath)) {
-            String asciiLogo = IOUtils.toString(asciiLogoInputStream);
+            String asciiLogo = IOUtils.toString(asciiLogoInputStream, "utf-8");
             if (asciiLogo == null) {
                 return;
             }
