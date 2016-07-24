@@ -16,17 +16,13 @@
  */
 package com.indoqa.boot;
 
-import javax.annotation.PostConstruct;
+import static org.apache.commons.lang3.StringUtils.*;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.annotation.PostConstruct;
 
 public abstract class AbstractResourcesBase {
 
     private static final String DEFAULT_BASE_PATH = "";
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public AbstractResourcesBase() {
         super();
@@ -35,16 +31,16 @@ public abstract class AbstractResourcesBase {
     @PostConstruct
     public void checkResourceBase() {
         CharSequence resourceBase = this.getResourceBase();
-        if (StringUtils.isBlank(resourceBase)) {
+        if (isBlank(resourceBase)) {
             return;
         }
 
-        if (!StringUtils.startsWith(resourceBase, "/")) {
+        if (!startsWith(resourceBase, "/")) {
             throw new ApplicationInitializationException(
                 "The Spark resource base path '" + resourceBase + "' is invalid. It must start with a '/'.");
         }
 
-        if (StringUtils.endsWith(resourceBase, "/")) {
+        if (endsWith(resourceBase, "/")) {
             throw new ApplicationInitializationException(
                 "The Spark resource base path '" + resourceBase + "' is invalid. It must not end with a '/'.");
         }
@@ -55,13 +51,11 @@ public abstract class AbstractResourcesBase {
     }
 
     protected String resolvePath(CharSequence path) {
-        if (!StringUtils.startsWith(path, "/")) {
+        if (!startsWith(path, "/")) {
             throw new ApplicationInitializationException(
                 "A Spark resource cannot be mounted to '" + path + "'. The path has to start with a '/'.");
         }
 
-        String resolvePath = new StringBuilder(this.getResourceBase()).append(path).toString();
-        this.logger.info("Mounting Spark resource to '" + resolvePath + "'.");
-        return resolvePath;
+        return new StringBuilder(this.getResourceBase()).append(path).toString();
     }
 }
