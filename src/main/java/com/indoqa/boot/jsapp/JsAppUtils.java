@@ -38,7 +38,7 @@ public final class JsAppUtils {
     public static void jsApp(String path, Assets assets, InitialStateProvider initialState, JsonTransformer transformer) {
         Spark.get(path, (req, res) -> {
             String initialStateJson = createInitialStateJson(req, initialState, transformer);
-            res.header(RESPONSE_HEADER_CONTENT_TYPE, CONTENT_TYPE_HTML);
+            res.raw().setContentType(CONTENT_TYPE_HTML);
             return createSinglePageHtml(assets.getRootElementId(), assets.getMainCss(), assets.getMainJavascript(), initialStateJson);
         });
     }

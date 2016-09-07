@@ -97,7 +97,7 @@ public final class WebpackAssetsUtils {
 
         @Override
         public String getMainJavascript() {
-            return this.filterAssets(uri -> uri.endsWith("js"), "CSS");
+            return this.filterAssets(uri -> uri.endsWith("js"), "Javascript");
         }
 
         @Override
