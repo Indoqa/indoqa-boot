@@ -39,7 +39,8 @@ public final class JsAppUtils {
         Spark.get(path, (req, res) -> {
             String initialStateJson = createInitialStateJson(req, initialState, transformer);
             res.raw().setContentType(CONTENT_TYPE_HTML);
-            return createSinglePageHtml(assets.getRootElementId(), assets.getMainCss(), assets.getMainJavascript(), initialStateJson);
+            return createSinglePageHtml(path, assets.getRootElementId(), assets.getMainCss(), assets.getMainJavascript(),
+                initialStateJson);
         });
     }
 
@@ -55,15 +56,16 @@ public final class JsAppUtils {
         return initialStateJson;
     }
 
-    private static String createSinglePageHtml(String rootElementId, String cssFile, String javascriptFile, String initialStateJson) {
-        return new StringBuilder()
-            .append("<!DOCTYPE html><html><head>")
+    private static String createSinglePageHtml(String rootPath, String rootElementId, String cssFile, String javascriptFile,
+            String initialStateJson) {
+        return new StringBuilder().append("<!DOCTYPE html><html><head>")
             .append("<meta http-equiv=\"")
             .append(RESPONSE_HEADER_CONTENT_TYPE)
             .append("\" content=\"")
             .append(CONTENT_TYPE_HTML)
             .append("\">")
             .append("<link rel=\"stylesheet\" href=\"")
+            .append(rootPath)
             .append(cssFile)
             .append("\" />")
             .append("</head>")
@@ -75,6 +77,7 @@ public final class JsAppUtils {
             .append(initialStateJson)
             .append(";</script>")
             .append("<script src=\"")
+            .append(rootPath)
             .append(javascriptFile)
             .append("\"></script>")
             .append("</body></html>")

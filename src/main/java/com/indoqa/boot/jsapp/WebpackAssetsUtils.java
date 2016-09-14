@@ -111,8 +111,7 @@ public final class WebpackAssetsUtils {
         }
 
         private String filterAssets(Predicate<String> filter, String type) {
-            List<String> filteredAssets = this.assets
-                .stream()
+            List<String> filteredAssets = this.assets.stream()
                 .map(WebpackAssetsUtils::urlToUri)
                 .filter(filter)
                 .map(WebpackAssetsUtils::extractFilename)
