@@ -16,6 +16,9 @@
  */
 package com.indoqa.boot.jsapp;
 
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
 import com.indoqa.boot.json.JsonTransformer;
 
 import spark.Request;
@@ -32,15 +35,23 @@ public final class JsAppUtils {
     }
 
     public static void jsApp(String path, Assets assets) {
-        jsApp(path, assets, null, null);
+        jsApp(path, assets, null, null, null);
     }
 
-    public static void jsApp(String path, Assets assets, InitialStateProvider initialState, JsonTransformer transformer) {
-        Spark.get(path, (req, res) -> {
+    public static void jsApp(String path, Assets assets, ProxyURLMappings urlMappings) {
+        jsApp(path, assets, urlMappings, null, null);
+    }
+
+    public static void jsApp(String path, Assets assets, ProxyURLMappings urlMappings, InitialStateProvider initialState,
+            JsonTransformer transformer) {
+        Spark.get(path, "text/html", (req, res) -> {
             String initialStateJson = createInitialStateJson(req, initialState, transformer);
+            String proxyMappingScript = createProxyMappingScript(urlMappings);
+
             res.raw().setContentType(CONTENT_TYPE_HTML);
+
             return createSinglePageHtml(path, assets.getRootElementId(), assets.getMainCss(), assets.getMainJavascript(),
-                initialStateJson);
+                proxyMappingScript, initialStateJson);
         });
     }
 
@@ -56,8 +67,28 @@ public final class JsAppUtils {
         return initialStateJson;
     }
 
+    protected static String createProxyMappingEntryScript(Entry<String, String> entry) {
+        return new StringBuilder().append("window.")
+            .append(entry.getKey())
+            .append(" = ")
+            .append("'")
+            .append(entry.getValue())
+            .append("'")
+            .append(";")
+            .toString();
+    }
+
+    protected static String createProxyMappingScript(ProxyURLMappings urlMappings) {
+        if (urlMappings == null) {
+            return "";
+        }
+
+        return urlMappings.getEntries().stream().map(JsAppUtils::createProxyMappingEntryScript).collect(Collectors.joining("\n"));
+    }
+
     private static String createSinglePageHtml(String rootPath, String rootElementId, String cssFile, String javascriptFile,
-            String initialStateJson) {
+            String proxyMappingScript, String initialStateJson) {
+
         return new StringBuilder().append("<!DOCTYPE html><html><head>")
             .append("<meta http-equiv=\"")
             .append(RESPONSE_HEADER_CONTENT_TYPE)
@@ -65,7 +96,6 @@ public final class JsAppUtils {
             .append(CONTENT_TYPE_HTML)
             .append("\">")
             .append("<link rel=\"stylesheet\" href=\"")
-            .append(rootPath)
             .append(cssFile)
             .append("\" />")
             .append("</head>")
@@ -76,8 +106,10 @@ public final class JsAppUtils {
             .append("<script>window.__INITIAL_STATE__ = ")
             .append(initialStateJson)
             .append(";</script>")
+            .append("<script>")
+            .append(proxyMappingScript)
+            .append(";</script>")
             .append("<script src=\"")
-            .append(rootPath)
             .append(javascriptFile)
             .append("\"></script>")
             .append("</body></html>")

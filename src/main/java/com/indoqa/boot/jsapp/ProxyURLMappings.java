@@ -16,24 +16,21 @@
  */
 package com.indoqa.boot.jsapp;
 
-import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
-import com.indoqa.boot.json.JsonTransformer;
+public class ProxyURLMappings {
 
-public abstract class AbstractJsAppResourcesBase {
+    private Map<String, String> urlMappings = new HashMap<>();
 
-    @Inject
-    private JsonTransformer transformer;
-
-    public void jsApp(String path, Assets assets) {
-        JsAppUtils.jsApp(path, assets);
+    public ProxyURLMappings add(String key, String mapping) {
+        this.urlMappings.put(key, mapping);
+        return this;
     }
 
-    public void jsApp(String path, Assets assets, ProxyURLMappings urlMappings) {
-        JsAppUtils.jsApp(path, assets, urlMappings);
-    }
-
-    public void jsApp(String path, Assets assets, ProxyURLMappings urlMappings, InitialStateProvider initialState) {
-        JsAppUtils.jsApp(path, assets, urlMappings, initialState, this.transformer);
+    public Set<Entry<String, String>> getEntries() {
+        return this.urlMappings.entrySet();
     }
 }
