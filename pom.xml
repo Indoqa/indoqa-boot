@@ -42,7 +42,7 @@
     <apache-commons-lang3-version>3.4</apache-commons-lang3-version>
     <apache-commons-io-version>2.5</apache-commons-io-version>
     <indoqa-spring-version>4.1.0.0-SNAPSHOT</indoqa-spring-version>
-    <indoqa-http-proxy-version>1.0.0</indoqa-http-proxy-version>
+    <indoqa-http-proxy-version>1.0.1-SNAPSHOT</indoqa-http-proxy-version>
     <junit-version>4.12</junit-version>
   </properties>
 

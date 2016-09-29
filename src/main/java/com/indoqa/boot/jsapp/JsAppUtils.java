@@ -24,7 +24,7 @@ import com.indoqa.boot.json.JsonTransformer;
 import spark.Request;
 import spark.Spark;
 
-public final class JsAppUtils {
+/*default*/ final class JsAppUtils {
 
     private static final String EMPTY_INITIAL_STATE = "{}";
     private static final String RESPONSE_HEADER_CONTENT_TYPE = "Content-Type";
@@ -32,14 +32,6 @@ public final class JsAppUtils {
 
     private JsAppUtils() {
         // hide utility class constructor
-    }
-
-    public static void jsApp(String path, Assets assets) {
-        jsApp(path, assets, null, null, null);
-    }
-
-    public static void jsApp(String path, Assets assets, ProxyURLMappings urlMappings) {
-        jsApp(path, assets, urlMappings, null, null);
     }
 
     public static void jsApp(String path, Assets assets, ProxyURLMappings urlMappings, InitialStateProvider initialState,
@@ -50,8 +42,9 @@ public final class JsAppUtils {
 
             res.raw().setContentType(CONTENT_TYPE_HTML);
 
-            return createSinglePageHtml(path, assets.getRootElementId(), assets.getMainCss(), assets.getMainJavascript(),
-                proxyMappingScript, initialStateJson);
+            return createSinglePageHtml(
+                path, assets.getRootElementId(), assets.getMainCss(), assets.getMainJavascript(), proxyMappingScript,
+                initialStateJson);
         });
     }
 
@@ -68,7 +61,8 @@ public final class JsAppUtils {
     }
 
     protected static String createProxyMappingEntryScript(Entry<String, String> entry) {
-        return new StringBuilder().append("window.")
+        return new StringBuilder()
+            .append("window.")
             .append(entry.getKey())
             .append(" = ")
             .append("'")
@@ -89,7 +83,8 @@ public final class JsAppUtils {
     private static String createSinglePageHtml(String rootPath, String rootElementId, String cssFile, String javascriptFile,
             String proxyMappingScript, String initialStateJson) {
 
-        return new StringBuilder().append("<!DOCTYPE html><html><head>")
+        return new StringBuilder()
+            .append("<!DOCTYPE html><html><head>")
             .append("<meta http-equiv=\"")
             .append(RESPONSE_HEADER_CONTENT_TYPE)
             .append("\" content=\"")

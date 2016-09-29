@@ -26,11 +26,15 @@ public abstract class AbstractJsAppResourcesBase {
     private JsonTransformer transformer;
 
     public void jsApp(String path, Assets assets) {
-        JsAppUtils.jsApp(path, assets);
+        JsAppUtils.jsApp(path, assets, null, null, null);
+    }
+
+    public void jsApp(String path, Assets assets, InitialStateProvider initialState) {
+        JsAppUtils.jsApp(path, assets, null, initialState, this.transformer);
     }
 
     public void jsApp(String path, Assets assets, ProxyURLMappings urlMappings) {
-        JsAppUtils.jsApp(path, assets, urlMappings);
+        JsAppUtils.jsApp(path, assets, urlMappings, null, null);
     }
 
     public void jsApp(String path, Assets assets, ProxyURLMappings urlMappings, InitialStateProvider initialState) {
