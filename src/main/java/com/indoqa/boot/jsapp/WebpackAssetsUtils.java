@@ -17,8 +17,13 @@
 package com.indoqa.boot.jsapp;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -29,26 +34,48 @@ import com.indoqa.spring.ClassPathScanner;
 
 public final class WebpackAssetsUtils {
 
-    private static final String ASSETS_PATH = "assets/*";
+    private static final String ASSETS_PATH = "assets/";
     private static final ClassPathScanner SCANNER = new ClassPathScanner();
 
     private WebpackAssetsUtils() {
         // hide utility class constructor
     }
 
-    public static Assets findWebpackAssets(String folder) {
+    public static Assets findWebpackAssetsInClasspath(String folder) {
         try {
-            return new WebpackAssets(SCANNER.findFiles(createAssetsFolder(folder)));
+            return new WebpackAssets(SCANNER.findFiles(createAssetsClasspathFolder(folder)));
         } catch (IOException e) {
             throw new ApplicationInitializationException("Error while searching for webpack assets.", e);
         }
     }
 
-    private static String createAssetsFolder(String folder) {
+    public static Assets findWebpackAssetsInFilesystem(String folder) {
+        try {
+            return new WebpackAssets(findLocalFiles(createAssetsLocalFolder(folder)));
+        } catch (IOException e) {
+            throw new ApplicationInitializationException("Error while searching for webpack assets.", e);
+        }
+    }
+
+    private static String createAssetsClasspathFolder(String folder) {
         StringBuilder path = new StringBuilder();
         if (!folder.startsWith("/")) {
             path.append("/");
         }
+        path.append(folder);
+
+        if (!folder.endsWith("/")) {
+            path.append("/");
+        }
+        path.append(ASSETS_PATH);
+        path.append("*");
+
+        return path.toString();
+    }
+
+    private static String createAssetsLocalFolder(String folder) {
+        StringBuilder path = new StringBuilder();
+
         path.append(folder);
 
         if (!folder.endsWith("/")) {
@@ -63,6 +90,20 @@ public final class WebpackAssetsUtils {
         int lastSeparator = path.lastIndexOf("/assets/");
         int pos = Math.min(lastSeparator, path.length());
         return path.substring(pos);
+    }
+
+    private static Set<URL> findLocalFiles(String folder) throws IOException {
+        Set<URL> files = new HashSet<>();
+        Files.newDirectoryStream(Paths.get(folder)).forEach(path -> files.add(pathToURL(path)));
+        return files;
+    }
+
+    private static URL pathToURL(Path path) {
+        try {
+            return path.toUri().toURL();
+        } catch (MalformedURLException e) {
+            throw new ApplicationInitializationException("Invalif file URL", e);
+        }
     }
 
     private static String urlToUri(URL url) {
