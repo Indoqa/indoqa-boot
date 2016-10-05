@@ -32,6 +32,12 @@ public abstract class AbstractJacksonTransformer implements JsonTransformer {
 
     @Override
     public String render(Object model) {
+        // a NULL model means "no content", but we must return an empty String or Spark will assume the call was unsuccessful and
+        // create a 404 response
+        if (model == null) {
+            return "";
+        }
+
         try {
             return this.objectMapper.writeValueAsString(model);
         } catch (JsonProcessingException e) {
