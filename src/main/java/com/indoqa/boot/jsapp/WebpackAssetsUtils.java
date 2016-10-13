@@ -16,11 +16,13 @@
  */
 package com.indoqa.boot.jsapp;
 
+import static java.nio.file.Files.*;
+import static java.util.Collections.emptySet;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
@@ -29,11 +31,15 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.spring.ClassPathScanner;
 
 public final class WebpackAssetsUtils {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebpackAssetsUtils.class);
     private static final String ASSETS_PATH = "assets/";
     private static final ClassPathScanner SCANNER = new ClassPathScanner();
 
@@ -94,7 +100,14 @@ public final class WebpackAssetsUtils {
 
     private static Set<URL> findLocalFiles(String folder) throws IOException {
         Set<URL> files = new HashSet<>();
-        Files.newDirectoryStream(Paths.get(folder)).forEach(path -> files.add(pathToURL(path)));
+        Path folderPath = Paths.get(folder);
+
+        if (!exists(folderPath)) {
+            LOGGER.warn("The folder {} does not exist.", folderPath.toAbsolutePath());
+            return emptySet();
+        }
+
+        newDirectoryStream(folderPath).forEach(path -> files.add(pathToURL(path)));
         return files;
     }
 
@@ -152,7 +165,8 @@ public final class WebpackAssetsUtils {
         }
 
         private String filterAssets(Predicate<String> filter, String type) {
-            List<String> filteredAssets = this.assets.stream()
+            List<String> filteredAssets = this.assets
+                .stream()
                 .map(WebpackAssetsUtils::urlToUri)
                 .filter(filter)
                 .map(WebpackAssetsUtils::extractFilename)
