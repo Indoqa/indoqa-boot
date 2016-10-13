@@ -99,14 +99,16 @@ public final class WebpackAssetsUtils {
     }
 
     private static Set<URL> findLocalFiles(String folder) throws IOException {
-        Set<URL> files = new HashSet<>();
         Path folderPath = Paths.get(folder);
-
         if (!exists(folderPath)) {
-            LOGGER.warn("The folder {} does not exist.", folderPath.toAbsolutePath());
+            LOGGER.warn("The asset folder {} does not exist.", folderPath.toAbsolutePath());
             return emptySet();
         }
+        if (!isDirectory(folderPath)) {
+            throw new IllegalArgumentException("The asset folder " + folderPath.toAbsolutePath() + "is not a directory.");
+        }
 
+        Set<URL> files = new HashSet<>();
         newDirectoryStream(folderPath).forEach(path -> files.add(pathToURL(path)));
         return files;
     }
@@ -115,7 +117,7 @@ public final class WebpackAssetsUtils {
         try {
             return path.toUri().toURL();
         } catch (MalformedURLException e) {
-            throw new ApplicationInitializationException("Invalif file URL", e);
+            throw new ApplicationInitializationException("Invalid file URL", e);
         }
     }
 
