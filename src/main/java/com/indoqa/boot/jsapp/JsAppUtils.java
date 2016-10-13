@@ -43,8 +43,7 @@ import spark.Spark;
             res.raw().setContentType(CONTENT_TYPE_HTML);
 
             return createSinglePageHtml(
-                path, assets.getRootElementId(), assets.getMainCss(), assets.getMainJavascript(), proxyMappingScript,
-                initialStateJson);
+                assets.getRootElementId(), assets.getMainCss(), assets.getMainJavascript(), proxyMappingScript, initialStateJson);
         });
     }
 
@@ -80,8 +79,8 @@ import spark.Spark;
         return urlMappings.getEntries().stream().map(JsAppUtils::createProxyMappingEntryScript).collect(Collectors.joining("\n"));
     }
 
-    private static String createSinglePageHtml(String rootPath, String rootElementId, String cssFile, String javascriptFile,
-            String proxyMappingScript, String initialStateJson) {
+    private static String createSinglePageHtml(String rootElementId, String cssFile, String javascriptFile, String proxyMappingScript,
+            String initialStateJson) {
 
         return new StringBuilder()
             .append("<!DOCTYPE html><html><head>")
