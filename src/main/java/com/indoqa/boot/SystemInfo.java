@@ -16,12 +16,16 @@
  */
 package com.indoqa.boot;
 
-import static java.lang.System.*;
+import static java.lang.System.getenv;
+import static java.util.stream.Collectors.toMap;
+import static org.springframework.core.env.StandardEnvironment.*;
 
 import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Predicate;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
@@ -44,7 +48,7 @@ public class SystemInfo {
     private long initializationDuration;
     private String javaVersion;
     private Map<String, String> systemProperties;
-    private Map<String, String> springProperties;
+    private Map<String, SpringProperty> springProperties;
     private Map<String, String> javaEnvironment;
     private String[] profiles;
     private String port;
@@ -59,6 +63,35 @@ public class SystemInfo {
     @Inject
     private VersionProvider versionProvider;
 
+    private static TreeMap<String, String> createJavaEnvironmentMap() {
+        return new TreeMap<>(getenv());
+    }
+
+    private static Map<String, SpringProperty> createSpringProperties(ConfigurableEnvironment springEnvironment) {
+        Map<String, SpringProperty> springProperties = new HashMap<>();
+
+        for (PropertySource<?> eachPropertySource : springEnvironment.getPropertySources()) {
+            if (!(eachPropertySource instanceof EnumerablePropertySource)) {
+                continue;
+            }
+
+            EnumerablePropertySource<?> enumerablePropertySource = (EnumerablePropertySource<?>) eachPropertySource;
+            for (String prop : enumerablePropertySource.getPropertyNames()) {
+                String sourceName = enumerablePropertySource.getName();
+
+                SpringProperty springProperty = springProperties.get(prop);
+                if (springProperty == null) {
+                    springProperty = new SpringProperty(prop);
+                }
+
+                springProperty.setValue(enumerablePropertySource.getProperty(prop), sourceName);
+                springProperties.put(prop, springProperty);
+            }
+        }
+
+        return filterSystemAndEnvironmentProperties(springProperties);
+    }
+
     private static Map<String, String> createSystemPropertiesMap() {
         Properties systemProps = System.getProperties();
         Enumeration<Object> keys = systemProps.keys();
@@ -70,6 +103,24 @@ public class SystemInfo {
         }
 
         return result;
+    }
+
+    private static Predicate<? super Entry<String, SpringProperty>> filterSingleEntries(String sourceName) {
+        return entry -> {
+            String source = entry.getValue().getSource();
+            boolean hasOverriddenProperties = entry.getValue().hasOverriddenProperties();
+            return sourceName.equals(source) && !hasOverriddenProperties;
+        };
+    }
+
+    private static Map<String, SpringProperty> filterSystemAndEnvironmentProperties(Map<String, SpringProperty> springProperties) {
+        return new TreeMap<>(
+            springProperties
+                .entrySet()
+                .stream()
+                .filter(filterSingleEntries(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME).negate())
+                .filter(filterSingleEntries(SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME).negate())
+                .collect(toMap(entry -> entry.getKey(), entry -> entry.getValue())));
     }
 
     private static String getAttribute(Class<?> archivedClass, String property) throws IOException {
@@ -130,7 +181,8 @@ public class SystemInfo {
         return this.profiles;
     }
 
-    public Map<String, String> getSpringProperties() {
+    @JsonProperty("spring-properties")
+    public Map<String, SpringProperty> getSpringProperties() {
         return this.springProperties;
     }
 
@@ -158,9 +210,9 @@ public class SystemInfo {
         this.profiles = this.getActiveProfiles();
         this.port = this.lookupPort();
 
-        this.javaEnvironment = getenv();
+        this.javaEnvironment = createJavaEnvironmentMap();
         this.systemProperties = createSystemPropertiesMap();
-        this.springProperties = this.createSpringPropertiesMap();
+        this.springProperties = createSpringProperties(this.springEnvironment);
     }
 
     public boolean isInitialized() {
@@ -183,17 +235,6 @@ public class SystemInfo {
         return this.started;
     }
 
-    private Map<String, String> createSpringPropertiesMap() {
-        Map<String, String> result = new TreeMap<>();
-
-        Set<String> propertyNames = this.getSpringPropertyNames();
-        for (String eachPropertyName : propertyNames) {
-            result.put(eachPropertyName, this.springEnvironment.getProperty(eachPropertyName));
-        }
-
-        return result;
-    }
-
     private String[] getActiveProfiles() {
         return this.springEnvironment.getActiveProfiles();
     }
@@ -214,25 +255,6 @@ public class SystemInfo {
         } catch (IOException e) {
             throw new ApplicationInitializationException("Cannot read from manifest.", e);
         }
-    }
-
-    private Set<String> getSpringPropertyNames() {
-        Set<String> result = new HashSet<>();
-
-        for (PropertySource<?> eachPropertySource : this.springEnvironment.getPropertySources()) {
-            if (!(eachPropertySource instanceof EnumerablePropertySource)) {
-                continue;
-            }
-
-            EnumerablePropertySource<?> enumerablePropertySource = (EnumerablePropertySource<?>) eachPropertySource;
-            Arrays
-                .stream(enumerablePropertySource.getPropertyNames())
-                .filter(prop -> getProperty(prop) == null)
-                .filter(prop -> getenv(prop) == null)
-                .forEach(result::add);
-        }
-
-        return result;
     }
 
     private String lookupPort() {
