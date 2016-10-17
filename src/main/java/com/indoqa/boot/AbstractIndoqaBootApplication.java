@@ -49,7 +49,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class);
     private static final Logger INIT_LOGGER = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class.getName() + "_INIT");
 
-    private final Date START_TIME = new Date();
+    private static final Date START_TIME = new Date();
 
     private AnnotationConfigApplicationContext context;
     private ResourcePropertySource propertySource;
@@ -157,10 +157,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void completeSystemInfoInitialization() {
-        long duration = currentTimeMillis() - this.START_TIME.getTime();
+        long duration = currentTimeMillis() - START_TIME.getTime();
         this.systemInfo = this.context.getBean(SystemInfo.class);
         this.systemInfo.setInitializationDuration(duration);
-        this.systemInfo.setStarted(this.START_TIME);
+        this.systemInfo.setStarted(START_TIME);
         this.systemInfo.setInitialized(true);
     }
 
@@ -289,7 +289,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             .append(", active profile(s): ")
             .append(join("|", asList(this.systemInfo.getProfiles())))
             .append(", running on Java ")
-            .append(this.systemInfo.getSystemProperties().get("java-version"));
+            .append(this.systemInfo.getSystemProperties().get("java.version"));
 
         CharSequence additionalStatusMessages = this.getAdditionalStatusMessages();
         if (additionalStatusMessages != null) {
