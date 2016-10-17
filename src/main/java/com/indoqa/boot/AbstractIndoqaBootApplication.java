@@ -16,7 +16,9 @@
  */
 package com.indoqa.boot;
 
+import static java.lang.String.join;
 import static java.lang.System.currentTimeMillis;
+import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.io.IOException;
@@ -285,9 +287,9 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             .append(", listening on port ")
             .append(this.systemInfo.getPort())
             .append(", active profile(s): ")
-            .append(String.join("|", Arrays.asList(this.systemInfo.getProfiles())))
+            .append(join("|", asList(this.systemInfo.getProfiles())))
             .append(", running on Java ")
-            .append(this.systemInfo.getJavaVersion());
+            .append(this.systemInfo.getSystemProperties().get("java-version"));
 
         CharSequence additionalStatusMessages = this.getAdditionalStatusMessages();
         if (additionalStatusMessages != null) {

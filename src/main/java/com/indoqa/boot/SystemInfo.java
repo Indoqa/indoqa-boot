@@ -43,10 +43,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class SystemInfo {
 
+    public static final String DEFAULT_SPARK_PORT = "4567";
+
     private String version;
     private Date started;
     private long initializationDuration;
-    private String javaVersion;
     private Map<String, String> systemProperties;
     private Map<String, SpringProperty> springProperties;
     private Map<String, String> javaEnvironment;
@@ -63,63 +64,13 @@ public class SystemInfo {
     @Inject
     private VersionProvider versionProvider;
 
-    private static TreeMap<String, String> createJavaEnvironmentMap() {
-        return new TreeMap<>(getenv());
-    }
-
-    private static Map<String, SpringProperty> createSpringProperties(ConfigurableEnvironment springEnvironment) {
-        Map<String, SpringProperty> springProperties = new HashMap<>();
-
-        for (PropertySource<?> eachPropertySource : springEnvironment.getPropertySources()) {
-            if (!(eachPropertySource instanceof EnumerablePropertySource)) {
-                continue;
-            }
-
-            EnumerablePropertySource<?> enumerablePropertySource = (EnumerablePropertySource<?>) eachPropertySource;
-            for (String prop : enumerablePropertySource.getPropertyNames()) {
-                String sourceName = enumerablePropertySource.getName();
-
-                SpringProperty springProperty = springProperties.get(prop);
-                if (springProperty == null) {
-                    springProperty = new SpringProperty(prop);
-                }
-
-                springProperty.setValue(enumerablePropertySource.getProperty(prop), sourceName);
-                springProperties.put(prop, springProperty);
-            }
-        }
-
-        return filterSystemAndEnvironmentProperties(springProperties);
-    }
-
-    private static Map<String, String> createSystemPropertiesMap() {
-        Properties systemProps = System.getProperties();
-        Enumeration<Object> keys = systemProps.keys();
-
-        Map<String, String> result = new TreeMap<>();
-        while (keys.hasMoreElements()) {
-            String key = keys.nextElement().toString();
-            result.put(key, System.getProperty(key));
-        }
-
-        return result;
-    }
-
-    private static Predicate<? super Entry<String, SpringProperty>> filterSingleEntries(String sourceName) {
-        return entry -> {
-            String source = entry.getValue().getSource();
-            boolean hasOverriddenProperties = entry.getValue().hasOverriddenProperties();
-            return sourceName.equals(source) && !hasOverriddenProperties;
-        };
-    }
-
     private static Map<String, SpringProperty> filterSystemAndEnvironmentProperties(Map<String, SpringProperty> springProperties) {
         return new TreeMap<>(
             springProperties
                 .entrySet()
                 .stream()
-                .filter(filterSingleEntries(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME).negate())
-                .filter(filterSingleEntries(SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME).negate())
+                .filter(isSingleEntryOfSource(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME).negate())
+                .filter(isSingleEntryOfSource(SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME).negate())
                 .collect(toMap(entry -> entry.getKey(), entry -> entry.getValue())));
     }
 
@@ -150,6 +101,87 @@ public class SystemInfo {
         }
     }
 
+    private static String[] initActiveProfiles(ConfigurableEnvironment springEnvironment) {
+        return springEnvironment.getActiveProfiles();
+    }
+
+    private static String initApplicationVersion(VersionProvider versionProvider) {
+        try {
+            String versionAttribute = getAttribute(versionProvider.getClass(), "Implementation-Version");
+            if (versionAttribute != null) {
+                return versionAttribute;
+            }
+
+            versionAttribute = getAttribute(versionProvider.getClass(), "Implementation-Build");
+            if (versionAttribute != null) {
+                return versionAttribute;
+            }
+
+            return "UNKNOWN_VERSION";
+        } catch (IOException e) {
+            throw new ApplicationInitializationException("Cannot read from manifest.", e);
+        }
+    }
+
+    private static TreeMap<String, String> initJavaEnvironmentMap() {
+        return new TreeMap<>(getenv());
+    }
+
+    private static String initPort(ConfigurableEnvironment springEnvironment) {
+        String result = springEnvironment.getProperty("port");
+        if (StringUtils.isNotBlank(result)) {
+            return result;
+        }
+
+        return DEFAULT_SPARK_PORT;
+    }
+
+    private static Map<String, SpringProperty> initSpringProperties(ConfigurableEnvironment springEnvironment) {
+        Map<String, SpringProperty> springProperties = new HashMap<>();
+
+        for (PropertySource<?> eachPropertySource : springEnvironment.getPropertySources()) {
+            if (!(eachPropertySource instanceof EnumerablePropertySource)) {
+                continue;
+            }
+
+            EnumerablePropertySource<?> enumerablePropertySource = (EnumerablePropertySource<?>) eachPropertySource;
+            for (String prop : enumerablePropertySource.getPropertyNames()) {
+                String sourceName = enumerablePropertySource.getName();
+
+                SpringProperty springProperty = springProperties.get(prop);
+                if (springProperty == null) {
+                    springProperty = new SpringProperty(prop);
+                }
+
+                springProperty.setValue(enumerablePropertySource.getProperty(prop), sourceName);
+                springProperties.put(prop, springProperty);
+            }
+        }
+
+        return filterSystemAndEnvironmentProperties(springProperties);
+    }
+
+    private static Map<String, String> initSystemPropertiesMap() {
+        Properties systemProps = System.getProperties();
+        Enumeration<Object> keys = systemProps.keys();
+
+        Map<String, String> result = new TreeMap<>();
+        while (keys.hasMoreElements()) {
+            String key = keys.nextElement().toString();
+            result.put(key, System.getProperty(key));
+        }
+
+        return result;
+    }
+
+    private static Predicate<? super Entry<String, SpringProperty>> isSingleEntryOfSource(String sourceName) {
+        return entry -> {
+            String source = entry.getValue().getSource();
+            boolean hasOverriddenProperties = entry.getValue().hasOverriddenProperties();
+            return sourceName.equals(source) && !hasOverriddenProperties;
+        };
+    }
+
     public void addProperty(String key, String value) {
         this.more.put(key, value);
     }
@@ -162,11 +194,6 @@ public class SystemInfo {
     @JsonProperty("environment")
     public Map<String, String> getJavaEnvironment() {
         return this.javaEnvironment;
-    }
-
-    @JsonProperty("java-version")
-    public String getJavaVersion() {
-        return this.javaVersion;
     }
 
     public Map<String, String> getMore() {
@@ -204,15 +231,14 @@ public class SystemInfo {
     }
 
     @PostConstruct
-    public void initializeProperties() {
-        this.version = this.getApplicationVersion();
-        this.javaVersion = System.getProperty("java.version");
-        this.profiles = this.getActiveProfiles();
-        this.port = this.lookupPort();
+    public void initProperties() {
+        this.version = initApplicationVersion(this.versionProvider);
+        this.profiles = initActiveProfiles(this.springEnvironment);
+        this.port = initPort(this.springEnvironment);
 
-        this.javaEnvironment = createJavaEnvironmentMap();
-        this.systemProperties = createSystemPropertiesMap();
-        this.springProperties = createSpringProperties(this.springEnvironment);
+        this.javaEnvironment = initJavaEnvironmentMap();
+        this.systemProperties = initSystemPropertiesMap();
+        this.springProperties = initSpringProperties(this.springEnvironment);
     }
 
     public boolean isInitialized() {
@@ -233,37 +259,5 @@ public class SystemInfo {
 
     public Date started() {
         return this.started;
-    }
-
-    private String[] getActiveProfiles() {
-        return this.springEnvironment.getActiveProfiles();
-    }
-
-    private String getApplicationVersion() {
-        try {
-            String versionAttribute = getAttribute(this.versionProvider.getClass(), "Implementation-Version");
-            if (versionAttribute != null) {
-                return versionAttribute;
-            }
-
-            versionAttribute = getAttribute(this.versionProvider.getClass(), "Implementation-Build");
-            if (versionAttribute != null) {
-                return versionAttribute;
-            }
-
-            return "UNKNOWN_VERSION";
-        } catch (IOException e) {
-            throw new ApplicationInitializationException("Cannot read from manifest.", e);
-        }
-    }
-
-    private String lookupPort() {
-        String result = this.springEnvironment.getProperty("port");
-        if (StringUtils.isNotBlank(result)) {
-            return result;
-        }
-
-        // default Spark port
-        return "4567";
     }
 }
