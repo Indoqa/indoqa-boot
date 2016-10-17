@@ -123,7 +123,7 @@ public class SystemInfo {
         }
     }
 
-    private static TreeMap<String, String> initJavaEnvironmentMap() {
+    private static Map<String, String> initJavaEnvironmentMap() {
         return new TreeMap<>(getenv());
     }
 

@@ -47,7 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 
         try {
             ERR.println("Application initilization error: The log-path '" + logPathFile.getCanonicalPath() + "' does not exist.");
-        } catch (IOException e) {
+        } catch (IOException e) { // NOSONAR
             ERR.println("Application initilization error: " + e.getMessage());
         }
         exit();
@@ -60,7 +60,7 @@ import org.apache.commons.lang3.StringUtils;
 
         try {
             ERR.println("Application initilization error: The log-path '" + logPathFile.getCanonicalPath() + "' is not a directory.");
-        } catch (IOException e) {
+        } catch (IOException e) { // NOSONAR
             ERR.println("Application initilization error: " + e.getMessage());
         }
         exit();

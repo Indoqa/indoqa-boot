@@ -265,7 +265,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         try {
             this.getClass().getClassLoader().loadClass("org.hotswap.agent.HotswapAgent");
             return true;
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) { // NOSONAR
             return false;
         }
     }
@@ -322,7 +322,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
                 return;
             }
             getInitializationLogger().info(asciiLogo);
-        } catch (IOException | NullPointerException e) {
+        } catch (Exception e) {
             throw new ApplicationInitializationException("Error while reading ASCII logo from " + asciiLogoPath, e);
         }
     }

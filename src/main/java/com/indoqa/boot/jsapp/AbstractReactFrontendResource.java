@@ -16,10 +16,8 @@
  */
 package com.indoqa.boot.jsapp;
 
-import static com.indoqa.boot.jsapp.WebpackAssetsUtils.findWebpackAssetsInClasspath;
-import static com.indoqa.boot.jsapp.WebpackAssetsUtils.findWebpackAssetsInFilesystem;
-import static spark.Spark.externalStaticFileLocation;
-import static spark.Spark.staticFileLocation;
+import static com.indoqa.boot.jsapp.WebpackAssetsUtils.*;
+import static spark.Spark.*;
 
 import java.util.Arrays;
 
@@ -28,7 +26,7 @@ import javax.inject.Inject;
 
 import org.springframework.core.env.Environment;
 
-public class AbstractReactFrontendResource extends AbstractJsAppResourcesBase {
+public abstract class AbstractReactFrontendResource extends AbstractJsAppResourcesBase {
 
     private static final String DEV_PROFILE = "dev";
 

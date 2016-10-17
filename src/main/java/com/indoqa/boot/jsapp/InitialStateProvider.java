@@ -21,6 +21,6 @@ import spark.Request;
 @FunctionalInterface
 public interface InitialStateProvider {
 
-    public Object initialState(Request req);
+    Object initialState(Request req);
 
 }
