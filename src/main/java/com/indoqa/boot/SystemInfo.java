@@ -16,7 +16,7 @@
  */
 package com.indoqa.boot;
 
-import static java.lang.System.getenv;
+import static java.lang.System.*;
 
 import java.io.IOException;
 import java.net.URL;
@@ -225,7 +225,11 @@ public class SystemInfo {
             }
 
             EnumerablePropertySource<?> enumerablePropertySource = (EnumerablePropertySource<?>) eachPropertySource;
-            Arrays.stream(enumerablePropertySource.getPropertyNames()).forEach(result::add);
+            Arrays
+                .stream(enumerablePropertySource.getPropertyNames())
+                .filter(prop -> getProperty(prop) == null)
+                .filter(prop -> getenv(prop) == null)
+                .forEach(result::add);
         }
 
         return result;

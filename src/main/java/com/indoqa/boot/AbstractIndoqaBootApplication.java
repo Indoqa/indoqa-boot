@@ -16,6 +16,7 @@
  */
 package com.indoqa.boot;
 
+import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.io.IOException;
@@ -154,7 +155,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void completeSystemInfoInitialization() {
-        long duration = System.currentTimeMillis() - this.START_TIME.getTime();
+        long duration = currentTimeMillis() - this.START_TIME.getTime();
         this.systemInfo = this.context.getBean(SystemInfo.class);
         this.systemInfo.setInitializationDuration(duration);
         this.systemInfo.setStarted(this.START_TIME);
