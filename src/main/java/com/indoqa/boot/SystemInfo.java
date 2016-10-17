@@ -28,7 +28,9 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.env.Environment;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.PropertySource;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -40,6 +42,7 @@ public class SystemInfo {
     private long initializationDuration;
     private String javaVersion;
     private Map<String, String> systemProperties;
+    private Map<String, String> springProperties;
     private Map<String, String> javaEnvironment;
     private String[] profiles;
     private String port;
@@ -48,8 +51,9 @@ public class SystemInfo {
 
     @JsonIgnore
     @Inject
-    private Environment springEnvironment;
+    private ConfigurableEnvironment springEnvironment;
 
+    @JsonIgnore
     @Inject
     private VersionProvider versionProvider;
 
@@ -111,6 +115,10 @@ public class SystemInfo {
         return this.profiles;
     }
 
+    public Map<String, String> getSpringProperties() {
+        return this.springProperties;
+    }
+
     public String getStarted() {
         if (this.started == null) {
             return null;
@@ -136,6 +144,7 @@ public class SystemInfo {
         this.port = this.lookupPort();
         this.javaEnvironment = System.getenv();
         this.systemProperties = this.createSystemPropertiesMap();
+        this.springProperties = this.createSpringPropertiesMap();
     }
 
     public boolean isInitialized() {
@@ -156,6 +165,17 @@ public class SystemInfo {
 
     public Date started() {
         return this.started;
+    }
+
+    private Map<String, String> createSpringPropertiesMap() {
+        Map<String, String> result = new TreeMap<>();
+
+        Set<String> propertyNames = this.getSpringPropertyNames();
+        for (String eachPropertyName : propertyNames) {
+            result.put(eachPropertyName, this.springEnvironment.getProperty(eachPropertyName));
+        }
+
+        return result;
     }
 
     private Map<String, String> createSystemPropertiesMap() {
@@ -191,6 +211,21 @@ public class SystemInfo {
         } catch (IOException e) {
             throw new ApplicationInitializationException("Cannot read from manifest.", e);
         }
+    }
+
+    private Set<String> getSpringPropertyNames() {
+        Set<String> result = new HashSet<>();
+
+        for (PropertySource<?> eachPropertySource : this.springEnvironment.getPropertySources()) {
+            if (!(eachPropertySource instanceof EnumerablePropertySource)) {
+                continue;
+            }
+
+            EnumerablePropertySource<?> enumerablePropertySource = (EnumerablePropertySource<?>) eachPropertySource;
+            Arrays.stream(enumerablePropertySource.getPropertyNames()).forEach(result::add);
+        }
+
+        return result;
     }
 
     private String lookupPort() {
