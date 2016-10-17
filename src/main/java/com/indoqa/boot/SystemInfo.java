@@ -16,6 +16,8 @@
  */
 package com.indoqa.boot;
 
+import static java.lang.System.getenv;
+
 import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -56,6 +58,19 @@ public class SystemInfo {
     @JsonIgnore
     @Inject
     private VersionProvider versionProvider;
+
+    private static Map<String, String> createSystemPropertiesMap() {
+        Properties systemProps = System.getProperties();
+        Enumeration<Object> keys = systemProps.keys();
+
+        Map<String, String> result = new TreeMap<>();
+        while (keys.hasMoreElements()) {
+            String key = keys.nextElement().toString();
+            result.put(key, System.getProperty(key));
+        }
+
+        return result;
+    }
 
     private static String getAttribute(Class<?> archivedClass, String property) throws IOException {
         Manifest manifest = getManifest(archivedClass);
@@ -142,8 +157,9 @@ public class SystemInfo {
         this.javaVersion = System.getProperty("java.version");
         this.profiles = this.getActiveProfiles();
         this.port = this.lookupPort();
-        this.javaEnvironment = System.getenv();
-        this.systemProperties = this.createSystemPropertiesMap();
+
+        this.javaEnvironment = getenv();
+        this.systemProperties = createSystemPropertiesMap();
         this.springProperties = this.createSpringPropertiesMap();
     }
 
@@ -173,19 +189,6 @@ public class SystemInfo {
         Set<String> propertyNames = this.getSpringPropertyNames();
         for (String eachPropertyName : propertyNames) {
             result.put(eachPropertyName, this.springEnvironment.getProperty(eachPropertyName));
-        }
-
-        return result;
-    }
-
-    private Map<String, String> createSystemPropertiesMap() {
-        Properties systemProps = System.getProperties();
-        Enumeration<Object> keys = systemProps.keys();
-
-        Map<String, String> result = new HashMap<>();
-        while (keys.hasMoreElements()) {
-            String key = keys.nextElement().toString();
-            result.put(key, System.getProperty(key));
         }
 
         return result;

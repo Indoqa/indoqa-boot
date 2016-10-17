@@ -58,6 +58,18 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         return INIT_LOGGER;
     }
 
+    private static ResourcePropertySource getProperties(String propertiesLocation) {
+        try {
+            return new ResourcePropertySource(propertiesLocation);
+        } catch (IOException e) {
+            throw new ApplicationInitializationException("Error while reading properties from " + propertiesLocation, e);
+        }
+    }
+
+    private static boolean isExternalPropertiesFileProvided() {
+        return System.getProperty("properties") != null;
+    }
+
     public void invoke() {
         this.printLogo();
         this.beforeInitialization();
@@ -178,14 +190,6 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         return beans.hashCode();
     }
 
-    private ResourcePropertySource getProperties(String propertiesLocation) {
-        try {
-            return new ResourcePropertySource(propertiesLocation);
-        } catch (IOException e) {
-            throw new ApplicationInitializationException("Error while reading properties from " + propertiesLocation, e);
-        }
-    }
-
     private boolean hasNoActiveProfile() {
         String[] activeProfiles = this.context.getEnvironment().getActiveProfiles();
         return activeProfiles == null || activeProfiles.length == 0;
@@ -204,9 +208,9 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void initializeExternalProperties() {
-        if (this.isExternalPropertiesFileProvided()) {
+        if (isExternalPropertiesFileProvided()) {
             String propertiesLocation = System.getProperty("properties");
-            this.propertySource = this.getProperties(propertiesLocation);
+            this.propertySource = getProperties(propertiesLocation);
             this.context.getEnvironment().getPropertySources().addFirst(this.propertySource);
             LOGGER.info("Using external properties from {}", propertiesLocation);
         } else {
@@ -252,10 +256,6 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     private boolean isDevProfileEnabled() {
         return ArrayUtils.contains(this.context.getEnvironment().getActiveProfiles(), "dev");
-    }
-
-    private boolean isExternalPropertiesFileProvided() {
-        return System.getProperty("properties") != null;
     }
 
     private boolean isHotswapAgentInstalled() {

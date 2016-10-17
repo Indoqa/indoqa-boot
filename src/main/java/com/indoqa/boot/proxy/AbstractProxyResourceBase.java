@@ -25,21 +25,21 @@ import spark.Spark;
 
 public abstract class AbstractProxyResourceBase {
 
+    private static String proxy(HttpProxy httpProxy, Request req, Response res) {
+        httpProxy.proxy(req.raw(), res.raw());
+        return "";
+    }
+
     protected void proxy(String proxyMountPath, String targetUrl) {
         HttpProxy httpProxy = new HttpProxyBuilder(proxyMountPath, targetUrl).build();
 
         String sparkPath = proxyMountPath + "/*";
 
-        Spark.delete(sparkPath, (req, res) -> this.proxy(httpProxy, req, res));
-        Spark.get(sparkPath, (req, res) -> this.proxy(httpProxy, req, res));
-        Spark.head(sparkPath, (req, res) -> this.proxy(httpProxy, req, res));
-        Spark.options(sparkPath, (req, res) -> this.proxy(httpProxy, req, res));
-        Spark.put(sparkPath, (req, res) -> this.proxy(httpProxy, req, res));
-        Spark.post(sparkPath, (req, res) -> this.proxy(httpProxy, req, res));
-    }
-
-    private String proxy(HttpProxy httpProxy, Request req, Response res) {
-        httpProxy.proxy(req.raw(), res.raw());
-        return "";
+        Spark.delete(sparkPath, (req, res) -> proxy(httpProxy, req, res));
+        Spark.get(sparkPath, (req, res) -> proxy(httpProxy, req, res));
+        Spark.head(sparkPath, (req, res) -> proxy(httpProxy, req, res));
+        Spark.options(sparkPath, (req, res) -> proxy(httpProxy, req, res));
+        Spark.put(sparkPath, (req, res) -> proxy(httpProxy, req, res));
+        Spark.post(sparkPath, (req, res) -> proxy(httpProxy, req, res));
     }
 }

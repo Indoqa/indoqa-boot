@@ -27,14 +27,14 @@ import spark.Response;
 @Named
 public class DefaultContentTypeAfterInterceptor {
 
-    @PostConstruct
-    public void intercept() {
-        after((request, response) -> this.setContentType(response));
-    }
-
-    private void setContentType(Response response) {
+    private static void setContentType(Response response) {
         if (isBlank(response.raw().getContentType())) {
             response.type("application/json");
         }
+    }
+
+    @PostConstruct
+    public void intercept() {
+        after((request, response) -> setContentType(response));
     }
 }
