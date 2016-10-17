@@ -33,9 +33,9 @@ public abstract class AbstractReactFrontendResource extends AbstractJsAppResourc
     @Inject
     private Environment environment;
 
-    private String mountPath;
-    private String classPathLocation;
-    private String fileSystemLocation;
+    private final String mountPath;
+    private final String classPathLocation;
+    private final String fileSystemLocation;
 
     public AbstractReactFrontendResource(String mountPath, String classPathLocation, String fileSystemLocation) {
         this.mountPath = mountPath;
