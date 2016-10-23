@@ -29,6 +29,8 @@ import java.util.function.Predicate;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -51,6 +53,7 @@ public class SystemInfo {
     private Map<String, String> systemProperties;
     private Map<String, SpringProperty> springProperties;
     private Map<String, String> javaEnvironment;
+    private List<String> springPropertySources;
     private String[] profiles;
     private String port;
     private Map<String, String> more = new HashMap<>();
@@ -161,6 +164,13 @@ public class SystemInfo {
         return filterSystemAndEnvironmentProperties(springProperties);
     }
 
+    private static List<String> initSpringPropertySources(ConfigurableEnvironment env) {
+        return StreamSupport
+            .stream(env.getPropertySources().spliterator(), false)
+            .map(source -> source.getName())
+            .collect(Collectors.toList());
+    }
+
     private static Map<String, String> initSystemPropertiesMap() {
         Properties systemProps = System.getProperties();
         Enumeration<Object> keys = systemProps.keys();
@@ -213,6 +223,10 @@ public class SystemInfo {
         return this.springProperties;
     }
 
+    public List<String> getSpringPropertySources() {
+        return this.springPropertySources;
+    }
+
     public String getStarted() {
         if (this.started == null) {
             return null;
@@ -239,6 +253,7 @@ public class SystemInfo {
         this.javaEnvironment = initJavaEnvironmentMap();
         this.systemProperties = initSystemPropertiesMap();
         this.springProperties = initSpringProperties(this.springEnvironment);
+        this.springPropertySources = initSpringPropertySources(this.springEnvironment);
     }
 
     public boolean isInitialized() {

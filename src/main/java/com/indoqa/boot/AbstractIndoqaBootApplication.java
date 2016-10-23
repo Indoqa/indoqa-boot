@@ -23,7 +23,10 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -90,7 +93,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.initializeSpringBeans();
         this.initializeDefaultResources();
         this.initializeSpringComponentScan();
+
+        this.beforeApplicationContextRefresh();
         this.refreshApplicationContext();
+
         this.completeSystemInfoInitialization();
         this.afterSpringInitialization();
 
@@ -105,6 +111,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     protected void afterSpringInitialization() {
+        // empty implementation
+    }
+
+    protected void beforeApplicationContextRefresh() {
         // empty implementation
     }
 
@@ -185,7 +195,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private int getBeansHashCode() {
-        List<String> beanDefinitions = Arrays.asList(this.getApplicationContext().getBeanFactory().getBeanDefinitionNames());
+        List<String> beanDefinitions = asList(this.getApplicationContext().getBeanFactory().getBeanDefinitionNames());
         List<Object> beans = beanDefinitions
             .stream()
             .map(bd -> this.getApplicationContext().getBeanFactory().getBean(bd))
