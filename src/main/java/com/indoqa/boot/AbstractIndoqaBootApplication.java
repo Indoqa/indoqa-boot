@@ -338,7 +338,13 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void refreshApplicationContext() {
-        this.context.refresh();
+        try {
+            this.context.refresh();
+        } catch (Exception e) {
+            LOGGER.error("An exception occurred while refreshing the Spring application context.", e);
+            this.context.close();
+            Spark.stop();
+        }
     }
 
     private synchronized void reload() {
