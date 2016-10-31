@@ -23,23 +23,19 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.env.Environment;
 import org.springframework.core.io.support.ResourcePropertySource;
 
 import com.indoqa.boot.json.JacksonTransformer;
@@ -49,19 +45,24 @@ import spark.Spark;
 
 public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class);
     private static final Logger INIT_LOGGER = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class.getName() + "_INIT");
 
     private static final Date START_TIME = new Date();
 
+    public static final String DEFAULT_SPARK_PORT = "4567";
     private AnnotationConfigApplicationContext context;
     private ResourcePropertySource propertySource;
-    private SystemInfo systemInfo;
 
+    private SystemInfo systemInfo;
     private int beansHashCode;
 
     protected static Logger getInitializationLogger() {
         return INIT_LOGGER;
+    }
+
+    protected static Logger getLogger() {
+        return LOGGER;
     }
 
     private static ResourcePropertySource getProperties(String propertiesLocation) {
@@ -251,7 +252,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void initializeSparkConfiguration() {
-        this.getApplicationContext().register(SparkConfiguration.class);
+        this.getApplicationContext().register(SparkPortConfiguration.class);
     }
 
     private void initializeSpringComponentScan() {
@@ -362,20 +363,6 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         @Override
         public void run() {
             AbstractIndoqaBootApplication.this.reload();
-        }
-    }
-
-    public static class SparkConfiguration {
-
-        @Inject
-        private Environment environment;
-
-        @PostConstruct
-        public void initializeSpark() {
-            String port = this.environment.getProperty("port");
-            if (StringUtils.isNotBlank(port)) {
-                Spark.port(Integer.parseInt(port));
-            }
         }
     }
 }

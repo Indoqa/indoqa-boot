@@ -16,6 +16,7 @@
  */
 package com.indoqa.boot;
 
+import static com.indoqa.boot.AbstractIndoqaBootApplication.DEFAULT_SPARK_PORT;
 import static java.lang.System.getenv;
 import static java.util.stream.Collectors.toMap;
 import static org.springframework.core.env.StandardEnvironment.*;
@@ -35,7 +36,6 @@ import java.util.stream.StreamSupport;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.PropertySource;
@@ -44,8 +44,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class SystemInfo {
-
-    public static final String DEFAULT_SPARK_PORT = "4567";
 
     private String version;
     private Date started;
@@ -131,12 +129,7 @@ public class SystemInfo {
     }
 
     private static String initPort(ConfigurableEnvironment springEnvironment) {
-        String result = springEnvironment.getProperty("port");
-        if (StringUtils.isNotBlank(result)) {
-            return result;
-        }
-
-        return DEFAULT_SPARK_PORT;
+        return springEnvironment.getProperty("port", DEFAULT_SPARK_PORT);
     }
 
     private static Map<String, SpringProperty> initSpringProperties(ConfigurableEnvironment springEnvironment) {
