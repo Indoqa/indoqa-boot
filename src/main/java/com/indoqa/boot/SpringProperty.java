@@ -43,7 +43,7 @@ public class SpringProperty {
 
     @JsonInclude(NON_EMPTY)
     public List<SpringPropertyValue> getOverridden() {
-        return this.values.stream().filter(prop -> prop != this.getFirstValue()).collect(toList());
+        return this.values.stream().filter(prop -> !prop.equals(this.getFirstValue())).collect(toList());
     }
 
     public String getSource() {

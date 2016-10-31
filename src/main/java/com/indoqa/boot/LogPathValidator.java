@@ -16,15 +16,17 @@
  */
 package com.indoqa.boot;
 
+import static com.indoqa.boot.AbstractIndoqaBootApplication.getInitializationLogger;
+
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 
 /*default*/final class LogPathValidator {
 
-    private static final PrintStream ERR = System.err;
+    private static final Logger INIT_LOGGER = getInitializationLogger();
     private static final String LOG_PATH_PROPERTY = "log-path";
 
     private LogPathValidator() {
@@ -46,11 +48,12 @@ import org.apache.commons.lang3.StringUtils;
         }
 
         try {
-            ERR.println("Application initilization error: The log-path '" + logPathFile.getCanonicalPath() + "' does not exist.");
-        } catch (IOException e) { // NOSONAR
-            ERR.println("Application initilization error: " + e.getMessage());
+            INIT_LOGGER
+                .error("Application initilization error: The log-path '" + logPathFile.getCanonicalPath() + "' does not exist.");
+        } catch (IOException e) { // NOSONAR (the stacktrace is of no value here)
+            INIT_LOGGER.error("Application initilization error: " + e.getMessage());
         }
-        exit();
+        terminate();
     }
 
     private static void checkLogpathIsDirectory(File logPathFile) {
@@ -59,11 +62,12 @@ import org.apache.commons.lang3.StringUtils;
         }
 
         try {
-            ERR.println("Application initilization error: The log-path '" + logPathFile.getCanonicalPath() + "' is not a directory.");
-        } catch (IOException e) { // NOSONAR
-            ERR.println("Application initilization error: " + e.getMessage());
+            INIT_LOGGER
+                .error("Application initilization error: The log-path '" + logPathFile.getCanonicalPath() + "' is not a directory.");
+        } catch (IOException e) { // NOSONAR (the stacktrace is of no value here)
+            INIT_LOGGER.error("Application initilization error: " + e.getMessage());
         }
-        exit();
+        terminate();
     }
 
     private static void checkLogPathPropertyIsAvailable(String logPath) {
@@ -71,12 +75,11 @@ import org.apache.commons.lang3.StringUtils;
             return;
         }
 
-        ERR.println("Application  initilization error: The system property '" + LOG_PATH_PROPERTY + "' is not set.");
-        exit();
+        INIT_LOGGER.error("Application  initilization error: The system property '" + LOG_PATH_PROPERTY + "' is not set.");
+        terminate();
     }
 
-    private static void exit() {
+    private static void terminate() {
         System.exit(1);
     }
-
 }

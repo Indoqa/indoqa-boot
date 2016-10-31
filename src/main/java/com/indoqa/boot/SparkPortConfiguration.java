@@ -23,7 +23,10 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 import static spark.globalstate.ServletFlag.isRunningFromServlet;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.DatagramSocket;
+import java.net.HttpURLConnection;
+import java.net.ServerSocket;
+import java.net.URL;
 import java.nio.charset.Charset;
 
 import javax.annotation.PostConstruct;
@@ -49,7 +52,7 @@ public class SparkPortConfiguration {
     @Inject
     private Environment environment;
 
-    private static HttpURLConnection connect(URL shutdownUrl) throws IOException, ProtocolException {
+    private static HttpURLConnection connect(URL shutdownUrl) throws IOException {
         HttpURLConnection httpConnection = (HttpURLConnection) shutdownUrl.openConnection();
         HttpURLConnection.setFollowRedirects(false);
         httpConnection.setConnectTimeout(SHUTDOWN_REQUEST_TIMEOUT);
@@ -69,7 +72,7 @@ public class SparkPortConfiguration {
             ds.setReuseAddress(true);
 
             return true;
-        } catch (IOException ioe) {
+        } catch (IOException ioe) { // NOSONAR
             return false;
         } finally {
             closeQuietly(ss);
@@ -93,7 +96,7 @@ public class SparkPortConfiguration {
             httpConnection.disconnect();
 
             return true;
-        } catch (IOException e) {
+        } catch (IOException e) { // NOSONAR
             return false;
         }
     }
@@ -118,6 +121,11 @@ public class SparkPortConfiguration {
         Spark.port(port);
     }
 
+    protected void terminate() {
+        // non-graceful shutdown (since in dev mode the application would be stopped forcefully anyway)
+        System.exit(1);
+    }
+
     private void claimPortOrShutdown(int port) {
         if (isPortAvailable(port)) {
             return;
@@ -128,8 +136,7 @@ public class SparkPortConfiguration {
             String msg = "The port " + port + " is in use. The initialization process stops here and the JVM is shut down.";
             LOGGER.error(msg);
             getInitializationLogger().error(msg);
-
-            System.exit(1);
+            this.terminate();
         }
 
         // REST request to shut down the application that uses the port
@@ -150,7 +157,7 @@ public class SparkPortConfiguration {
 
             if (runUntil < currentTimeMillis()) {
                 LOGGER.error("The port " + port + " is still in use. The initialization process stops here and the JVM is shut down.");
-                System.exit(1);
+                this.terminate();
             }
         }
     }
