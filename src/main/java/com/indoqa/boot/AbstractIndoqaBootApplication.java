@@ -23,7 +23,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
@@ -31,7 +30,6 @@ import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -45,8 +43,8 @@ import spark.Spark;
 
 public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
-    static final Logger LOGGER = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class);
     private static final Logger INIT_LOGGER = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class.getName() + "_INIT");
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class);
 
     private static final Date START_TIME = new Date();
 
@@ -244,7 +242,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             LOGGER.info("Explicitly set Spring profile: {}", detectedProfile);
             this.context.getEnvironment().setActiveProfiles(detectedProfile);
         }
-        LOGGER.info("Active Spring profile(s): {}", String.join(" & ", this.context.getEnvironment().getActiveProfiles()));
+        LOGGER.info("Active Spring profile(s): {}", join(" & ", this.context.getEnvironment().getActiveProfiles()));
     }
 
     private void initializePropertyPlaceholderConfigurer() {
@@ -268,10 +266,6 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.context.getBeanFactory().registerSingleton(VersionProvider.class.getName(), this.getVersionProvider());
     }
 
-    private boolean isDevProfileEnabled() {
-        return ArrayUtils.contains(this.context.getEnvironment().getActiveProfiles(), "dev");
-    }
-
     private boolean isHotswapAgentInstalled() {
         try {
             this.getClass().getClassLoader().loadClass("org.hotswap.agent.HotswapAgent");
@@ -282,7 +276,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void logInitializationFinished() {
-        if (this.isDevProfileEnabled()) {
+        if (this.isDevEnvironment()) {
             return;
         }
 
