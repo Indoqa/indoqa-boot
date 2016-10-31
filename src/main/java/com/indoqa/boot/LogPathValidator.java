@@ -33,7 +33,7 @@ import org.slf4j.Logger;
         // hide utility class constructor
     }
 
-    static void checkLogDir() {
+    public static void checkLogDir() {
         String logPath = System.getProperty(LOG_PATH_PROPERTY);
         checkLogPathPropertyIsAvailable(logPath);
 
