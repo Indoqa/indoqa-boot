@@ -16,7 +16,7 @@
  */
 package com.indoqa.boot;
 
-import static java.net.HttpURLConnection.HTTP_ACCEPTED;
+import static java.net.HttpURLConnection.*;
 import static spark.globalstate.ServletFlag.isRunningFromServlet;
 
 import java.util.TimerTask;
@@ -41,15 +41,17 @@ public class ShutdownResource extends AbstractJsonResourcesBase {
         if (isRunningFromServlet()) {
             LOGGER.warn("The shutdown resource received a request. Since the application runs within a servlet "
                 + "container, the application WILL NOT shut down.");
+            response.status(HTTP_FORBIDDEN);
+            return null;
         }
 
-        LOGGER.warn("Triggered by a REST request, the application is going to shut down in " + SHUTDOWN_DELAY + " ms.");
+        LOGGER.warn("Triggered by a REST request, the application is going to shut down.");
 
         // delay the shutdown so that the REST response can be sent
         new java.util.Timer().schedule(new ShutdownTask(), SHUTDOWN_DELAY);
 
         response.status(HTTP_ACCEPTED);
-        return "";
+        return null;
     }
 
     @PostConstruct
