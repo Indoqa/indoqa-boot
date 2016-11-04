@@ -18,19 +18,24 @@ package com.indoqa.boot.jsapp;
 
 import static java.util.stream.Collectors.joining;
 
+import java.util.Collections;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.indoqa.boot.json.JsonTransformer;
 
+import spark.Filter;
 import spark.Request;
 import spark.Spark;
+import spark.utils.MimeParse;
 
 /*default*/ final class JsAppUtils {
 
-    private static final String ACCEPT_TYPE_TEXT_HTML = "text/html";
     private static final String EMPTY_INITIAL_STATE = "{}";
     private static final String RESPONSE_HEADER_CONTENT_TYPE = "Content-Type";
     private static final String CONTENT_TYPE_HTML = "text/html; charset=utf-8";
+
+    private static final Set<String> ACCEPTED_TYPES = Collections.singleton("text/html");
 
     private JsAppUtils() {
         // hide utility class constructor
@@ -38,13 +43,21 @@ import spark.Spark;
 
     public static void jsApp(String path, Assets assets, ProxyURLMappings urlMappings, InitialStateProvider initialState,
             JsonTransformer transformer) {
-        Spark.get(path, ACCEPT_TYPE_TEXT_HTML, (req, res) -> {
+        Spark.after(path, (Filter) (req, res) -> {
+            if (res.body() != null) {
+                return;
+            }
+
+            String bestMatch = MimeParse.bestMatch(ACCEPTED_TYPES, req.headers("Accept"));
+            if (bestMatch.equals(MimeParse.NO_MIME_TYPE)) {
+                return;
+            }
+
             String initialStateJson = createInitialStateJson(req, initialState, transformer);
             String proxyMappingScript = createProxyMappingScript(urlMappings);
 
-            res.raw().setContentType(CONTENT_TYPE_HTML);
-
-            return createSinglePageHtml(assets, proxyMappingScript, initialStateJson);
+            res.type(CONTENT_TYPE_HTML);
+            res.body(createSinglePageHtml(assets, proxyMappingScript, initialStateJson));
         });
     }
 
