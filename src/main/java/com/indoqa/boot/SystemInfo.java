@@ -253,6 +253,10 @@ public class SystemInfo {
         return this.initialized;
     }
 
+    public void recheckRandomPort() {
+        this.port = Integer.toString(JettyPortReader.getPort());
+    }
+
     public void setInitializationDuration(long duration) {
         this.initializationDuration = duration;
     }

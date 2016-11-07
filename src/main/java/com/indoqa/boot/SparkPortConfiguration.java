@@ -23,7 +23,6 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 import static spark.globalstate.ServletFlag.isRunningFromServlet;
 
 import java.io.IOException;
-import java.net.DatagramSocket;
 import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.URL;
@@ -63,20 +62,14 @@ public class SparkPortConfiguration {
 
     private static boolean isPortAvailable(int port) {
         ServerSocket ss = null;
-        DatagramSocket ds = null;
         try {
             ss = new ServerSocket(port);
             ss.setReuseAddress(true);
-
-            ds = new DatagramSocket(port);
-            ds.setReuseAddress(true);
-
             return true;
         } catch (IOException ioe) { // NOSONAR
             return false;
         } finally {
             closeQuietly(ss);
-            closeQuietly(ds);
         }
     }
 

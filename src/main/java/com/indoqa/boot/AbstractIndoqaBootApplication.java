@@ -171,6 +171,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.systemInfo.setInitializationDuration(duration);
         this.systemInfo.setStarted(START_TIME);
         this.systemInfo.setInitialized(true);
+        this.systemInfo.recheckRandomPort();
     }
 
     private void enableApplicationReloading() {
