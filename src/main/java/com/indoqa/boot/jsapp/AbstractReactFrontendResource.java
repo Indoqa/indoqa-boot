@@ -17,6 +17,7 @@
 package com.indoqa.boot.jsapp;
 
 import static com.indoqa.boot.jsapp.WebpackAssetsUtils.*;
+import static java.util.concurrent.TimeUnit.DAYS;
 import static spark.Spark.*;
 
 import java.util.Arrays;
@@ -26,8 +27,11 @@ import javax.inject.Inject;
 
 import org.springframework.core.env.Environment;
 
+import spark.Spark;
+
 public abstract class AbstractReactFrontendResource extends AbstractJsAppResourcesBase {
 
+    private static final long EXPIRE_TIME = DAYS.toSeconds(1000);
     private static final String DEV_PROFILE = "dev";
 
     @Inject
@@ -62,6 +66,7 @@ public abstract class AbstractReactFrontendResource extends AbstractJsAppResourc
 
     private void mountFrontendFromClasspath() {
         staticFileLocation(this.classPathLocation);
+        Spark.staticFiles.expireTime(EXPIRE_TIME);
 
         this.jsApp(this.mountPath, findWebpackAssetsInClasspath(this.classPathLocation), this.getProxyURLMappings());
 
