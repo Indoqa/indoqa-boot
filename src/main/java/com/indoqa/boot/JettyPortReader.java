@@ -34,6 +34,10 @@ import spark.embeddedserver.jetty.EmbeddedJettyServer;
 
     private static final Logger LOGGER = getLogger(JettyPortReader.class);
 
+    private JettyPortReader() {
+        // hide utility class constructor
+    }
+
     public static int getPort() {
         int sparkPort = Spark.port();
 
