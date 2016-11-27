@@ -45,10 +45,10 @@
   <properties>
     <project.build.compiler.version>1.8</project.build.compiler.version>
 
-    <spark-version>2.5.2</spark-version>
+    <spark-version>2.5.3</spark-version>
     <spring-version>4.2.0.RELEASE</spring-version>
     <jackson-version>2.6.1</jackson-version>
-    <slf4j-version>1.7.12</slf4j-version>
+    <slf4j-version>1.7.21</slf4j-version>
     <aspectj-version>1.8.6</aspectj-version>
     <cglib-version>3.1</cglib-version>
     <apache-commons-lang3-version>3.4</apache-commons-lang3-version>
