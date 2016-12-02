@@ -16,12 +16,12 @@
  */
 package com.indoqa.boot.json;
 
-import com.fasterxml.jackson.databind.SerializationFeature;
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
 
-public final class JacksonTransformer extends AbstractJacksonTransformer {
+public class JacksonTransformer extends AbstractJacksonTransformer {
 
     @Override
     protected void configure() {
-        this.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        this.objectMapper.configure(WRITE_DATES_AS_TIMESTAMPS, false);
     }
 }

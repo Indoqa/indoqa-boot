@@ -16,14 +16,15 @@
  */
 package com.indoqa.boot.jsapp;
 
-import javax.inject.Inject;
-
+import com.indoqa.boot.json.HtmlEscapingJacksonTransformer;
 import com.indoqa.boot.json.JsonTransformer;
 
 public abstract class AbstractJsAppResourcesBase {
 
-    @Inject
-    private JsonTransformer transformer;
+    /*
+     * https://medium.com/node-security/the-most-common-xss-vulnerability-in-react-js-applications-2bdffbcc1fa0#.xf5lxr3zz
+     */
+    private JsonTransformer transformer = new HtmlEscapingJacksonTransformer();
 
     public void jsApp(String path, Assets assets) {
         JsAppUtils.jsApp(path, assets, null, null, null);
