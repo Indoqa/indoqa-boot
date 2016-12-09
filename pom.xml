@@ -26,13 +26,12 @@
     <version>4</version>
   </parent>
 
-  <groupId>com.indoqa</groupId>
   <artifactId>indoqa-boot</artifactId>
   <version>0.5.2-SNAPSHOT</version>
 
   <name>Indoqa Boot</name>
   <url>https://github.com/indoqa/indoqa-boot</url>
-  <description>Basic infrastructure for RESTful applications based on Spark and Spring.</description>
+  <description>Basic infrastructure for RESTful applications based on Java-Spark and Spring.</description>
 
   <scm>
     <connection>scm:git:git@github.com:Indoqa/indoqa-boot.git</connection>
@@ -41,21 +40,8 @@
     <tag>HEAD</tag>
   </scm>
 
-
   <properties>
     <project.build.compiler.version>1.8</project.build.compiler.version>
-
-    <spark-version>2.5.3</spark-version>
-    <spring-version>4.2.0.RELEASE</spring-version>
-    <jackson-version>2.6.1</jackson-version>
-    <slf4j-version>1.7.21</slf4j-version>
-    <aspectj-version>1.8.6</aspectj-version>
-    <cglib-version>3.1</cglib-version>
-    <apache-commons-lang3-version>3.4</apache-commons-lang3-version>
-    <apache-commons-io-version>2.5</apache-commons-io-version>
-    <indoqa-spring-version>4.1.0</indoqa-spring-version>
-    <indoqa-http-proxy-version>1.0.0</indoqa-http-proxy-version>
-    <junit-version>4.12</junit-version>
   </properties>
 
   <dependencies>
@@ -63,7 +49,6 @@
     <dependency>
       <groupId>com.sparkjava</groupId>
       <artifactId>spark-core</artifactId>
-      <version>${spark-version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
@@ -76,119 +61,125 @@
     <dependency>
       <groupId>javax.inject</groupId>
       <artifactId>javax.inject</artifactId>
-      <version>1</version>
     </dependency>
 
     <!-- Spring Framework -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-aop</artifactId>
-      <version>${spring-version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
-      <version>${spring-version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
-      <version>${spring-version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context-support</artifactId>
-      <version>${spring-version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
-      <version>${spring-version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-expression</artifactId>
-      <version>${spring-version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-web</artifactId>
-      <version>${spring-version}</version>
     </dependency>
 
     <!-- Jackson -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>${jackson-version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson-version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>${jackson-version}</version>
-    </dependency>
-
-    <!-- AOP -->
-    <dependency>
-      <groupId>cglib</groupId>
-      <artifactId>cglib</artifactId>
-      <version>${cglib-version}</version>
-    </dependency>
-
-    <!-- Logging -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>jcl-over-slf4j</artifactId>
-      <version>${slf4j-version}</version>
     </dependency>
 
     <!-- Commons -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>${apache-commons-lang3-version}</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>${apache-commons-io-version}</version>
     </dependency>
     <dependency>
       <groupId>com.indoqa</groupId>
       <artifactId>indoqa-spring</artifactId>
-      <version>${indoqa-spring-version}</version>
     </dependency>
 
     <!-- HTTP Proxy -->
     <dependency>
       <groupId>com.indoqa</groupId>
       <artifactId>http-proxy</artifactId>
-      <version>${indoqa-http-proxy-version}</version>
+    </dependency>
+
+    <!-- slf4j -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    
+    <!-- JCL over sl4fj -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+    </dependency>
+  
+    <!-- Log4j impl -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-web</artifactId>
     </dependency>
 
     <!-- Test dependencies -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit-version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
-      <version>${spring-version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.indoqa</groupId>
+        <artifactId>indoqa-boot-bom</artifactId>
+        <version>${project.version}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
 </project>
