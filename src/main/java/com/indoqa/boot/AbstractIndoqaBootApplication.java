@@ -37,6 +37,8 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.support.ResourcePropertySource;
 
 import com.indoqa.boot.json.JacksonTransformer;
+import com.indoqa.boot.lifecycle.NoopStartupLifecycle;
+import com.indoqa.boot.lifecycle.StartupLifecycle;
 
 import spark.ResponseTransformer;
 import spark.Spark;
@@ -76,53 +78,41 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     public void invoke() {
+        this.invoke(NoopStartupLifecycle.INSTANCE);
+    }
+
+    public void invoke(StartupLifecycle lifecycle) {
         this.printLogo();
-        this.beforeInitialization();
+
+        lifecycle.willInitialize();
         this.logInitializationStart();
 
-        this.beforeSpringInitialization();
+        lifecycle.willCreateSpringContext();
         this.initializeApplicationContext();
+
+        lifecycle.didCreateSpringContext(this.context);
         this.initializeVersionProvider();
         this.initializeSystemInfo();
         this.initializeProfile();
         this.initializeExternalProperties();
         this.initializePropertyPlaceholderConfigurer();
+
         this.initializeSparkConfiguration();
+        lifecycle.willCreateDefaultSparkRoutes();
+
         this.initializeJsonTransformer();
-        this.initializeSpringBeans();
         this.initializeDefaultResources();
+
+        lifecycle.willScanForComponents();
         this.initializeSpringComponentScan();
 
-        this.beforeApplicationContextRefresh();
+        lifecycle.willRefreshSpringContext();
         this.refreshApplicationContext();
-
         this.completeSystemInfoInitialization();
-        this.afterSpringInitialization();
+        lifecycle.didInitializeSpring();
 
         this.enableApplicationReloading();
-
-        this.logInitializationFinished();
-        this.afterInitialization();
-    }
-
-    protected void afterInitialization() {
-        // empty implementation
-    }
-
-    protected void afterSpringInitialization() {
-        // empty implementation
-    }
-
-    protected void beforeApplicationContextRefresh() {
-        // empty implementation
-    }
-
-    protected void beforeInitialization() {
-        // empty implementation
-    }
-
-    protected void beforeSpringInitialization() {
-        // empty implementation
+        this.logInitializationFinished(lifecycle);
     }
 
     protected boolean checkLoggerInitialization() {
@@ -131,10 +121,6 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     protected CharSequence getAdditionalStatusMessages() {
         return null;
-    }
-
-    protected AnnotationConfigApplicationContext getApplicationContext() {
-        return this.context;
     }
 
     protected String getApplicationName() {
@@ -155,10 +141,6 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     protected VersionProvider getVersionProvider() {
         return this;
-    }
-
-    protected void initializeSpringBeans() {
-        // empty implementation
     }
 
     protected boolean isDevEnvironment() {
@@ -195,10 +177,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private int getBeansHashCode() {
-        List<String> beanDefinitions = asList(this.getApplicationContext().getBeanFactory().getBeanDefinitionNames());
+        List<String> beanDefinitions = asList(this.context.getBeanFactory().getBeanDefinitionNames());
         List<Object> beans = beanDefinitions
             .stream()
-            .map(bd -> this.getApplicationContext().getBeanFactory().getBean(bd))
+            .map(bd -> this.context.getBeanFactory().getBean(bd))
             .collect(Collectors.toList());
         return beans.hashCode();
     }
@@ -247,11 +229,11 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void initializePropertyPlaceholderConfigurer() {
-        this.getApplicationContext().register(PropertySourcesPlaceholderConfigurer.class);
+        this.context.register(PropertySourcesPlaceholderConfigurer.class);
     }
 
     private void initializeSparkConfiguration() {
-        this.getApplicationContext().register(SparkPortConfiguration.class);
+        this.context.register(SparkPortConfiguration.class);
     }
 
     private void initializeSpringComponentScan() {
@@ -276,7 +258,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         }
     }
 
-    private void logInitializationFinished() {
+    private void logInitializationFinished(StartupLifecycle lifecycle) {
         if (this.isDevEnvironment()) {
             return;
         }
@@ -297,9 +279,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             .append(", running on Java ")
             .append(this.systemInfo.getSystemProperties().get("java.version"));
 
-        CharSequence additionalStatusMessages = this.getAdditionalStatusMessages();
-        if (additionalStatusMessages != null) {
-            statusMessages.append(additionalStatusMessages);
+        StringBuilder additionalStatusMessages = new StringBuilder();
+        lifecycle.didInitialize(additionalStatusMessages);
+        if (additionalStatusMessages.length() > 0) {
+            statusMessages.append(", ").append(additionalStatusMessages);
         }
 
         statusMessages.append(")");
@@ -349,7 +332,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         }
 
         Spark.stop();
-        this.getApplicationContext().close();
+        this.context.close();
         this.invoke();
     }
 
