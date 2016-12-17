@@ -23,10 +23,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -112,7 +109,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         lifecycle.didInitializeSpring();
 
         this.enableApplicationReloading();
-        this.logInitializationFinished(lifecycle);
+        Optional<CharSequence> statusMessages = lifecycle.didInitialize();
+        this.logInitializationFinished(statusMessages);
     }
 
     protected boolean checkLoggerInitialization() {
@@ -258,7 +256,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         }
     }
 
-    private void logInitializationFinished(StartupLifecycle lifecycle) {
+    private void logInitializationFinished(Optional<CharSequence> additionalStatusMessages) {
         if (this.isDevEnvironment()) {
             return;
         }
@@ -279,11 +277,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             .append(", running on Java ")
             .append(this.systemInfo.getSystemProperties().get("java.version"));
 
-        StringBuilder additionalStatusMessages = new StringBuilder();
-        lifecycle.didInitialize(additionalStatusMessages);
-        if (additionalStatusMessages.length() > 0) {
-            statusMessages.append(", ").append(additionalStatusMessages);
-        }
+        additionalStatusMessages.ifPresent(message -> statusMessages.append(", ").append(message));
 
         statusMessages.append(")");
 

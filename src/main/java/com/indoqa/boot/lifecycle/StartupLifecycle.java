@@ -16,6 +16,8 @@
  */
 package com.indoqa.boot.lifecycle;
 
+import java.util.Optional;
+
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
@@ -42,7 +44,7 @@ public interface StartupLifecycle {
 
     void didCreateSpringContext(AnnotationConfigApplicationContext context);
 
-    void didInitialize(StringBuilder statusMessageBuilder);
+    Optional<CharSequence> didInitialize();
 
     void didInitializeSpring();
 

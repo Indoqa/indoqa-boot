@@ -16,22 +16,24 @@
  */
 package com.indoqa.boot.lifecycle;
 
+import java.util.Optional;
+
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 public abstract class AbstractStartupLifecycle implements StartupLifecycle {
 
     @Override
-    public void didInitialize(StringBuilder statusMessageBuilder) {
+    public void didCreateSpringContext(AnnotationConfigApplicationContext context) {
         // empty implementation
+    }
+
+    @Override
+    public Optional<CharSequence> didInitialize() {
+        return Optional.empty();
     }
 
     @Override
     public void didInitializeSpring() {
-        // empty implementation
-    }
-
-    @Override
-    public void didCreateSpringContext(AnnotationConfigApplicationContext context) {
         // empty implementation
     }
 
