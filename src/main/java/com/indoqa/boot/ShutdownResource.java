@@ -22,7 +22,6 @@ import static spark.globalstate.ServletFlag.isRunningFromServlet;
 import java.util.TimerTask;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,6 @@ import org.springframework.context.annotation.Profile;
 
 import spark.Response;
 
-@Named
 @Profile("dev")
 public class ShutdownResource extends AbstractJsonResourcesBase {
 
@@ -39,8 +37,9 @@ public class ShutdownResource extends AbstractJsonResourcesBase {
 
     private static String shutdown(Response response) {
         if (isRunningFromServlet()) {
-            LOGGER.warn("The shutdown resource received a request. Since the application runs within a servlet "
-                + "container, the application WILL NOT shut down.");
+            LOGGER.warn(
+                "The shutdown resource received a request. Since the application runs within a servlet "
+                    + "container, the application WILL NOT shut down.");
             response.status(HTTP_FORBIDDEN);
             return null;
         }

@@ -20,11 +20,9 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static spark.Spark.after;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Named;
 
 import spark.Response;
 
-@Named
 public class DefaultContentTypeAfterInterceptor {
 
     private static void setContentType(Response response) {

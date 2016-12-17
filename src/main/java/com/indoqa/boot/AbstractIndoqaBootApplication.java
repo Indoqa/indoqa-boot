@@ -20,6 +20,7 @@ import static java.lang.String.join;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +34,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.support.ResourcePropertySource;
 
+import com.indoqa.boot.json.DefaultContentTypeAfterInterceptor;
 import com.indoqa.boot.json.JacksonTransformer;
 import com.indoqa.boot.lifecycle.NoopStartupLifecycle;
 import com.indoqa.boot.lifecycle.StartupLifecycle;
@@ -198,6 +200,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     private void initializeDefaultResources() {
         this.context.register(SystemInfoResource.class);
+        this.context.register(DefaultContentTypeAfterInterceptor.class);
+        this.context.register(ShutdownResource.class);
     }
 
     private void initializeExternalProperties() {
@@ -235,8 +239,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void initializeSpringComponentScan() {
-        this.context.scan(AbstractIndoqaBootApplication.class.getPackage().getName());
-        this.context.scan(this.getComponentScanBasePackages());
+        String[] componentScanBasePackages = this.getComponentScanBasePackages();
+        if (isNotEmpty(componentScanBasePackages)) {
+            this.context.scan(componentScanBasePackages);
+        }
     }
 
     private void initializeSystemInfo() {

@@ -30,7 +30,6 @@ import java.nio.charset.Charset;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -40,7 +39,6 @@ import org.springframework.core.env.Environment;
 
 import spark.Spark;
 
-@Named
 public class SparkPortConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SparkPortConfiguration.class);
