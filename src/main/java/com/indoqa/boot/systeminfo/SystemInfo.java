@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot;
+package com.indoqa.boot.systeminfo;
 
 import static com.indoqa.boot.AbstractIndoqaBootApplication.DEFAULT_SPARK_PORT;
 import static java.lang.System.getenv;
@@ -42,6 +42,8 @@ import org.springframework.core.env.PropertySource;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.indoqa.boot.ApplicationInitializationException;
+import com.indoqa.boot.VersionProvider;
 
 public class SystemInfo {
 

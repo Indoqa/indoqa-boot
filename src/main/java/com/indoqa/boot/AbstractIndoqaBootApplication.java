@@ -18,6 +18,7 @@ package com.indoqa.boot;
 
 import static java.lang.String.join;
 import static java.lang.System.currentTimeMillis;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
@@ -38,6 +39,9 @@ import com.indoqa.boot.json.DefaultContentTypeAfterInterceptor;
 import com.indoqa.boot.json.JacksonTransformer;
 import com.indoqa.boot.lifecycle.NoopStartupLifecycle;
 import com.indoqa.boot.lifecycle.StartupLifecycle;
+import com.indoqa.boot.resource.ShutdownResource;
+import com.indoqa.boot.resource.SystemInfoResource;
+import com.indoqa.boot.systeminfo.SystemInfo;
 
 import spark.ResponseTransformer;
 import spark.Spark;
@@ -306,7 +310,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         }
 
         try (InputStream asciiLogoInputStream = AbstractIndoqaBootApplication.class.getResourceAsStream(asciiLogoPath)) {
-            String asciiLogo = IOUtils.toString(asciiLogoInputStream, "utf-8");
+            String asciiLogo = IOUtils.toString(asciiLogoInputStream, UTF_8);
             if (asciiLogo == null) {
                 return;
             }

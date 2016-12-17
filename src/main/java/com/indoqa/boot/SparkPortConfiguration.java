@@ -19,6 +19,7 @@ package com.indoqa.boot;
 import static com.indoqa.boot.AbstractIndoqaBootApplication.*;
 import static java.lang.Integer.parseInt;
 import static java.lang.System.currentTimeMillis;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static spark.globalstate.ServletFlag.isRunningFromServlet;
 
@@ -26,7 +27,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.URL;
-import java.nio.charset.Charset;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -83,7 +83,7 @@ public class SparkPortConfiguration {
         try {
             HttpURLConnection httpConnection = connect(new URL("http://localhost:" + port + "/shutdown"));
             httpConnection.connect();
-            IOUtils.toString(httpConnection.getInputStream(), Charset.forName("utf-8"));
+            IOUtils.toString(httpConnection.getInputStream(), UTF_8);
             httpConnection.disconnect();
 
             return true;

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot;
+package com.indoqa.boot.resource;
 
 import static java.net.HttpURLConnection.*;
 import static spark.globalstate.ServletFlag.isRunningFromServlet;
@@ -26,6 +26,8 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
+
+import com.indoqa.boot.AbstractJsonResourcesBase;
 
 import spark.Response;
 
