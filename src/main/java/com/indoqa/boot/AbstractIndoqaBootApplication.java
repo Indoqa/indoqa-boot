@@ -16,6 +16,7 @@
  */
 package com.indoqa.boot;
 
+import static com.indoqa.boot.profile.Profiles.*;
 import static java.lang.String.join;
 import static java.lang.System.currentTimeMillis;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -41,6 +42,9 @@ import com.indoqa.boot.lifecycle.NoopStartupLifecycle;
 import com.indoqa.boot.lifecycle.StartupLifecycle;
 import com.indoqa.boot.resource.ShutdownResource;
 import com.indoqa.boot.resource.SystemInfoResource;
+import com.indoqa.boot.spark.SparkAdminService;
+import com.indoqa.boot.spark.SparkDefaultService;
+import com.indoqa.boot.systeminfo.BasicSystemInfo;
 import com.indoqa.boot.systeminfo.SystemInfo;
 
 import spark.ResponseTransformer;
@@ -53,14 +57,13 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     private static final Date START_TIME = new Date();
 
-    public static final String DEFAULT_SPARK_PORT = "4567";
     private AnnotationConfigApplicationContext context;
     private ResourcePropertySource propertySource;
 
     private SystemInfo systemInfo;
     private int beansHashCode;
 
-    protected static Logger getInitializationLogger() {
+    public static Logger getInitializationLogger() {
         return INIT_LOGGER;
     }
 
@@ -100,7 +103,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.initializeExternalProperties();
         this.initializePropertyPlaceholderConfigurer();
 
-        this.initializeSparkConfiguration();
+        this.initializeSpark();
         lifecycle.willCreateDefaultSparkRoutes();
 
         this.initializeJsonTransformer();
@@ -158,6 +161,9 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.systemInfo.setStarted(START_TIME);
         this.systemInfo.setInitialized(true);
         this.systemInfo.recheckRandomPort();
+
+        BasicSystemInfo reducedSystemInfo = this.context.getBean(BasicSystemInfo.class);
+        reducedSystemInfo.setInitialized(true);
     }
 
     private void enableApplicationReloading() {
@@ -227,7 +233,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     private void initializeProfile() {
         if (this.hasNoActiveProfile()) {
-            String detectedProfile = this.isDevEnvironment() ? "dev" : "prod";
+            String detectedProfile = this.isDevEnvironment() ? DEV.getName() : PROD.getName();
             LOGGER.info("Explicitly set Spring profile: {}", detectedProfile);
             this.context.getEnvironment().setActiveProfiles(detectedProfile);
         }
@@ -238,8 +244,9 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.context.register(PropertySourcesPlaceholderConfigurer.class);
     }
 
-    private void initializeSparkConfiguration() {
-        this.context.register(SparkPortConfiguration.class);
+    private void initializeSpark() {
+        this.context.register(SparkDefaultService.class);
+        this.context.register(SparkAdminService.class);
     }
 
     private void initializeSpringComponentScan() {
@@ -251,6 +258,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     private void initializeSystemInfo() {
         this.context.register(SystemInfo.class);
+        this.context.register(BasicSystemInfo.class);
     }
 
     private void initializeVersionProvider() {

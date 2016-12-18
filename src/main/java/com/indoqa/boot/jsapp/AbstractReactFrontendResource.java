@@ -20,19 +20,18 @@ import static com.indoqa.boot.jsapp.WebpackAssetsUtils.*;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static spark.Spark.*;
 
-import java.util.Arrays;
-
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import org.springframework.core.env.Environment;
+
+import com.indoqa.boot.profile.ProfileDetector;
 
 import spark.Spark;
 
 public abstract class AbstractReactFrontendResource extends AbstractJsAppResourcesBase {
 
     private static final long EXPIRE_TIME = DAYS.toSeconds(1000);
-    private static final String DEV_PROFILE = "dev";
 
     @Inject
     private Environment environment;
@@ -49,7 +48,7 @@ public abstract class AbstractReactFrontendResource extends AbstractJsAppResourc
 
     @PostConstruct
     public void mount() {
-        if (this.isDev()) {
+        if (ProfileDetector.isDev(this.environment)) {
             this.mountFrontendFromFilesystem();
         } else {
             this.mountFrontendFromClasspath();
@@ -58,10 +57,6 @@ public abstract class AbstractReactFrontendResource extends AbstractJsAppResourc
 
     protected ProxyURLMappings getProxyURLMappings() {
         return new ProxyURLMappings();
-    }
-
-    private boolean isDev() {
-        return Arrays.stream(this.environment.getActiveProfiles()).anyMatch(profile -> profile.equals(DEV_PROFILE));
     }
 
     private void mountFrontendFromClasspath() {

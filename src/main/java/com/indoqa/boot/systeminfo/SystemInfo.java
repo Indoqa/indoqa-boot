@@ -16,20 +16,14 @@
  */
 package com.indoqa.boot.systeminfo;
 
-import static com.indoqa.boot.AbstractIndoqaBootApplication.DEFAULT_SPARK_PORT;
 import static java.lang.System.getenv;
 import static java.util.stream.Collectors.toMap;
 import static org.springframework.core.env.StandardEnvironment.*;
 
-import java.io.IOException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
-import java.util.jar.Attributes;
-import java.util.jar.JarInputStream;
-import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -42,12 +36,10 @@ import org.springframework.core.env.PropertySource;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.VersionProvider;
 
-public class SystemInfo {
+public class SystemInfo extends AbstractSystemInfo {
 
-    private String version;
     private Date started;
     private long initializationDuration;
     private Map<String, String> systemProperties;
@@ -57,7 +49,6 @@ public class SystemInfo {
     private String[] profiles;
     private String port;
     private Map<String, String> more = new HashMap<>();
-    private boolean initialized;
 
     @JsonIgnore
     @Inject
@@ -77,53 +68,8 @@ public class SystemInfo {
                 .collect(toMap(entry -> entry.getKey(), entry -> entry.getValue())));
     }
 
-    private static String getAttribute(Class<?> archivedClass, String property) throws IOException {
-        Manifest manifest = getManifest(archivedClass);
-        if (manifest == null) {
-            return null;
-        }
-
-        Attributes entries = manifest.getMainAttributes();
-        return entries.getValue(property);
-    }
-
-    private static Manifest getManifest(Class<?> archivedClass) throws IOException {
-        URL codeBase = archivedClass.getProtectionDomain().getCodeSource().getLocation();
-        if (!codeBase.getPath().endsWith(".jar")) {
-            return null;
-        }
-
-        JarInputStream jarInputStream = null;
-        try {
-            jarInputStream = new JarInputStream(codeBase.openStream());
-            return jarInputStream.getManifest();
-        } finally {
-            if (jarInputStream != null) {
-                jarInputStream.close();
-            }
-        }
-    }
-
     private static String[] initActiveProfiles(ConfigurableEnvironment springEnvironment) {
         return springEnvironment.getActiveProfiles();
-    }
-
-    private static String initApplicationVersion(VersionProvider versionProvider) {
-        try {
-            String versionAttribute = getAttribute(versionProvider.getClass(), "Implementation-Version");
-            if (versionAttribute != null) {
-                return versionAttribute;
-            }
-
-            versionAttribute = getAttribute(versionProvider.getClass(), "Implementation-Build");
-            if (versionAttribute != null) {
-                return versionAttribute;
-            }
-
-            return "UNKNOWN_VERSION";
-        } catch (IOException e) {
-            throw new ApplicationInitializationException("Cannot read from manifest.", e);
-        }
     }
 
     private static Map<String, String> initJavaEnvironmentMap() {
@@ -131,7 +77,7 @@ public class SystemInfo {
     }
 
     private static String initPort(ConfigurableEnvironment springEnvironment) {
-        return springEnvironment.getProperty("port", DEFAULT_SPARK_PORT);
+        return springEnvironment.getProperty("port");
     }
 
     private static Map<String, SpringProperty> initSpringProperties(ConfigurableEnvironment springEnvironment) {
@@ -235,13 +181,10 @@ public class SystemInfo {
         return this.systemProperties;
     }
 
-    public String getVersion() {
-        return this.version;
-    }
-
+    @Override
     @PostConstruct
     public void initProperties() {
-        this.version = initApplicationVersion(this.versionProvider);
+        super.initProperties();
         this.profiles = initActiveProfiles(this.springEnvironment);
         this.port = initPort(this.springEnvironment);
 
@@ -251,20 +194,12 @@ public class SystemInfo {
         this.springPropertySources = initSpringPropertySources(this.springEnvironment);
     }
 
-    public boolean isInitialized() {
-        return this.initialized;
-    }
-
     public void recheckRandomPort() {
         this.port = Integer.toString(JettyPortReader.getPort());
     }
 
     public void setInitializationDuration(long duration) {
         this.initializationDuration = duration;
-    }
-
-    public void setInitialized(boolean initialized) {
-        this.initialized = initialized;
     }
 
     public void setStarted(Date started) {

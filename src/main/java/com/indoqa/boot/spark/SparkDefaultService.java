@@ -14,37 +14,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot;
+package com.indoqa.boot.spark;
 
-import static com.indoqa.boot.AbstractIndoqaBootApplication.*;
-import static java.lang.Integer.parseInt;
+import static com.indoqa.boot.spark.PortUtils.*;
 import static java.lang.System.currentTimeMillis;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.io.IOUtils.closeQuietly;
 import static spark.globalstate.ServletFlag.isRunningFromServlet;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.ServerSocket;
 import java.net.URL;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
 import spark.Spark;
 
-public class SparkPortConfiguration {
+public class SparkDefaultService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SparkPortConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SparkDefaultService.class);
+    private static final String DEFAULT_SPARK_PORT = "4567";
     private static final int SHUTDOWN_REQUEST_TIMEOUT = 250;
     private static final int SHUTDOWN_CHECK_RETRY_INTERVALL = 50;
     private static final int SHUTDOWN_EXECUTION_TIMEOUT = 500;
+    private static final String PROPERTY_PORT = "port";
 
     @Inject
     private Environment environment;
@@ -56,27 +54,6 @@ public class SparkPortConfiguration {
         httpConnection.setReadTimeout(SHUTDOWN_REQUEST_TIMEOUT);
         httpConnection.setRequestMethod("POST");
         return httpConnection;
-    }
-
-    private static boolean isPortAvailable(int port) {
-        ServerSocket ss = null;
-        try {
-            ss = new ServerSocket(port);
-            ss.setReuseAddress(true);
-            return true;
-        } catch (IOException ioe) { // NOSONAR
-            return false;
-        } finally {
-            closeQuietly(ss);
-        }
-    }
-
-    private static int parsePortProperty(String port) {
-        try {
-            return parseInt(port);
-        } catch (NumberFormatException e) {
-            throw new ApplicationInitializationException("Error while parsing the port property.", e);
-        }
     }
 
     private static boolean shutdownRunningApplication(int port) {
@@ -108,27 +85,17 @@ public class SparkPortConfiguration {
         }
 
         int port = this.getPort();
-        this.claimPortOrShutdown(port);
+        this.claimPortOrShutdownOtherApplication(port);
         Spark.port(port);
     }
 
-    protected void terminate() {
-        // non-graceful shutdown (since in dev mode the application would be stopped forcefully anyway)
-        System.exit(1);
-    }
-
-    private void claimPortOrShutdown(int port) {
+    private void claimPortOrShutdownOtherApplication(int port) {
         if (isPortAvailable(port)) {
             return;
         }
 
         // in production mode check if the port is available, otherwise stop the initialization process here
-        if (!ArrayUtils.contains(this.environment.getActiveProfiles(), "dev")) {
-            String msg = "The port " + port + " is in use. The initialization process stops here and the JVM is shut down.";
-            LOGGER.error(msg);
-            getInitializationLogger().error(msg);
-            this.terminate();
-        }
+        claimPortOrShutdown(this.environment, port, PROPERTY_PORT, LOGGER);
 
         // REST request to shut down the application that uses the port
         // This will only work for an Indoqa Boot application that runs with the 'dev' profile.
@@ -148,13 +115,13 @@ public class SparkPortConfiguration {
 
             if (runUntil < currentTimeMillis()) {
                 LOGGER.error("The port " + port + " is still in use. The initialization process stops here and the JVM is shut down.");
-                this.terminate();
+                terminate();
             }
         }
     }
 
     private int getPort() {
-        String portProperty = this.environment.getProperty("port", DEFAULT_SPARK_PORT);
-        return parsePortProperty(portProperty);
+        String portProperty = this.environment.getProperty(PROPERTY_PORT, DEFAULT_SPARK_PORT);
+        return parseIntegerProperty(portProperty, PROPERTY_PORT);
     }
 }

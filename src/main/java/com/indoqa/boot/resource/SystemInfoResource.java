@@ -22,6 +22,9 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import com.indoqa.boot.AbstractJsonResourcesBase;
+import com.indoqa.boot.json.JsonTransformer;
+import com.indoqa.boot.spark.SparkAdminService;
+import com.indoqa.boot.systeminfo.BasicSystemInfo;
 import com.indoqa.boot.systeminfo.SystemInfo;
 
 import spark.Response;
@@ -31,15 +34,43 @@ public class SystemInfoResource extends AbstractJsonResourcesBase {
     @Inject
     private SystemInfo systemInfo;
 
+    @Inject
+    private BasicSystemInfo reducedSystemInfo;
+
+    @Inject
+    private JsonTransformer transformer;
+
+    @Inject
+    private SparkAdminService sparkAdminService;
+
     @PostConstruct
     public void mount() {
-        this.get("/system-info", (request, response) -> this.sendSystemInfo(response));
+        if (this.sparkAdminService.isAvailable()) {
+            this.get("/system-info", (request, response) -> this.sendReducedSystemInfo(response));
+            this.sparkAdminService
+                .instance()
+                .get("/system-info", (request, response) -> this.sendSystemInfo(response), this.transformer);
+        }
+
+        else {
+            this.get("/system-info", (request, response) -> this.sendSystemInfo(response));
+        }
+    }
+
+    private BasicSystemInfo sendReducedSystemInfo(Response response) {
+        if (this.reducedSystemInfo.isInitialized()) {
+            return this.reducedSystemInfo;
+        }
+
+        response.status(HTTP_NOT_FOUND);
+        return null;
     }
 
     private SystemInfo sendSystemInfo(Response response) {
         if (this.systemInfo.isInitialized()) {
             return this.systemInfo;
         }
+
         response.status(HTTP_NOT_FOUND);
         return null;
     }
