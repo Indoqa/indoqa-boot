@@ -16,7 +16,7 @@
  */
 package com.indoqa.boot;
 
-import static com.indoqa.boot.profile.Profiles.*;
+import static com.indoqa.boot.profile.Profile.*;
 import static java.lang.String.join;
 import static java.lang.System.currentTimeMillis;
 import static java.nio.charset.StandardCharsets.UTF_8;

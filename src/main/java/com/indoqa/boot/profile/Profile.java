@@ -16,13 +16,13 @@
  */
 package com.indoqa.boot.profile;
 
-public enum Profiles {
+public enum Profile {
 
     PROD("prod"), DEV("dev");
 
     private String name;
 
-    private Profiles(String name) {
+    private Profile(String name) {
         this.name = name;
     }
 

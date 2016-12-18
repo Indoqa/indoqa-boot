@@ -16,7 +16,7 @@
  */
 package com.indoqa.boot.profile;
 
-import static com.indoqa.boot.profile.Profiles.*;
+import static com.indoqa.boot.profile.Profile.*;
 
 import java.util.Arrays;
 
@@ -36,7 +36,7 @@ public final class ProfileDetector {
         return isProfileAvailable(environment, PROD);
     }
 
-    protected static boolean isProfileAvailable(Environment environment, Profiles profiles) {
-        return Arrays.stream(environment.getActiveProfiles()).anyMatch(profile -> profiles.getName().equals(profile));
+    protected static boolean isProfileAvailable(Environment environment, Profile profile) {
+        return Arrays.stream(environment.getActiveProfiles()).anyMatch(eachProfile -> profile.getName().equals(eachProfile));
     }
 }
