@@ -16,18 +16,13 @@
  */
 package com.indoqa.boot.spark;
 
-import static com.indoqa.boot.AbstractIndoqaBootApplication.getInitializationLogger;
 import static java.lang.Integer.parseInt;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 
-import org.slf4j.Logger;
-import org.springframework.core.env.Environment;
-
 import com.indoqa.boot.ApplicationInitializationException;
-import com.indoqa.boot.profile.ProfileDetector;
 
 public final class PortUtils {
 
@@ -45,16 +40,6 @@ public final class PortUtils {
             return false;
         } finally {
             closeQuietly(ss);
-        }
-    }
-
-    protected static void claimPortOrShutdown(Environment environment, int port, String propertyName, Logger logger) {
-        if (ProfileDetector.isProd(environment)) {
-            String msg = "The " + propertyName + " " + port
-                + " is in use. The initialization process stops here and the JVM is shut down.";
-            logger.error(msg);
-            getInitializationLogger().error(msg);
-            terminate();
         }
     }
 

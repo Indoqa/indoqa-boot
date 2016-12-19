@@ -17,25 +17,32 @@
 package com.indoqa.boot.resource;
 
 import static java.net.HttpURLConnection.*;
+import static org.slf4j.LoggerFactory.getLogger;
 import static spark.globalstate.ServletFlag.isRunningFromServlet;
 
 import java.util.TimerTask;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 
 import com.indoqa.boot.AbstractJsonResourcesBase;
+import com.indoqa.boot.json.JsonTransformer;
+import com.indoqa.boot.spark.SparkAdminService;
 
 import spark.Response;
 
-@Profile("dev")
 public class ShutdownResource extends AbstractJsonResourcesBase {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ShutdownResource.class);
+    private static final Logger LOGGER = getLogger(ShutdownResource.class);
     private static final int SHUTDOWN_DELAY = 50;
+
+    @Inject
+    private SparkAdminService sparkAdminService;
+
+    @Inject
+    private JsonTransformer jsonTransformer;
 
     private static String shutdown(Response response) {
         if (isRunningFromServlet()) {
@@ -57,7 +64,11 @@ public class ShutdownResource extends AbstractJsonResourcesBase {
 
     @PostConstruct
     public void mount() {
-        this.post("/shutdown", (req, res) -> shutdown(res));
+        if (this.sparkAdminService.isAvailable()) {
+            this.sparkAdminService.instance().post("/shutdown", (req, res) -> shutdown(res), this.jsonTransformer);
+        } else {
+            this.post("/shutdown", (req, res) -> shutdown(res));
+        }
     }
 
     private static class ShutdownTask extends TimerTask {

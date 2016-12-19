@@ -209,8 +209,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void initializeDefaultResources() {
-        this.context.register(SystemInfoResource.class);
         this.context.register(DefaultContentTypeAfterInterceptor.class);
+        this.context.register(SystemInfoResource.class);
         this.context.register(ShutdownResource.class);
     }
 

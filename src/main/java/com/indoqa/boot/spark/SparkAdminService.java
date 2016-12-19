@@ -16,31 +16,20 @@
  */
 package com.indoqa.boot.spark;
 
-import static com.indoqa.boot.spark.PortUtils.*;
-import static java.lang.Boolean.*;
+import static org.slf4j.LoggerFactory.getLogger;
 import static spark.globalstate.ServletFlag.isRunningFromServlet;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
 
 import spark.Service;
 
-public final class SparkAdminService {
+public final class SparkAdminService extends AbstractSparkService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SparkAdminService.class);
-
-    private static final String PROPERTY_ADMIN_PORT = "admin-port";
-    private static final String PROPERTY_SEPARATE_ADMIN_SERVICE = "admin-service.separate";
-    private static final String DEFAULT_ADMIN_PORT = "34567";
+    private static final Logger LOGGER = getLogger(SparkAdminService.class);
 
     private Service service;
-
-    @Inject
-    private Environment environment;
 
     @PostConstruct
     public void initialize() {
@@ -48,14 +37,15 @@ public final class SparkAdminService {
             return;
         }
 
-        if (!this.separateAdminService()) {
+        if (!this.separateAdminServiceAvailable()) {
             LOGGER.info(
-                "There is no separate admin service because the property '{}' is set to false.", PROPERTY_SEPARATE_ADMIN_SERVICE);
+                "The separate HTTP admin service has been disabled by setting the property '{}' to false",
+                PROPERTY_SEPARATE_ADMIN_SERVICE);
             return;
         }
 
         int adminPort = this.getAdminPort();
-        claimPortOrShutdown(this.environment, adminPort, PROPERTY_ADMIN_PORT, LOGGER);
+        this.claimPortOrShutdownOtherApplication(adminPort);
 
         this.service = Service.ignite();
         this.service.port(adminPort);
@@ -67,14 +57,5 @@ public final class SparkAdminService {
 
     public boolean isAvailable() {
         return this.service != null;
-    }
-
-    private int getAdminPort() {
-        String portProperty = this.environment.getProperty(PROPERTY_ADMIN_PORT, DEFAULT_ADMIN_PORT);
-        return parseIntegerProperty(portProperty, PROPERTY_ADMIN_PORT);
-    }
-
-    private boolean separateAdminService() {
-        return parseBoolean(this.environment.getProperty(PROPERTY_SEPARATE_ADMIN_SERVICE, TRUE.toString()));
     }
 }

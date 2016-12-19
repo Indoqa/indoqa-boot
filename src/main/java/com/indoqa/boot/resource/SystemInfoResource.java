@@ -38,7 +38,7 @@ public class SystemInfoResource extends AbstractJsonResourcesBase {
     private BasicSystemInfo reducedSystemInfo;
 
     @Inject
-    private JsonTransformer transformer;
+    private JsonTransformer jsonTransformer;
 
     @Inject
     private SparkAdminService sparkAdminService;
@@ -49,7 +49,7 @@ public class SystemInfoResource extends AbstractJsonResourcesBase {
             this.get("/system-info", (request, response) -> this.sendReducedSystemInfo(response));
             this.sparkAdminService
                 .instance()
-                .get("/system-info", (request, response) -> this.sendSystemInfo(response), this.transformer);
+                .get("/system-info", (request, response) -> this.sendSystemInfo(response), this.jsonTransformer);
         }
 
         else {
