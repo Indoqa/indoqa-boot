@@ -21,6 +21,7 @@ import static com.indoqa.boot.spark.PortUtils.*;
 import static java.lang.Boolean.*;
 import static java.lang.System.currentTimeMillis;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -30,12 +31,13 @@ import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
 import com.indoqa.boot.profile.ProfileDetector;
 
 public abstract class AbstractSparkService {
+
+    private static final Logger LOGGER = getLogger(SparkAdminService.class);
 
     protected static final String PROPERTY_PORT = "port";
     protected static final String PROPERTY_ADMIN_PORT = "admin.port";
@@ -43,7 +45,6 @@ public abstract class AbstractSparkService {
 
     private static final String DEFAULT_SPARK_PORT = "4567";
     private static final String DEFAULT_ADMIN_PORT = "34567";
-    protected static final Logger LOGGER = LoggerFactory.getLogger(SparkAdminService.class);
     private static final int SHUTDOWN_REQUEST_TIMEOUT = 250;
     private static final int SHUTDOWN_CHECK_RETRY_INTERVALL = 50;
     private static final int SHUTDOWN_EXECUTION_TIMEOUT = 500;
