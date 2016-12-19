@@ -245,8 +245,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void initializeSpark() {
-        this.context.register(SparkDefaultService.class);
         this.context.register(SparkAdminService.class);
+        this.context.register(SparkDefaultService.class);
     }
 
     private void initializeSpringComponentScan() {
