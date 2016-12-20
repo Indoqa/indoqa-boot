@@ -39,8 +39,7 @@ public final class SparkAdminService extends AbstractSparkService {
 
         if (!this.runAdminAsSeparateService()) {
             LOGGER.info(
-                "The separate HTTP admin service has been disabled by setting the property '{}' to false",
-                PROPERTY_SEPARATE_ADMIN_SERVICE);
+                "The separate HTTP admin service was disabled by setting the property '{}' to false", PROPERTY_SEPARATE_ADMIN_SERVICE);
             return;
         }
 
