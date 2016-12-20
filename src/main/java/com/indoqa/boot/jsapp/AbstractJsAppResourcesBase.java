@@ -16,22 +16,41 @@
  */
 package com.indoqa.boot.jsapp;
 
-import com.indoqa.boot.json.HtmlEscapingJacksonTransformer;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+
+import com.indoqa.boot.json.HtmlEscapingAwareJsonTransformer;
 import com.indoqa.boot.json.JsonTransformer;
 
 public abstract class AbstractJsAppResourcesBase {
 
-    /*
-     * https://medium.com/node-security/the-most-common-xss-vulnerability-in-react-js-applications-2bdffbcc1fa0#.xf5lxr3zz
-     */
-    private JsonTransformer transformer = new HtmlEscapingJacksonTransformer();
+    private static final Logger LOGGER = getLogger(AbstractJsAppResourcesBase.class);
+
+    @Inject
+    private JsonTransformer jsonTransformer;
+
+    @PostConstruct
+    public void checkTransformer() {
+        if (!(this.jsonTransformer instanceof HtmlEscapingAwareJsonTransformer)) {
+            String url = "https://medium.com/node-security/the-most-common-xss-vulnerability-in-react-js-applications-2bdffbcc1fa0#.xf5lxr3zz";
+            LOGGER.warn(
+                "This application does not use a transformer that implements the {} interface which is used to mark a "
+                    + "JSON transformer that escapes HTML/XML syntax to protect against XSS attacks if an initial state "
+                    + "is provided. See {} for details and protect your application.",
+                HtmlEscapingAwareJsonTransformer.class.getName(), url);
+        }
+    }
 
     public void jsApp(String path, Assets assets) {
         JsAppUtils.jsApp(path, assets, null, null, null);
     }
 
     public void jsApp(String path, Assets assets, InitialStateProvider initialState) {
-        JsAppUtils.jsApp(path, assets, null, initialState, this.transformer);
+        JsAppUtils.jsApp(path, assets, null, initialState, this.jsonTransformer);
     }
 
     public void jsApp(String path, Assets assets, ProxyURLMappings urlMappings) {
@@ -39,6 +58,6 @@ public abstract class AbstractJsAppResourcesBase {
     }
 
     public void jsApp(String path, Assets assets, ProxyURLMappings urlMappings, InitialStateProvider initialState) {
-        JsAppUtils.jsApp(path, assets, urlMappings, initialState, this.transformer);
+        JsAppUtils.jsApp(path, assets, urlMappings, initialState, this.jsonTransformer);
     }
 }

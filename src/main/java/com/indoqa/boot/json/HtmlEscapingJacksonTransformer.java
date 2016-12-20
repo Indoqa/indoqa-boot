@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.SerializableString;
 import com.fasterxml.jackson.core.io.CharacterEscapes;
 import com.fasterxml.jackson.core.io.SerializedString;
 
-public class HtmlEscapingJacksonTransformer extends JacksonTransformer {
+public class HtmlEscapingJacksonTransformer extends JacksonTransformer implements HtmlEscapingAwareJsonTransformer {
 
     @Override
     protected void configure() {

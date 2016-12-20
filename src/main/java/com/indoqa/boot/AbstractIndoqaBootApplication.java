@@ -23,6 +23,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +32,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.support.ResourcePropertySource;
@@ -52,8 +52,8 @@ import spark.Spark;
 
 public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
-    private static final Logger INIT_LOGGER = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class.getName() + "_INIT");
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractIndoqaBootApplication.class);
+    private static final Logger INIT_LOGGER = getLogger(AbstractIndoqaBootApplication.class.getName() + "_INIT");
+    private static final Logger LOGGER = getLogger(AbstractIndoqaBootApplication.class);
 
     private static final Date START_TIME = new Date();
 
@@ -65,10 +65,6 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     public static Logger getInitializationLogger() {
         return INIT_LOGGER;
-    }
-
-    protected static Logger getLogger() {
-        return LOGGER;
     }
 
     private static ResourcePropertySource getProperties(String propertiesLocation) {
