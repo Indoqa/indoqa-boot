@@ -26,15 +26,17 @@ public class SparkDefaultService extends AbstractSparkService {
 
     @PostConstruct
     public void initialize() {
-        // stop if the application runs within a servlet container
         if (isRunningFromServlet()) {
             return;
         }
 
         int port = this.getPort();
+        int adminPort = this.getAdminPort();
 
-        if (!this.separateAdminServiceAvailable()) {
-            this.claimPortOrShutdownOtherApplication(port);
+        if (this.runAdminAsSeparateService()) {
+            this.claimPortOrShutdown(port, adminPort);
+        } else {
+            this.claimPortOrShutdown(port, port);
         }
 
         Spark.port(port);

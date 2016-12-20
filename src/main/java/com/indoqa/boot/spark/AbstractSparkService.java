@@ -41,10 +41,11 @@ public abstract class AbstractSparkService {
 
     protected static final String PROPERTY_PORT = "port";
     protected static final String PROPERTY_ADMIN_PORT = "admin.port";
-    protected static final String PROPERTY_SEPARATE_ADMIN_SERVICE = "admin.run-as-separate-service";
+    protected static final String PROPERTY_SEPARATE_ADMIN_SERVICE = "admin.separate-service";
 
     private static final String DEFAULT_SPARK_PORT = "4567";
     private static final String DEFAULT_ADMIN_PORT = "34567";
+
     private static final int SHUTDOWN_REQUEST_TIMEOUT = 250;
     private static final int SHUTDOWN_CHECK_RETRY_INTERVALL = 50;
     private static final int SHUTDOWN_EXECUTION_TIMEOUT = 500;
@@ -61,16 +62,19 @@ public abstract class AbstractSparkService {
         return httpConnection;
     }
 
-    private static boolean shutdownRunningApplication(int port) {
+    private static void shutdownRunningApplication(int port) {
+        URL shutdownUrl = null;
         try {
-            HttpURLConnection httpConnection = connect(new URL("http://localhost:" + port + "/shutdown"));
+            shutdownUrl = new URL("http://localhost:" + port + "/shutdown");
+
+            HttpURLConnection httpConnection = connect(shutdownUrl);
             httpConnection.connect();
             IOUtils.toString(httpConnection.getInputStream(), UTF_8);
             httpConnection.disconnect();
 
-            return true;
-        } catch (IOException e) { // NOSONAR
-            return false;
+            LOGGER.info("A shutdown request was sent successfully to {}", shutdownUrl);
+        } catch (IOException e) {
+            LOGGER.info("A shutdown request to {} failed", shutdownUrl);
         }
     }
 
@@ -82,14 +86,14 @@ public abstract class AbstractSparkService {
         }
     }
 
-    protected void claimPortOrShutdownOtherApplication(int port) {
-        if (isPortAvailable(port)) {
+    protected void claimPortOrShutdown(int checkPort, int shutdownPort) {
+        if (isPortAvailable(checkPort)) {
             return;
         }
 
         // in production mode check if the port is available, otherwise stop the initialization process of THIS application here
         if (ProfileDetector.isProd(this.environment)) {
-            String msg = "The port " + port + " is in use. The initialization process stops here and the JVM is shut down.";
+            String msg = "The port " + checkPort + " is in use. The initialization process stops here and the JVM is shut down.";
             LOGGER.error(msg);
             getInitializationLogger().error(msg);
             terminate();
@@ -97,22 +101,20 @@ public abstract class AbstractSparkService {
 
         // REST request to shut down the application that uses the port
         // This will only work for an Indoqa Boot applications.
-        boolean successfullShutdownRequest = shutdownRunningApplication(port);
-        if (successfullShutdownRequest) {
-            LOGGER.info("A shutdown request was sent successfully to the application running at port " + port + ".");
-        }
+        shutdownRunningApplication(shutdownPort);
 
         // check if the other application was shut down, otherwise stop the initialization process here
         long runUntil = currentTimeMillis() + SHUTDOWN_EXECUTION_TIMEOUT;
         while (true) {
-            if (isPortAvailable(port)) {
+            if (isPortAvailable(checkPort)) {
                 break;
             }
 
             sleep(SHUTDOWN_CHECK_RETRY_INTERVALL);
 
             if (runUntil < currentTimeMillis()) {
-                LOGGER.error("The port " + port + " is still in use. The initialization process stops here and the JVM is shut down.");
+                LOGGER.error(
+                    "The port " + checkPort + " is still in use. The initialization process stops here and the JVM is shut down.");
                 terminate();
             }
         }
@@ -128,7 +130,7 @@ public abstract class AbstractSparkService {
         return parseIntegerProperty(portProperty, PROPERTY_PORT);
     }
 
-    protected boolean separateAdminServiceAvailable() {
+    protected boolean runAdminAsSeparateService() {
         return parseBoolean(this.environment.getProperty(PROPERTY_SEPARATE_ADMIN_SERVICE, TRUE.toString()));
     }
 }
