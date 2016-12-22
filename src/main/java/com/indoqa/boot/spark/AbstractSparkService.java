@@ -74,7 +74,7 @@ public abstract class AbstractSparkService {
 
             LOGGER.info("A shutdown request was sent successfully to {}", shutdownUrl);
         } catch (IOException e) {
-            LOGGER.info("A shutdown request to {} failed", shutdownUrl);
+            LOGGER.info("A shutdown request to {} failed.", shutdownUrl);
         }
     }
 
@@ -130,7 +130,7 @@ public abstract class AbstractSparkService {
         return parseIntegerProperty(portProperty, PROPERTY_PORT);
     }
 
-    protected boolean runAdminAsSeparateService() {
+    protected boolean isAdminSeparateService() {
         return parseBoolean(this.environment.getProperty(PROPERTY_SEPARATE_ADMIN_SERVICE, TRUE.toString()));
     }
 }
