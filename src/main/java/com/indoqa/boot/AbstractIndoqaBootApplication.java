@@ -100,18 +100,18 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.initializePropertyPlaceholderConfigurer();
 
         this.initializeSpark();
-        lifecycle.willCreateDefaultSparkRoutes();
+        lifecycle.willCreateDefaultSparkRoutes(this.context);
 
         this.initializeJsonTransformer();
         this.initializeDefaultResources();
 
-        lifecycle.willScanForComponents();
+        lifecycle.willScanForComponents(this.context);
         this.initializeSpringComponentScan();
 
-        lifecycle.willRefreshSpringContext();
+        lifecycle.willRefreshSpringContext(this.context);
         this.refreshApplicationContext();
         this.completeSystemInfoInitialization();
-        lifecycle.didInitializeSpring();
+        lifecycle.didInitializeSpring(this.context);
 
         this.enableApplicationReloading();
         Optional<CharSequence> statusMessages = lifecycle.didInitialize();

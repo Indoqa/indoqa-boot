@@ -33,12 +33,12 @@ public abstract class AbstractStartupLifecycle implements StartupLifecycle {
     }
 
     @Override
-    public void didInitializeSpring() {
+    public void didInitializeSpring(AnnotationConfigApplicationContext context) {
         // empty implementation
     }
 
     @Override
-    public void willCreateDefaultSparkRoutes() {
+    public void willCreateDefaultSparkRoutes(AnnotationConfigApplicationContext context) {
         // empty implementation
     }
 
@@ -53,12 +53,12 @@ public abstract class AbstractStartupLifecycle implements StartupLifecycle {
     }
 
     @Override
-    public void willRefreshSpringContext() {
+    public void willRefreshSpringContext(AnnotationConfigApplicationContext context) {
         // empty implementation
     }
 
     @Override
-    public void willScanForComponents() {
+    public void willScanForComponents(AnnotationConfigApplicationContext context) {
         // empty implementation
     }
 }

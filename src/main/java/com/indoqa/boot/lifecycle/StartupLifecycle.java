@@ -46,16 +46,16 @@ public interface StartupLifecycle {
 
     Optional<CharSequence> didInitialize();
 
-    void didInitializeSpring();
+    void didInitializeSpring(AnnotationConfigApplicationContext context);
 
-    void willCreateDefaultSparkRoutes();
+    void willCreateDefaultSparkRoutes(AnnotationConfigApplicationContext context);
 
     void willCreateSpringContext();
 
     void willInitialize();
 
-    void willRefreshSpringContext();
+    void willRefreshSpringContext(AnnotationConfigApplicationContext context);
 
-    void willScanForComponents();
+    void willScanForComponents(AnnotationConfigApplicationContext context);
 
 }
