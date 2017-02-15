@@ -33,11 +33,11 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  * <li>{@link #willInitialize()}</li>
  * <li>{@link #willCreateSpringContext()}</li>
  * <li>{@link #didCreateSpringContext(AnnotationConfigApplicationContext)}</li>
- * <li>{@link #willCreateDefaultSparkRoutes()}</li>
- * <li>{@link #willScanForComponents()}</li>
- * <li>{@link #willRefreshSpringContext()}</li>
- * <li>{@link #didInitializeSpring()}</li>
- * <li>{@link #didInitialize(StringBuilder)}</li>
+ * <li>{@link #willCreateDefaultSparkRoutes(AnnotationConfigApplicationContext)}</li>
+ * <li>{@link #willScanForComponents(AnnotationConfigApplicationContext)}</li>
+ * <li>{@link #willRefreshSpringContext(AnnotationConfigApplicationContext)}</li>
+ * <li>{@link #didInitializeSpring(AnnotationConfigApplicationContext)}</li>
+ * <li>{@link #didInitialize()}</li>
  * </ul>
  */
 public interface StartupLifecycle {
