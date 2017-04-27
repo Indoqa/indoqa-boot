@@ -41,7 +41,8 @@ public abstract class AbstractJsAppResourcesBase {
                 "This application does not use a transformer that implements the {} interface which is used to mark a "
                     + "JSON transformer that escapes HTML/XML syntax to protect against XSS attacks if an initial state "
                     + "is provided. See {} for details and protect your application.",
-                HtmlEscapingAwareJsonTransformer.class.getName(), url);
+                HtmlEscapingAwareJsonTransformer.class.getName(),
+                url);
         }
     }
 
