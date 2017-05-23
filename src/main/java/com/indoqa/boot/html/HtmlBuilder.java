@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.jsapp;
+package com.indoqa.boot.html;
 
 import spark.Request;
 
 @FunctionalInterface
-public interface InitialStateProvider {
+public interface HtmlBuilder {
 
-    Object initialState(Request req);
+    String html(Request req);
 
 }

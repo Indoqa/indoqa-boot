@@ -14,23 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.jsapp;
+package com.indoqa.boot.html.react;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+import spark.Request;
 
-public class ProxyURLMappings {
+@FunctionalInterface
+public interface InitialStateProvider {
 
-    private Map<String, String> urlMappings = new HashMap<>();
+    Object initialState(Request req);
 
-    public ProxyURLMappings add(String key, String mapping) {
-        this.urlMappings.put(key, mapping);
-        return this;
-    }
-
-    public Set<Entry<String, String>> getEntries() {
-        return this.urlMappings.entrySet();
-    }
 }
