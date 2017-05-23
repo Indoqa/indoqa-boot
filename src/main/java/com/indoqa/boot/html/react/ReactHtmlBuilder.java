@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.indoqa.boot.html.HtmlBuilder;
-import com.indoqa.boot.json.JsonTransformer;
+import com.indoqa.boot.json.HtmlEscapingAwareJsonTransformer;
 
 import spark.Request;
 
@@ -40,7 +40,7 @@ public class ReactHtmlBuilder implements HtmlBuilder {
     private String rootElementId = "app";
 
     private InitialStateProvider initialStateProvider = req -> null;
-    private JsonTransformer jsonTransformer;
+    private HtmlEscapingAwareJsonTransformer jsonTransformer;
     private Map<String, String> proxyUrlMappings = new HashMap<>();
 
     private List<String> headHtml = new ArrayList<>();
@@ -99,8 +99,10 @@ public class ReactHtmlBuilder implements HtmlBuilder {
             .toString();
     }
 
-    public ReactHtmlBuilder initialStateProvider(InitialStateProvider initialStateProvider) {
+    public ReactHtmlBuilder initialStateProvider(InitialStateProvider initialStateProvider,
+            HtmlEscapingAwareJsonTransformer jsonTransformer) {
         this.initialStateProvider = initialStateProvider;
+        this.jsonTransformer = jsonTransformer;
         return this;
     }
 

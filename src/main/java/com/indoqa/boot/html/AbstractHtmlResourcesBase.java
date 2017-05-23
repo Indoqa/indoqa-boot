@@ -34,7 +34,12 @@ public abstract class AbstractHtmlResourcesBase {
                 return;
             }
 
-            String bestMatch = MimeParse.bestMatch(ACCEPTED_TYPES, req.headers("Accept"));
+            String acceptHeader = req.headers("Accept");
+            if (acceptHeader == null) {
+                return;
+            }
+
+            String bestMatch = MimeParse.bestMatch(ACCEPTED_TYPES, acceptHeader);
             if (bestMatch.equals(MimeParse.NO_MIME_TYPE)) {
                 return;
             }
