@@ -41,6 +41,10 @@ public final class WebpackAssetsUtils {
     private static final String ASSETS_PATH = "assets";
     private static final ClassPathScanner SCANNER = new ClassPathScanner();
 
+    private WebpackAssetsUtils() {
+        // hide utility class constructor
+    }
+
     public static void findWebpackAssetsInClasspath(String mountPath, String folder, Consumer<String> setMainCss,
             Consumer<String> setMainJavascript) {
         try {
@@ -88,11 +92,12 @@ public final class WebpackAssetsUtils {
     }
 
     private static void findFirstResource(Set<URL> findFiles, String folder, String suffix, Consumer<String> consumer) {
-        findFiles.stream()
+        findFiles
+            .stream()
             .map(url -> url.getPath())
             .filter(path -> path.endsWith(suffix))
             .findFirst()
-            .map(path -> StringUtils.substringAfter(path, folder))
+            .map(path -> StringUtils.substringAfterLast(path, folder))
             .ifPresent(consumer);
     }
 
@@ -121,9 +126,5 @@ public final class WebpackAssetsUtils {
 
     private static String removeTrailingSlash(String path) {
         return path.replaceAll("/$", "");
-    }
-
-    private WebpackAssetsUtils() {
-        // hide utility class constructor
     }
 }
