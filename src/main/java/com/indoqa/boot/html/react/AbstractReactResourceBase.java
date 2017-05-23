@@ -37,13 +37,15 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
 
         staticFileLocation(classPathLocation);
 
-        WebpackAssetsUtils.findWebpackAssetsInClasspath(mountPath, classPathLocation, htmlBuilder::mainCssPath, htmlBuilder::mainJavascriptPath);
+        WebpackAssetsUtils.findWebpackAssetsInClasspath(mountPath, classPathLocation, htmlBuilder::mainCssPath,
+            htmlBuilder::mainJavascriptPath);
     }
 
     private static void configureFileSystemAssets(String mountPath, String fileSystemLocation, ReactHtmlBuilder htmlBuilder) {
         externalStaticFileLocation(fileSystemLocation);
 
-        WebpackAssetsUtils.findWebpackAssetsInFilesystem(mountPath, fileSystemLocation, htmlBuilder::mainCssPath, htmlBuilder::mainJavascriptPath);
+        WebpackAssetsUtils.findWebpackAssetsInFilesystem(mountPath, fileSystemLocation, htmlBuilder::mainCssPath,
+            htmlBuilder::mainJavascriptPath);
     }
 
     @Inject
