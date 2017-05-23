@@ -16,28 +16,24 @@
  */
 package com.indoqa.boot.html.react;
 
-import static java.nio.file.Files.*;
-import static java.util.Collections.emptySet;
+import static java.nio.file.Files.newDirectoryStream;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.spring.ClassPathScanner;
 
 public final class WebpackAssetsUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebpackAssetsUtils.class);
     private static final String ASSETS_PATH = "assets";
     private static final ClassPathScanner SCANNER = new ClassPathScanner();
 
@@ -48,9 +44,9 @@ public final class WebpackAssetsUtils {
     public static void findWebpackAssetsInClasspath(String mountPath, String folder, Consumer<String> setMainCss,
             Consumer<String> setMainJavascript) {
         try {
-            Set<URL> files = SCANNER.findFiles(createClasspathAssetsPattern(folder, mountPath));
-            findFirstResource(files, folder, ".css", setMainCss);
-            findFirstResource(files, folder, ".js", setMainJavascript);
+            Set<URL> resources = SCANNER.findFiles(createClasspathAssetsPattern(folder, mountPath));
+            findFirstResource(resources, folder, ".css", setMainCss);
+            findFirstResource(resources, folder, ".js", setMainJavascript);
         } catch (IOException e) {
             throw new ApplicationInitializationException("Error while searching for webpack assets.", e);
         }
@@ -58,20 +54,39 @@ public final class WebpackAssetsUtils {
 
     public static void findWebpackAssetsInFilesystem(String mountPath, String folder, Consumer<String> setMainCss,
             Consumer<String> setMainJavascript) {
-        try {
-            Set<URL> files = findLocalFiles(createFileSystemAssetsFolder(folder, mountPath));
-            findFirstResource(files, folder, ".css", setMainCss);
-            findFirstResource(files, folder, ".js", setMainJavascript);
-        } catch (IOException e) {
-            throw new ApplicationInitializationException("Error while searching for webpack assets.", e);
-        }
+        Set<URL> resources = findLocalFiles(getAssetsFolder(folder, mountPath));
+        findFirstResource(resources, folder, ".css", setMainCss);
+        findFirstResource(resources, folder, ".js", setMainJavascript);
     }
 
     private static String createClasspathAssetsPattern(String folder, String mountPath) {
-        return createFileSystemAssetsFolder(folder, mountPath) + "/*";
+        return getAssetsFolder(folder, mountPath) + "/*";
     }
 
-    private static String createFileSystemAssetsFolder(String folder, String mountPath) {
+    private static void findFirstResource(Set<URL> resources, String folder, String suffix, Consumer<String> consumer) {
+        resources
+            .stream()
+            .map(url -> url.getPath())
+            .filter(path -> path.endsWith(suffix))
+            .findFirst()
+            .map(path -> substringAfterLast(path, folder))
+            .ifPresent(consumer);
+    }
+
+    private static Set<URL> findLocalFiles(String folder) {
+        Set<URL> files = new HashSet<>();
+        Path folderPath = Paths.get(folder);
+        try (DirectoryStream<Path> directoryStream = newDirectoryStream(folderPath)) {
+            for (Path eachPath : directoryStream) {
+                files.add(pathToURL(eachPath));
+            }
+        } catch (IOException ex) {
+            throw new ApplicationInitializationException("Error while accessing children of " + folderPath.toAbsolutePath());
+        }
+        return files;
+    }
+
+    private static String getAssetsFolder(String folder, String mountPath) {
         StringBuilder builder = new StringBuilder();
 
         builder.append(removeTrailingSlash(folder));
@@ -89,31 +104,6 @@ public final class WebpackAssetsUtils {
         builder.append(ASSETS_PATH);
 
         return builder.toString();
-    }
-
-    private static void findFirstResource(Set<URL> findFiles, String folder, String suffix, Consumer<String> consumer) {
-        findFiles
-            .stream()
-            .map(url -> url.getPath())
-            .filter(path -> path.endsWith(suffix))
-            .findFirst()
-            .map(path -> StringUtils.substringAfterLast(path, folder))
-            .ifPresent(consumer);
-    }
-
-    private static Set<URL> findLocalFiles(String folder) throws IOException {
-        Path folderPath = Paths.get(folder);
-        if (!exists(folderPath)) {
-            LOGGER.warn("The asset folder {} does not exist.", folderPath.toAbsolutePath());
-            return emptySet();
-        }
-        if (!isDirectory(folderPath)) {
-            throw new IllegalArgumentException("The asset folder " + folderPath.toAbsolutePath() + "is not a directory.");
-        }
-
-        Set<URL> files = new HashSet<>();
-        newDirectoryStream(folderPath).forEach(path -> files.add(pathToURL(path)));
-        return files;
     }
 
     private static URL pathToURL(Path path) {
