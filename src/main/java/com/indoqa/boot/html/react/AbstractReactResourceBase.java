@@ -19,10 +19,15 @@ package com.indoqa.boot.html.react;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static spark.Spark.*;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import javax.inject.Inject;
 
 import org.springframework.core.env.Environment;
 
+import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.html.AbstractHtmlResourcesBase;
 import com.indoqa.boot.profile.ProfileDetector;
 
@@ -32,24 +37,46 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
 
     private static final long EXPIRE_TIME = DAYS.toSeconds(1000);
 
+    @Inject
+    private Environment environment;
+
+    private static void checkFileSystemLocation(Path fileSystemLocationPath) {
+        if (!Files.exists(fileSystemLocationPath)) {
+            throw new ApplicationInitializationException(
+                "The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " does not exist.");
+        }
+        if (!Files.isDirectory(fileSystemLocationPath)) {
+            throw new ApplicationInitializationException(
+                "The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " is not a directory.");
+        }
+        if (!Files.isReadable(fileSystemLocationPath)) {
+            throw new ApplicationInitializationException(
+                "The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " is not readable.");
+        }
+        if (fileSystemLocationPath.toFile().list().length == 0) {
+            throw new ApplicationInitializationException(
+                "The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " does not contain any resources.");
+        }
+    }
+
     private static void configureClasspathAssets(String mountPath, String classPathLocation, ReactHtmlBuilder htmlBuilder) {
         Spark.staticFiles.expireTime(EXPIRE_TIME);
 
         staticFileLocation(classPathLocation);
 
-        WebpackAssetsUtils.findWebpackAssetsInClasspath(mountPath, classPathLocation, htmlBuilder::mainCssPath,
-            htmlBuilder::mainJavascriptPath);
+        WebpackAssetsUtils
+            .findWebpackAssetsInClasspath(mountPath, classPathLocation, htmlBuilder::mainCssPath, htmlBuilder::mainJavascriptPath);
     }
 
     private static void configureFileSystemAssets(String mountPath, String fileSystemLocation, ReactHtmlBuilder htmlBuilder) {
+        Path fileSystemLocationPath = Paths.get(fileSystemLocation);
+        checkFileSystemLocation(fileSystemLocationPath);
+
         externalStaticFileLocation(fileSystemLocation);
 
-        WebpackAssetsUtils.findWebpackAssetsInFilesystem(mountPath, fileSystemLocation, htmlBuilder::mainCssPath,
-            htmlBuilder::mainJavascriptPath);
+        WebpackAssetsUtils
+            .findWebpackAssetsInFilesystem(mountPath, fileSystemLocation, htmlBuilder::mainCssPath, htmlBuilder::mainJavascriptPath);
     }
-
-    @Inject
-    private Environment environment;
 
     protected void configureHtmlBuilder(@SuppressWarnings("unused") ReactHtmlBuilder reactHtmlBuilder) {
         // default does nothing
