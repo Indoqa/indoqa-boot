@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import com.indoqa.boot.html.HtmlBuilder;
 import com.indoqa.boot.json.JsonTransformer;
@@ -69,7 +68,8 @@ public class ReactHtmlBuilder implements HtmlBuilder {
 
     @Override
     public String html(Request request) {
-        return new StringBuilder().append("<!DOCTYPE html><html><head>")
+        return new StringBuilder()
+            .append("<!DOCTYPE html><html><head>")
             .append("<meta http-equiv=\"")
             .append(RESPONSE_HEADER_CONTENT_TYPE)
             .append("\" content=\"")
@@ -78,14 +78,14 @@ public class ReactHtmlBuilder implements HtmlBuilder {
             .append("<link rel=\"stylesheet\" href=\"")
             .append(this.mainCssPath)
             .append("\" />")
-            .append(this.headHtml.stream().collect(Collectors.joining(" ")))
+            .append(this.headHtml.stream().collect(joining(" ")))
             .append("</head>")
             .append("<body>")
-            .append(this.preAppHtml.stream().collect(Collectors.joining(" ")))
+            .append(this.preAppHtml.stream().collect(joining(" ")))
             .append("<div id=\"")
             .append(this.rootElementId)
             .append("\"></div>")
-            .append(this.postAppHtml.stream().collect(Collectors.joining(" ")))
+            .append(this.postAppHtml.stream().collect(joining(" ")))
             .append("<script>window.__INITIAL_STATE__ = ")
             .append(this.createInitialStateJson(request))
             .append(";</script>")
@@ -132,7 +132,8 @@ public class ReactHtmlBuilder implements HtmlBuilder {
     }
 
     private String createProxyMappingEntryScript(Entry<String, String> entry) {
-        return new StringBuilder().append("window.")
+        return new StringBuilder()
+            .append("window.")
             .append(entry.getKey())
             .append(" = ")
             .append("'")
@@ -149,5 +150,4 @@ public class ReactHtmlBuilder implements HtmlBuilder {
 
         return this.proxyUrlMappings.entrySet().stream().map(this::createProxyMappingEntryScript).collect(joining("\n"));
     }
-
 }
