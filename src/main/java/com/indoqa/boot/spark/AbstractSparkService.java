@@ -96,7 +96,7 @@ public abstract class AbstractSparkService {
             String msg = "The port " + checkPort + " is in use. The initialization process stops here and the JVM is shut down.";
             LOGGER.error(msg);
             getInitializationLogger().error(msg);
-            terminate();
+            System.exit(1);
         }
 
         // REST request to shut down the application that uses the port
@@ -115,7 +115,7 @@ public abstract class AbstractSparkService {
             if (runUntil < currentTimeMillis()) {
                 LOGGER.error(
                     "The port " + checkPort + " is still in use. The initialization process stops here and the JVM is shut down.");
-                terminate();
+                System.exit(1);
             }
         }
     }

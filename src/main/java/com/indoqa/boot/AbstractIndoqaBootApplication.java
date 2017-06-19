@@ -156,7 +156,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.systemInfo.setInitializationDuration(duration);
         this.systemInfo.setStarted(START_TIME);
         this.systemInfo.setInitialized(true);
-        this.systemInfo.recheckRandomPort();
+        this.systemInfo.recheckForRandomlyAssignedPorts();
 
         BasicSystemInfo reducedSystemInfo = this.context.getBean(BasicSystemInfo.class);
         reducedSystemInfo.setInitialized(true);
@@ -286,6 +286,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             .append(" ms")
             .append(", listening on port ")
             .append(this.systemInfo.getPort())
+            .append(", listening on admin-port ")
+            .append(this.systemInfo.getAdminPort())
             .append(", active profile(s): ")
             .append(join("|", asList(this.systemInfo.getProfiles())))
             .append(", running on Java ")
@@ -328,9 +330,11 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         try {
             this.context.refresh();
         } catch (Exception e) {
-            LOGGER.error("An exception occurred while refreshing the Spring application context.", e);
-            this.context.close();
-            Spark.stop();
+            String msg = "An exception occurred while refreshing the Spring application context.";
+            LOGGER.error(msg, e);
+
+            System.err.println(msg + " " + e.getMessage() + "\nPlease check the logs for to get the stacktrace.\n");
+            System.exit(1);
         }
     }
 

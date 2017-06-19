@@ -37,6 +37,9 @@ import org.springframework.core.env.PropertySource;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.indoqa.boot.VersionProvider;
+import com.indoqa.boot.spark.SparkAdminService;
+
+import spark.Service;
 
 public class SystemInfo extends AbstractSystemInfo {
 
@@ -48,6 +51,7 @@ public class SystemInfo extends AbstractSystemInfo {
     private List<String> springPropertySources;
     private String[] profiles;
     private String port;
+    private String adminPort;
     private Map<String, String> more = new HashMap<>();
 
     @JsonIgnore
@@ -57,6 +61,10 @@ public class SystemInfo extends AbstractSystemInfo {
     @JsonIgnore
     @Inject
     private VersionProvider versionProvider;
+
+    @JsonIgnore
+    @Inject
+    private SparkAdminService sparkAdminService;
 
     private static Map<String, SpringProperty> filterSystemAndEnvironmentProperties(Map<String, SpringProperty> springProperties) {
         return new TreeMap<>(
@@ -70,6 +78,10 @@ public class SystemInfo extends AbstractSystemInfo {
 
     private static String[] initActiveProfiles(ConfigurableEnvironment springEnvironment) {
         return springEnvironment.getActiveProfiles();
+    }
+
+    private static String initAdminPort(ConfigurableEnvironment springEnvironment) {
+        return springEnvironment.getProperty("admin-port");
     }
 
     private static Map<String, String> initJavaEnvironmentMap() {
@@ -137,6 +149,10 @@ public class SystemInfo extends AbstractSystemInfo {
         this.more.put(key, value);
     }
 
+    public String getAdminPort() {
+        return this.adminPort;
+    }
+
     @JsonProperty("initialization-duration")
     public long getInitializationDuration() {
         return this.initializationDuration;
@@ -187,6 +203,7 @@ public class SystemInfo extends AbstractSystemInfo {
         super.initProperties();
         this.profiles = initActiveProfiles(this.springEnvironment);
         this.port = initPort(this.springEnvironment);
+        this.adminPort = initAdminPort(this.springEnvironment);
 
         this.javaEnvironment = initJavaEnvironmentMap();
         this.systemProperties = initSystemPropertiesMap();
@@ -194,8 +211,13 @@ public class SystemInfo extends AbstractSystemInfo {
         this.springPropertySources = initSpringPropertySources(this.springEnvironment);
     }
 
-    public void recheckRandomPort() {
+    public void recheckForRandomlyAssignedPorts() {
         this.port = Integer.toString(JettyPortReader.getPort());
+
+        Service adminServiceInstance = this.sparkAdminService.instance();
+        if (adminServiceInstance != null) {
+            this.adminPort = Integer.toString(JettyPortReader.getAdminPort(adminServiceInstance));
+        }
     }
 
     public void setInitializationDuration(long duration) {

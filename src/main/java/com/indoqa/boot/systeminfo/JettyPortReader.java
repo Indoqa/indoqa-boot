@@ -38,6 +38,17 @@ import spark.embeddedserver.jetty.EmbeddedJettyServer;
         // hide utility class constructor
     }
 
+    public static int getAdminPort(Service service) {
+        int sparAdminkPort = service.port();
+
+        // if no random port is set, Service.port() returns the correct port
+        if (sparAdminkPort != 0) {
+            return sparAdminkPort;
+        }
+
+        return getPortFromJetty(service);
+    }
+
     public static int getPort() {
         int sparkPort = Spark.port();
 
@@ -46,10 +57,16 @@ import spark.embeddedserver.jetty.EmbeddedJettyServer;
             return sparkPort;
         }
 
-        // otherwise only Jetty knows ... (use reflection and private accessors to find the required information)
+        return getPortFromJetty();
+    }
+
+    protected static int getPortFromJetty(Service sparkService) {
+        Service inspectedService = sparkService;
         try {
-            Service sparkService = getSparkService();
-            EmbeddedJettyServer embeddedJettyServer = getEmbeddedJettyServer(sparkService);
+            if (inspectedService == null) {
+                inspectedService = getSparkService();
+            }
+            EmbeddedJettyServer embeddedJettyServer = getEmbeddedJettyServer(inspectedService);
             AbstractNetworkConnector connector = getConnector(embeddedJettyServer);
             return connector.getPort();
         } catch (Exception e) {
@@ -71,6 +88,10 @@ import spark.embeddedserver.jetty.EmbeddedJettyServer;
         Field embeddedJettyServerField = sparkService.getClass().getDeclaredField("server");
         embeddedJettyServerField.setAccessible(true);
         return (EmbeddedJettyServer) embeddedJettyServerField.get(sparkService);
+    }
+
+    private static int getPortFromJetty() {
+        return getPortFromJetty(null);
     }
 
     private static Service getSparkService() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {

@@ -50,8 +50,4 @@ public final class PortUtils {
             throw new ApplicationInitializationException("Error while parsing the property '" + name + "'. value=" + value, e);
         }
     }
-
-    protected static void terminate() {
-        System.exit(1);
-    }
 }
