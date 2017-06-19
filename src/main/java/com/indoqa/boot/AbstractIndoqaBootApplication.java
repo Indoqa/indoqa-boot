@@ -150,6 +150,14 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         return false;
     }
 
+    protected String printAdminPort() {
+        String adminPort = this.systemInfo.getAdminPort();
+        if (adminPort == null) {
+            return "[n.a.]";
+        }
+        return adminPort;
+    }
+
     private void completeSystemInfoInitialization() {
         long duration = currentTimeMillis() - START_TIME.getTime();
         this.systemInfo = this.context.getBean(SystemInfo.class);
@@ -287,7 +295,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             .append(", listening on port ")
             .append(this.systemInfo.getPort())
             .append(", listening on admin-port ")
-            .append(this.systemInfo.getAdminPort())
+            .append(this.printAdminPort())
             .append(", active profile(s): ")
             .append(join("|", asList(this.systemInfo.getProfiles())))
             .append(", running on Java ")
