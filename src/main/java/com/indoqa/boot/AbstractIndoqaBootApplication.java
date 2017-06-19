@@ -333,7 +333,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             String msg = "An exception occurred while refreshing the Spring application context.";
             LOGGER.error(msg, e);
 
-            System.err.println(msg + " " + e.getMessage() + "\nPlease check the logs for to get the stacktrace.\n");
+            System.err.println(msg + " " + e.getMessage() + "\nPlease check the logs to get the stacktrace.\n");
             System.exit(1);
         }
     }
