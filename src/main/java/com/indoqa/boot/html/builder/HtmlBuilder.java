@@ -14,14 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.json;
+package com.indoqa.boot.html.builder;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
+import spark.Request;
 
-public class JacksonTransformer extends AbstractJacksonTransformer {
+@FunctionalInterface
+public interface HtmlBuilder {
 
-    @Override
-    protected void configure() {
-        this.objectMapper.configure(WRITE_DATES_AS_TIMESTAMPS, false);
-    }
+    String html(Request req);
+
 }

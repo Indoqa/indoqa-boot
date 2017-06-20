@@ -28,7 +28,7 @@ import javax.inject.Inject;
 import org.springframework.core.env.Environment;
 
 import com.indoqa.boot.ApplicationInitializationException;
-import com.indoqa.boot.html.AbstractHtmlResourcesBase;
+import com.indoqa.boot.html.resources.AbstractHtmlResourcesBase;
 import com.indoqa.boot.profile.ProfileDetector;
 
 import spark.Spark;

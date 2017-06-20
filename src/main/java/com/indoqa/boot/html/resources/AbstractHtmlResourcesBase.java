@@ -14,10 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.html;
+package com.indoqa.boot.html.resources;
 
 import java.util.Collections;
 import java.util.Set;
+
+import com.indoqa.boot.html.builder.HtmlBuilder;
 
 import spark.Filter;
 import spark.Spark;

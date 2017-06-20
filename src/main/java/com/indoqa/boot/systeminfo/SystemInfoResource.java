@@ -14,18 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.resource;
+package com.indoqa.boot.systeminfo;
 
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
-import com.indoqa.boot.AbstractJsonResourcesBase;
-import com.indoqa.boot.json.JsonTransformer;
+import com.indoqa.boot.json.resources.AbstractJsonResourcesBase;
+import com.indoqa.boot.json.transformer.JsonTransformer;
 import com.indoqa.boot.spark.SparkAdminService;
-import com.indoqa.boot.systeminfo.BasicSystemInfo;
-import com.indoqa.boot.systeminfo.SystemInfo;
 
 import spark.Response;
 

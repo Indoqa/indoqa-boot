@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.indoqa.boot.html.HtmlBuilder;
-import com.indoqa.boot.json.HtmlEscapingAwareJsonTransformer;
+import com.indoqa.boot.html.builder.HtmlBuilder;
+import com.indoqa.boot.json.transformer.HtmlEscapingAwareJsonTransformer;
 
 import spark.Request;
 

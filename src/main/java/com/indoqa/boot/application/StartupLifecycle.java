@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.lifecycle;
+package com.indoqa.boot.application;
 
 import java.util.Optional;
 

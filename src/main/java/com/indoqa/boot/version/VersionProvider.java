@@ -14,13 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.html;
+package com.indoqa.boot.version;
 
-import spark.Request;
-
-@FunctionalInterface
-public interface HtmlBuilder {
-
-    String html(Request req);
-
+/**
+ * A marker interface for the class that provides the version information.
+ */
+public interface VersionProvider {
+    // marker interface
 }

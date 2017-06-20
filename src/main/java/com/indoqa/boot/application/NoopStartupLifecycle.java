@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.lifecycle;
+package com.indoqa.boot.application;
 
-public final class NoopStartupLifecycle extends AbstractStartupLifecycle {
+/*default*/ final class NoopStartupLifecycle extends AbstractStartupLifecycle {
 
     public static final StartupLifecycle INSTANCE = new NoopStartupLifecycle();
 

@@ -14,11 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot;
+package com.indoqa.boot.json.transformer;
 
-/**
- * A marker interface for the class that provides the version information.
- */
-public interface VersionProvider {
-    // marker interface
+public interface HtmlEscapingAwareJsonTransformer extends JsonTransformer {
+    // marker interface for a transformer that takes care of HTML escaping
 }

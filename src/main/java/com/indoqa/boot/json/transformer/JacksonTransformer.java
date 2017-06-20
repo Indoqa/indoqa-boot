@@ -14,25 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.json;
+package com.indoqa.boot.json.transformer;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static spark.Spark.after;
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
 
-import javax.annotation.PostConstruct;
+public class JacksonTransformer extends AbstractJacksonTransformer {
 
-import spark.Response;
-
-public class DefaultContentTypeAfterInterceptor {
-
-    private static void setContentType(Response response) {
-        if (isBlank(response.raw().getContentType())) {
-            response.type("application/json");
-        }
-    }
-
-    @PostConstruct
-    public void intercept() {
-        after((request, response) -> setContentType(response));
+    @Override
+    protected void configure() {
+        this.objectMapper.configure(WRITE_DATES_AS_TIMESTAMPS, false);
     }
 }

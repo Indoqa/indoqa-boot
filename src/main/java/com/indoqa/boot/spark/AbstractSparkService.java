@@ -16,7 +16,7 @@
  */
 package com.indoqa.boot.spark;
 
-import static com.indoqa.boot.AbstractIndoqaBootApplication.getInitializationLogger;
+import static com.indoqa.boot.logging.InitializationLogger.getInitializationLogger;
 import static com.indoqa.boot.spark.PortUtils.*;
 import static java.lang.Boolean.*;
 import static java.lang.System.currentTimeMillis;

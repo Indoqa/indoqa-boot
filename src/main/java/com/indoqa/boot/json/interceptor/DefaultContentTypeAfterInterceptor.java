@@ -14,8 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.json;
+package com.indoqa.boot.json.interceptor;
 
-public interface HtmlEscapingAwareJsonTransformer extends JsonTransformer {
-    // marker interface for a transformer that takes care of HTML escaping
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static spark.Spark.after;
+
+import javax.annotation.PostConstruct;
+
+import spark.Response;
+
+public class DefaultContentTypeAfterInterceptor {
+
+    private static void setContentType(Response response) {
+        if (isBlank(response.raw().getContentType())) {
+            response.type("application/json");
+        }
+    }
+
+    @PostConstruct
+    public void intercept() {
+        after((request, response) -> setContentType(response));
+    }
 }

@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot;
+package com.indoqa.boot.application;
 
+import static com.indoqa.boot.logging.InitializationLogger.getInitializationLogger;
 import static com.indoqa.boot.profile.Profile.*;
 import static java.lang.String.join;
 import static java.lang.System.currentTimeMillis;
@@ -36,25 +37,23 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.support.ResourcePropertySource;
 
-import com.indoqa.boot.json.DefaultContentTypeAfterInterceptor;
-import com.indoqa.boot.json.JacksonTransformer;
-import com.indoqa.boot.lifecycle.NoopStartupLifecycle;
-import com.indoqa.boot.lifecycle.StartupLifecycle;
-import com.indoqa.boot.resource.ShutdownResource;
-import com.indoqa.boot.resource.SystemInfoResource;
+import com.indoqa.boot.ApplicationInitializationException;
+import com.indoqa.boot.json.interceptor.DefaultContentTypeAfterInterceptor;
+import com.indoqa.boot.json.transformer.JacksonTransformer;
+import com.indoqa.boot.spark.ShutdownResource;
 import com.indoqa.boot.spark.SparkAdminService;
 import com.indoqa.boot.spark.SparkDefaultService;
 import com.indoqa.boot.systeminfo.BasicSystemInfo;
 import com.indoqa.boot.systeminfo.SystemInfo;
+import com.indoqa.boot.systeminfo.SystemInfoResource;
+import com.indoqa.boot.version.VersionProvider;
 
 import spark.ResponseTransformer;
 import spark.Spark;
 
 public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
-    private static final Logger INIT_LOGGER = getLogger(AbstractIndoqaBootApplication.class.getName() + "_INIT");
     private static final Logger LOGGER = getLogger(AbstractIndoqaBootApplication.class);
-
     private static final Date START_TIME = new Date();
 
     private AnnotationConfigApplicationContext context;
@@ -62,10 +61,6 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     private SystemInfo systemInfo;
     private int beansHashCode;
-
-    public static Logger getInitializationLogger() {
-        return INIT_LOGGER;
-    }
 
     private static ResourcePropertySource getProperties(String propertiesLocation) {
         try {
@@ -305,7 +300,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
         statusMessages.append(")");
 
-        INIT_LOGGER.info(statusMessages.toString());
+        getInitializationLogger().info(statusMessages.toString());
     }
 
     private void logInitializationStart() {
@@ -339,9 +334,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             this.context.refresh();
         } catch (Exception e) {
             String msg = "An exception occurred while refreshing the Spring application context.";
-            LOGGER.error(msg, e);
 
-            System.err.println(msg + " " + e.getMessage() + "\nPlease check the logs to get the stacktrace.\n");
+            LOGGER.error(msg, e);
+            getInitializationLogger().error(msg + " " + e.getMessage() + "\nPlease check the logs to get the stacktrace.\n");
+
             System.exit(1);
         }
     }

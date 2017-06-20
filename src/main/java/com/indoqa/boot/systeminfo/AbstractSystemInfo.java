@@ -27,7 +27,7 @@ import javax.inject.Inject;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.indoqa.boot.ApplicationInitializationException;
-import com.indoqa.boot.VersionProvider;
+import com.indoqa.boot.version.VersionProvider;
 
 public abstract class AbstractSystemInfo {
 

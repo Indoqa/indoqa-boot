@@ -14,11 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot;
+package com.indoqa.boot.json.resources;
 
 import javax.inject.Inject;
 
-import com.indoqa.boot.json.JsonTransformer;
+import com.indoqa.boot.json.transformer.JsonTransformer;
+import com.indoqa.boot.resources.AbstractResourcesBase;
 
 import spark.ResponseTransformer;
 import spark.Route;

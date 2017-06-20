@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot;
+package com.indoqa.boot.application;
 
-import static com.indoqa.boot.AbstractIndoqaBootApplication.getInitializationLogger;
+import static com.indoqa.boot.logging.InitializationLogger.getInitializationLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,10 +48,10 @@ import org.slf4j.Logger;
         }
 
         try {
-            INIT_LOGGER
+            getInitializationLogger()
                 .error("Application initilization error: The log-path '" + logPathFile.getCanonicalPath() + "' does not exist.");
         } catch (IOException e) { // NOSONAR (the stacktrace is of no value here)
-            INIT_LOGGER.error("Application initilization error: " + e.getMessage());
+            getInitializationLogger().error("Application initilization error: " + e.getMessage());
         }
         terminate();
     }

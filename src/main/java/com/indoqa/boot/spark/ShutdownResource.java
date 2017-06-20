@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.resource;
+package com.indoqa.boot.spark;
 
 import static java.net.HttpURLConnection.*;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -27,9 +27,8 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
-import com.indoqa.boot.AbstractJsonResourcesBase;
-import com.indoqa.boot.json.JsonTransformer;
-import com.indoqa.boot.spark.SparkAdminService;
+import com.indoqa.boot.json.resources.AbstractJsonResourcesBase;
+import com.indoqa.boot.json.transformer.JsonTransformer;
 
 import spark.Response;
 

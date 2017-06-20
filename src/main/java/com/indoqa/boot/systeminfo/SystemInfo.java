@@ -17,6 +17,7 @@
 package com.indoqa.boot.systeminfo;
 
 import static java.lang.System.getenv;
+import static java.util.Locale.US;
 import static java.util.stream.Collectors.toMap;
 import static org.springframework.core.env.StandardEnvironment.*;
 
@@ -36,8 +37,8 @@ import org.springframework.core.env.PropertySource;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.indoqa.boot.VersionProvider;
 import com.indoqa.boot.spark.SparkAdminService;
+import com.indoqa.boot.version.VersionProvider;
 
 import spark.Service;
 
@@ -189,7 +190,7 @@ public class SystemInfo extends AbstractSystemInfo {
             return null;
         }
 
-        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZZ").format(this.started);
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZZ", US).format(this.started);
     }
 
     @JsonProperty("system-properties")
