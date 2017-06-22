@@ -23,7 +23,7 @@
   <parent>
     <groupId>com.indoqa</groupId>
     <artifactId>indoqa-oss-parent</artifactId>
-    <version>5-SNAPSHOT</version>
+    <version>5</version>
   </parent>
 
   <artifactId>indoqa-boot</artifactId>
@@ -174,7 +174,7 @@
       <dependency>
         <groupId>com.indoqa</groupId>
         <artifactId>indoqa-boot-bom</artifactId>
-        <version>${project.version}</version>
+        <version>0.8.0</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
