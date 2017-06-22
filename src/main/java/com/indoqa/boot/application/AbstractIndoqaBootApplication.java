@@ -32,6 +32,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -142,7 +143,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     protected boolean isDevEnvironment() {
-        return false;
+        String javaCommand = System.getProperty("sun.java.command");
+        return !StringUtils.endsWith(javaCommand, ".jar");
     }
 
     protected String printAdminPort() {
