@@ -75,7 +75,7 @@ import org.slf4j.Logger;
             return;
         }
 
-        INIT_LOGGER.error("Application  initilization error: The system property '" + LOG_PATH_PROPERTY + "' is not set.");
+        INIT_LOGGER.error("Application initilization error: Make sure that the system property '" + LOG_PATH_PROPERTY + "' is set.");
         terminate();
     }
 
