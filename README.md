@@ -9,13 +9,13 @@ The first obvious choice would have been using [Spring Boot](https://projects.sp
 
 ## Goals
 
- * Keep it simple.
-
  * Quickly bootstrap new projects (see [Getting started with a Maven archetype](./docs/getting-started-with-a-maven-archetype.md))
 
- * Make the integration of [React](https://facebook.github.io/react/)/[Redux](http://redux.js.org/) single page applications based on [indoqa-react-app](https://github.com/Indoqa/indoqa-react-app) and [indoqa-webpack](https://github.com/Indoqa/indoqa-webpack) simple.
+ * Enable the integration of [React](https://facebook.github.io/react/)/[Redux](http://redux.js.org/) single page applications based on [indoqa-react-app](https://github.com/Indoqa/indoqa-react-app) and [indoqa-webpack](https://github.com/Indoqa/indoqa-webpack).
 
  * Reduce the usage of annotations to a minimum. We are not strictly against annotations (we use them e.g. for dependency injection or the mapping of Java objects to JSON) but for the most other use cases we prefer to write Java code.
+
+ * Enable proxying of web services
 
  * Creation of an as small as possible runnable Java archive (currently 12.2 megabytes) to make the distribution and the deployment of the application simple.
 
@@ -32,6 +32,12 @@ Indoqa-Boot is built upon following libraries and frameworks:
  * [Spring Framework](https://projects.spring.io/spring-framework/)
  * [log4j2](https://logging.apache.org/log4j/2.x/)
 
+ Additionally we rely on following Indoqa open source libraries:
+
+ * [indoqa-http-proxy](https://github.com/Indoqa/http-proxy) to proxy pass other web services without having to deal with CORS
+ * [system-test-tools](https://github.com/Indoqa/system-test-tools) for a DSL to setup and run integration tests against HTTP endpoints
+ * [jar-in-jar](https://github.com/Indoqa/jar-in-jar) to create runnable JAR files
+
 ## Usage
 
  * [Getting started with a Maven archetype](./docs/getting-started-with-a-maven-archetype.md)
@@ -40,7 +46,7 @@ Indoqa-Boot is built upon following libraries and frameworks:
  * [Spark: Register your HTTP endpoints]()
  * [Jackson: Dealing with Json]()
  * [Configuration: Provide properties for run profiles, ports etc.]()
- * [React.js: Integrate with a Javascript single page application]()
+ * [React/Redux: Integrate with a Javascript single page application]()
  * [log4j2: Configure logging]()
  * [Monitoring: Health checks and system info]()
  * [Maven: Configure your Maven build and deployment artifacts]()
