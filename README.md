@@ -9,13 +9,23 @@ The first obvious choice would have been using [Spring Boot](https://projects.sp
 
 ## Goals
 
- * Reduce the usage of annotations to a minimum. We are not strictly against annotations (we use them e.g. for dependency injection and mapping Java objects to JSON) but for the most other use cases we prefer to write Java code.
+ * Keep it simple.
+
+ * Have one software stack that can be used across all our projects.
+
+ * Quickly bootstrap new projects (see [Getting started with a Maven archetype](./docs/getting-started-with-a-maven-archetype.md))
 
  * Make the integration of [React](https://facebook.github.io/react/)/[Redux](http://redux.js.org/) single page applications based on [indoqa-react-app](https://github.com/Indoqa/indoqa-react-app) and [indoqa-webpack](https://github.com/Indoqa/indoqa-webpack) simple.
 
- * Creation of runnable Java archives to make the distribution and the deployment of the application simple.
+ * Reduce the usage of annotations to a minimum. We are not strictly against annotations (we use them e.g. for dependency injection and mapping Java objects to JSON) but for the most other use cases we prefer to write Java code.
 
-## Technology
+ * Creation of as small as possible runnable Java archives (currently 12.2 megabytes) to make the distribution and the deployment of the application simple.
+
+ * Small memory footprint
+
+ * Fast startup times (< 1 second) and short development cycles
+
+## Technologies
 
 Indoqa-Boot is built upon following libraries and frameworks:
 
@@ -31,6 +41,7 @@ Indoqa-Boot is built upon following libraries and frameworks:
  * [Spring: Manage your components](./docs/spring-manage-your-components.md)
  * [Spark: Register your HTTP endpoints]()
  * [Jackson: Dealing with Json]()
+ * [Configuration: Provide properties for run profiles, ports etc.]()
  * [React.js: Integrate with a Javascript single page application]()
  * [log4j2: Configure logging]()
  * [Monitoring: Health checks and system info]()
