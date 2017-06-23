@@ -11,15 +11,13 @@ The first obvious choice would have been using [Spring Boot](https://projects.sp
 
  * Keep it simple.
 
- * Have one software stack that can be used across all our projects.
-
  * Quickly bootstrap new projects (see [Getting started with a Maven archetype](./docs/getting-started-with-a-maven-archetype.md))
 
  * Make the integration of [React](https://facebook.github.io/react/)/[Redux](http://redux.js.org/) single page applications based on [indoqa-react-app](https://github.com/Indoqa/indoqa-react-app) and [indoqa-webpack](https://github.com/Indoqa/indoqa-webpack) simple.
 
- * Reduce the usage of annotations to a minimum. We are not strictly against annotations (we use them e.g. for dependency injection and mapping Java objects to JSON) but for the most other use cases we prefer to write Java code.
+ * Reduce the usage of annotations to a minimum. We are not strictly against annotations (we use them e.g. for dependency injection or the mapping of Java objects to JSON) but for the most other use cases we prefer to write Java code.
 
- * Creation of as small as possible runnable Java archives (currently 12.2 megabytes) to make the distribution and the deployment of the application simple.
+ * Creation of an as small as possible runnable Java archive (currently 12.2 megabytes) to make the distribution and the deployment of the application simple.
 
  * Small memory footprint
 
