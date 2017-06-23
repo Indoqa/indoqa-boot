@@ -1,6 +1,17 @@
 # Indoqa Boot
 [![Javadocs](https://www.javadoc.io/badge/com.indoqa/indoqa-boot.svg)](https://www.javadoc.io/doc/com.indoqa/indoqa-boot)
 
+## Getting started
+
+The best way to bootstrap an indoqa-boot application is using the [indoqa-quickstart-boot](https://github.com/Indoqa/indoqa-quickstart/tree/master/indoqa-quickstart-boot) Maven archetype:
+
+```bash
+mvn archetype:generate \
+  -DarchetypeGroupId=com.indoqa.quickstart \
+  -DarchetypeArtifactId=quickstart-boot-archetype \
+  -DarchetypeVersion=0.8.0.1
+```
+
 ## Motivation and history
 
 In 2015 [Indoqa](https://www.indoqa.com) started to look for alternatives to traditional Java web application frameworks like JSF, Apache Wicket or Vaadin. During this journey we decided to give up Java and switch to Javascript for frontends. This had brought us to the question how we wanted to implement the frontend-backend application. One alternative would have been to use node.js for the frontend-backend implementation but in our opinion the Java platform is still years ahead in terms of stability and available libraries and tools.
@@ -40,7 +51,6 @@ Indoqa-Boot is built upon following libraries and frameworks:
 
 ## Usage
 
- * [Getting started with a Maven archetype](./docs/getting-started-with-a-maven-archetype.md)
  * [Initialization in your Java main method]()
  * [Spring: Manage your components](./docs/spring-manage-your-components.md)
  * [Spark: Register your HTTP endpoints]()
