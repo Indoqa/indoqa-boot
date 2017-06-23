@@ -11,7 +11,7 @@ The first obvious choice would have been using [Spring Boot](https://projects.sp
 
  * Reduce the usage of annotations to a minimum. We are not strictly against annotations (we use them e.g. for dependency injection and mapping Java objects to JSON) but for the most other use cases we prefer to write Java code.
 
- * Make the integration of [React](https://facebook.github.io/react/)/[Redux](http://redux.js.org/) single page applications simple.
+ * Make the integration of [React](https://facebook.github.io/react/)/[Redux](http://redux.js.org/) single page applications based on [indoqa-react-app](https://github.com/Indoqa/indoqa-react-app) and [indoqa-webpack](https://github.com/Indoqa/indoqa-webpack) simple.
 
  * Creation of runnable Java archives to make the distribution and the deployment of the application simple.
 
