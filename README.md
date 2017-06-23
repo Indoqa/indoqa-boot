@@ -28,7 +28,7 @@ The first obvious choice would have been using [Spring Boot](https://projects.sp
 
  * Enable proxying of web services
 
- * Creation of an as small as possible runnable Java archive (currently 12.2 megabytes) to make the distribution and the deployment of the application simple.
+ * Creation of an as small as possible runnable Java archive (currently 11.5 megabytes) to make the distribution and the deployment of the application simple.
 
  * Small memory footprint
 
