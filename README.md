@@ -34,6 +34,8 @@ The first obvious choice would have been using [Spring Boot](https://projects.sp
 
  * Fast startup times (< 1 second) and short development cycles
 
+ * Central dependency management using a Maven bill of material (BOM)
+
 ## Technologies
 
 Indoqa-Boot is built upon following libraries and frameworks:
@@ -48,6 +50,7 @@ Indoqa-Boot is built upon following libraries and frameworks:
  * [indoqa-http-proxy](https://github.com/Indoqa/http-proxy) to proxy pass other web services without having to deal with CORS
  * [system-test-tools](https://github.com/Indoqa/system-test-tools) for a DSL to setup and run integration tests against HTTP endpoints
  * [jar-in-jar](https://github.com/Indoqa/jar-in-jar) to create runnable JAR files
+ * [indoqa-boot-bom](https://github.com/Indoqa/indoqa-boot-bom/blob/master/pom.xml) to manage Indoqa Boot relevant dependencies
 
 ## Usage
 
@@ -59,6 +62,6 @@ Indoqa-Boot is built upon following libraries and frameworks:
  * [React/Redux: Integrate with a Javascript single page application]()
  * [log4j2: Configure logging]()
  * [Monitoring: Health checks and system info]()
- * [Maven: Configure your Maven build and deployment artifacts]()
+ * [Maven: Configure your Maven build and produce deployment artifacts]()
  * [Hot-reload Java]()
  * [Integration tests]()
