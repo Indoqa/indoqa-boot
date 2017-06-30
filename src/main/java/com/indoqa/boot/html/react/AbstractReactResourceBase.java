@@ -34,6 +34,9 @@ import com.indoqa.boot.profile.ProfileDetector;
 
 import spark.Spark;
 
+/**
+ * Use this base implementation for React/Redux single-page applications that are build by Webpack.
+ */
 public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBase {
 
     private static final long EXPIRE_TIME = DAYS.toSeconds(1000);

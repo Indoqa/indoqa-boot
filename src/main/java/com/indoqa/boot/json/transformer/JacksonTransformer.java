@@ -18,6 +18,9 @@ package com.indoqa.boot.json.transformer;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
 
+/**
+ * The default implementation of a {@link JsonTransformer}.
+ */
 public class JacksonTransformer extends AbstractJacksonTransformer {
 
     @Override

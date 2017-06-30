@@ -16,6 +16,9 @@
  */
 package com.indoqa.boot.profile;
 
+/**
+ * A list of all Spring profiles used by Indoqa-Boot.
+ */
 public enum Profile {
 
     PROD("prod"), DEV("dev");

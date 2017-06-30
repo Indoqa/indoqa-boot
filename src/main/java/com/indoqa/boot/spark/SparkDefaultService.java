@@ -22,6 +22,9 @@ import javax.annotation.PostConstruct;
 
 import spark.Spark;
 
+/**
+ * The default Spark service for application resources.
+ */
 public class SparkDefaultService extends AbstractSparkService {
 
     @PostConstruct

@@ -18,6 +18,9 @@ package com.indoqa.boot.json.transformer;
 
 import spark.ResponseTransformer;
 
+/**
+ * This interface extends the Spark {@link ResponseTransformer} by adding a method for marshalling JSON strings to a Java objects.
+ */
 public interface JsonTransformer extends ResponseTransformer {
 
     @Override

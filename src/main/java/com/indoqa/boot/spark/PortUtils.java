@@ -24,12 +24,21 @@ import java.net.ServerSocket;
 
 import com.indoqa.boot.ApplicationInitializationException;
 
+/**
+ * Utility class to find out if a particular port is available.
+ */
 public final class PortUtils {
 
     private PortUtils() {
         // hide utility class constructor
     }
 
+    /**
+     * Find out if the provided port is available.
+     * 
+     * @param port The port to be inspected.
+     * @return true if the port is avaiable.
+     */
     public static boolean isPortAvailable(int port) {
         ServerSocket ss = null;
         try {

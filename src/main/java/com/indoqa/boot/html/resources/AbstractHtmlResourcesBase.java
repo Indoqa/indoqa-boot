@@ -25,6 +25,9 @@ import spark.Filter;
 import spark.Spark;
 import spark.utils.MimeParse;
 
+/**
+ * Base implementation to implement HTML/Javascript/CSS single-page applications.
+ */
 public abstract class AbstractHtmlResourcesBase {
 
     private static final String CONTENT_TYPE_HTML = "text/html; charset=utf-8";

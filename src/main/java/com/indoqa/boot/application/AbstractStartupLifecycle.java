@@ -20,6 +20,9 @@ import java.util.Optional;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+/**
+ * Extend this class to provide custom callback methods that are executed during the application startup.
+ */
 public abstract class AbstractStartupLifecycle implements StartupLifecycle {
 
     @Override

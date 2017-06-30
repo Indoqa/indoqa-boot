@@ -25,6 +25,9 @@ import org.slf4j.Logger;
 
 import spark.Service;
 
+/**
+ * An additional Spark service for admin resources that should be kept separately from the application HTTP resources.
+ */
 public final class SparkAdminService extends AbstractSparkService {
 
     private static final Logger LOGGER = getLogger(SparkAdminService.class);

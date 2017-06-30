@@ -20,6 +20,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import org.slf4j.Logger;
 
+/**
+ * Get access to a special logger for initialization information. The idea is that the log4j configuration should treat those logging
+ * messages differently, e.g. by printing the plain log messages without timestamps, threads, etc.
+ */
 public final class InitializationLogger {
 
     private static final Logger INIT_LOGGER = getLogger(InitializationLogger.class.getName());
