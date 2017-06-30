@@ -23,6 +23,10 @@ import javax.annotation.PostConstruct;
 
 import spark.Response;
 
+/**
+ * Use this interceptor to make sure that <code>application/json</code> is set as response type in the case the response type is
+ * missing.
+ */
 public class DefaultContentTypeAfterInterceptor {
 
     private static void setContentType(Response response) {

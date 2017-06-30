@@ -21,6 +21,11 @@ import java.io.IOException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * This base implementation of a {@link JsonTransformer} uses Jackson. It provides a template method {@link #configure()} for custom
+ * configurations. The {@link #render(Object)} method returns an empty string if the passed Java object is null. This avoids usually
+ * unwanted 404 responses.
+ */
 public abstract class AbstractJacksonTransformer implements JsonTransformer {
 
     protected ObjectMapper objectMapper;

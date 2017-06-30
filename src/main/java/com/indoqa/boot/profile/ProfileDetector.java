@@ -22,6 +22,9 @@ import java.util.Arrays;
 
 import org.springframework.core.env.Environment;
 
+/**
+ * A utility class to access the Spring profile.
+ */
 public final class ProfileDetector {
 
     private ProfileDetector() {

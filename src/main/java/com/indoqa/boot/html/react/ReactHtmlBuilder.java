@@ -29,6 +29,9 @@ import com.indoqa.boot.json.transformer.HtmlEscapingAwareJsonTransformer;
 
 import spark.Request;
 
+/**
+ * This builder creates a React single-page application by creating an HTML file that references a the React javascript and CSS files.
+ */
 public class ReactHtmlBuilder implements HtmlBuilder {
 
     private static final String RESPONSE_HEADER_CONTENT_TYPE = "Content-Type";

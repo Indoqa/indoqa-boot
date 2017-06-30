@@ -52,6 +52,13 @@ import com.indoqa.boot.version.VersionProvider;
 import spark.ResponseTransformer;
 import spark.Spark;
 
+/**
+ * <p>
+ * The {@link AbstractIndoqaBootApplication} is the entry point to Indoqa-Boot. Use the {@link #invoke()} or
+ * {@link #invoke(StartupLifecycle)} methods to initialize the startup procedure of Spring and Spark.
+ * </p>
+ * <p>
+ */
 public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     private static final Logger LOGGER = getLogger(AbstractIndoqaBootApplication.class);
@@ -75,10 +82,18 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         return System.getProperty("properties") != null;
     }
 
+    /**
+     * Start the Indoqa-Boot application.
+     */
     public void invoke() {
         this.invoke(NoopStartupLifecycle.INSTANCE);
     }
 
+    /**
+     * Start the Indoqa-Boot application and hook into the startup lifecycle.
+     * 
+     * @param lifecycle Provide an implementation of the callback interface.
+     */
     public void invoke(StartupLifecycle lifecycle) {
         this.printLogo();
 
@@ -114,45 +129,76 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.logInitializationFinished(statusMessages);
     }
 
+    /**
+     * If the log-path system property is not set or is invalid, the application fails hard.
+     * 
+     * @return Return false if the check is not required. Default is true.
+     */
     protected boolean checkLoggerInitialization() {
         return true;
     }
 
-    protected CharSequence getAdditionalStatusMessages() {
-        return null;
-    }
-
+    /**
+     * Provide a custom application name. The default is the simple name of the class extending the
+     * {@link #AbstractIndoqaBootApplication()}
+     * 
+     * @return The custom application name.
+     */
     protected String getApplicationName() {
         return this.getClass().getSimpleName();
     }
 
+    /**
+     * Provide the path to a resource containing the ascii logo which will be printed to the console at startup. The resource is looked
+     * up in the classpath.
+     * 
+     * @return The resource path of the ascii logo.
+     */
     protected String getAsciiLogoPath() {
         return null;
     }
 
+    /**
+     * Provide an array of patterns which will be used by Spring to automatically detect Spring beans. The default is the package name
+     * of the class extending the {@link #AbstractIndoqaBootApplication()}.
+     * 
+     * @return An array of patterns or null if this feature should be disabled.
+     */
     protected String[] getComponentScanBasePackages() {
         return new String[] {this.getClass().getPackage().getName()};
     }
 
+    /**
+     * The class of the JSON transformer that should be used to marshal Java objects as JSON strings. The default is the
+     * {@link JacksonTransformer}.
+     * 
+     * @return The class of the response transformer.
+     */
     protected Class<? extends ResponseTransformer> getJsonTransformerClass() {
         return JacksonTransformer.class;
     }
 
+    /**
+     * Provide an alternative {@link VersionProvider} which will be used to lookup the jar manifest that contains the
+     * Implementation-Version. The version information is provided by the {@link SystemInfoResource} and is printed as part of the
+     * status message printed to the console at startup.
+     * 
+     * @return An alternative {@link VersionProvider}.
+     */
     protected VersionProvider getVersionProvider() {
         return this;
     }
 
+    /**
+     * Indoqa-Boot uses this method to decided whether the application runs in production or development mode. The default
+     * implementation detects if the application runs from within a runnable Java archive (jar) and if this is true, <code>false</code>
+     * is returned.
+     * 
+     * @return True if the application should run in development mode.
+     */
     protected boolean isDevEnvironment() {
         String javaCommand = System.getProperty("sun.java.command");
         return !StringUtils.endsWith(javaCommand, ".jar");
-    }
-
-    protected String printAdminPort() {
-        String adminPort = this.systemInfo.getAdminPort();
-        if (adminPort == null) {
-            return "[n.a.]";
-        }
-        return adminPort;
     }
 
     private void completeSystemInfoInitialization() {
@@ -311,6 +357,14 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         }
 
         LOGGER.info("Initializing " + this.getApplicationName());
+    }
+
+    private String printAdminPort() {
+        String adminPort = this.systemInfo.getAdminPort();
+        if (adminPort == null) {
+            return "[n.a.]";
+        }
+        return adminPort;
     }
 
     private void printLogo() {

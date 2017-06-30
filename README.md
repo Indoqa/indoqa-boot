@@ -20,7 +20,9 @@ The first obvious choice would have been using [Spring Boot](https://projects.sp
 
 ## Goals
 
- * Quickly bootstrap new projects (see [Getting started with a Maven archetype](./docs/getting-started-with-a-maven-archetype.md))
+ * Build on stable and widely adapted open source software with active communities
+
+ * Simple project setup, cover HTTP endpoints, JSON, dependency injection and logging.
 
  * Seamless integration of [React](https://facebook.github.io/react/)/[Redux](http://redux.js.org/) single page applications based on [indoqa-react-app](https://github.com/Indoqa/indoqa-react-app) and [indoqa-webpack](https://github.com/Indoqa/indoqa-webpack).
 
@@ -35,8 +37,6 @@ The first obvious choice would have been using [Spring Boot](https://projects.sp
  * Fast startup times (< 1 second) and short development cycles
 
  * Central dependency management using a Maven bill of material (BOM) to centrally manage library updates
-
- * Build on stable and widely adapted open source software with active communities
 
 ## Technologies
 

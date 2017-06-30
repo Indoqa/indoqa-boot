@@ -23,6 +23,9 @@ import spark.Request;
 import spark.Response;
 import spark.Spark;
 
+/**
+ * Use this class as base class to delegate HTTP calls to external endpoints.
+ */
 public abstract class AbstractProxyResourceBase {
 
     private static String proxy(HttpProxy httpProxy, Request req, Response res) {

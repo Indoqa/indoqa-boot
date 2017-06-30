@@ -18,6 +18,7 @@ package com.indoqa.boot.json.resources;
 
 import javax.inject.Inject;
 
+import com.indoqa.boot.json.transformer.JacksonTransformer;
 import com.indoqa.boot.json.transformer.JsonTransformer;
 import com.indoqa.boot.resources.AbstractResourcesBase;
 
@@ -25,6 +26,10 @@ import spark.ResponseTransformer;
 import spark.Route;
 import spark.Spark;
 
+/**
+ * Base implementations for JSON resources which set the response type to <code>application/json</code> and set the
+ * {@link JacksonTransformer}. It delegates all calls to Spark.
+ */
 public abstract class AbstractJsonResourcesBase extends AbstractResourcesBase {
 
     protected static final String CONTENT_TYPE_JSON = "application/json";

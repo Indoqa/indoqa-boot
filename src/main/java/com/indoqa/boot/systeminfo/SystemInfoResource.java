@@ -27,6 +27,9 @@ import com.indoqa.boot.spark.SparkAdminService;
 
 import spark.Response;
 
+/**
+ * An admin resource that provides information about the application state and environment (e.g. used Spring properties, etc.).
+ */
 public class SystemInfoResource extends AbstractJsonResourcesBase {
 
     @Inject

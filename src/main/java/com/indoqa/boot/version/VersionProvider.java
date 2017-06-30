@@ -17,7 +17,7 @@
 package com.indoqa.boot.version;
 
 /**
- * A marker interface for the class that provides the version information.
+ * A marker interface for the class that should be used to lookup version information.
  */
 public interface VersionProvider {
     // marker interface

@@ -20,6 +20,11 @@ import com.fasterxml.jackson.core.SerializableString;
 import com.fasterxml.jackson.core.io.CharacterEscapes;
 import com.fasterxml.jackson.core.io.SerializedString;
 
+/**
+ * Use this special {@link JacksonTransformer} to escape <code>&gt;</code> and <code>&lt;</code> to avoid XSS vulnerabilities.
+ * 
+ * @see "https://medium.com/node-security/the-most-common-xss-vulnerability-in-react-js-applications-2bdffbcc1fa0"
+ */
 public class HtmlEscapingJacksonTransformer extends JacksonTransformer implements HtmlEscapingAwareJsonTransformer {
 
     @Override

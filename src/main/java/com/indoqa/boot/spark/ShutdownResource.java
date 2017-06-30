@@ -32,6 +32,10 @@ import com.indoqa.boot.json.transformer.JsonTransformer;
 
 import spark.Response;
 
+/**
+ * An resource to shutdown the Indoqa-Boot application. By default this method is only available via the admin service. Be careful if
+ * you expose this method publicly.
+ */
 public class ShutdownResource extends AbstractJsonResourcesBase {
 
     private static final Logger LOGGER = getLogger(ShutdownResource.class);

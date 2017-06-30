@@ -16,6 +16,9 @@
  */
 package com.indoqa.boot.json.transformer;
 
+/**
+ * Use this marker interface to indicate that a {@link JsonTransformer} deals correctly with escaping HTML characters in JSON.
+ */
 public interface HtmlEscapingAwareJsonTransformer extends JsonTransformer {
-    // marker interface for a transformer that takes care of HTML escaping
+    // marker interface
 }
