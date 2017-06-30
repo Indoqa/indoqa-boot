@@ -28,7 +28,7 @@ The first obvious choice would have been using [Spring Boot](https://projects.sp
 
  * Reduce the usage of annotations to a minimum. We are not strictly against annotations (we use them e.g. for dependency injection or the mapping of Java objects to JSON) but for the most other use cases (e.g. configuration of Indoqa Boot, creation of HTTP endpoints) we prefer to write plain Java code.
 
- * Enable proxying of web services
+ * Support proxying of web services
 
  * Creation of an as small as possible runnable Java archive (currently 11.5 megabytes) to make the distribution and the deployment of the application simple by not relying on (bloated) Java application servers
 
