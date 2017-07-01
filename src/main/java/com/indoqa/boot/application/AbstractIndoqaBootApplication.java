@@ -57,7 +57,6 @@ import spark.Spark;
  * The {@link AbstractIndoqaBootApplication} is the entry point to Indoqa-Boot. Use the {@link #invoke()} or
  * {@link #invoke(StartupLifecycle)} methods to initialize the startup procedure of Spring and Spark.
  * </p>
- * <p>
  */
 public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 

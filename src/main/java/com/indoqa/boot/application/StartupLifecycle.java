@@ -49,7 +49,7 @@ public interface StartupLifecycle {
      * Use this method to operate on the uninitialized Spring application context. It is called after the Spring
      * {@link ApplicationContext} is created.
      * 
-     * @param The Spring application context.
+     * @param context The Spring application context.
      */
     void didCreateSpringContext(AnnotationConfigApplicationContext context);
 
@@ -63,7 +63,7 @@ public interface StartupLifecycle {
     /**
      * Use this method for operations that need a completely initialized Spring.
      * 
-     * @param The Spring application context.
+     * @param context The Spring application context.
      */
     void didInitializeSpring(AnnotationConfigApplicationContext context);
 
@@ -71,7 +71,7 @@ public interface StartupLifecycle {
      * Use this method to perform Spark operations that have to happen before any routes are registered. E.g. extensions of the
      * {@link AbstractReactResourceBase} have to be registered here.
      * 
-     * @param The Spring application context.
+     * @param context The Spring application context.
      */
     void willCreateDefaultSparkRoutes(AnnotationConfigApplicationContext context);
 
@@ -90,14 +90,14 @@ public interface StartupLifecycle {
     /**
      * Use this method to access the Spring application context before it will be refreshed.
      * 
-     * @param The Spring application context.
+     * @param context The Spring application context.
      */
     void willRefreshSpringContext(AnnotationConfigApplicationContext context);
 
     /**
      * Use this method to perform operations before the Spring component scan is invoked.
      * 
-     * @param The Spring application context.
+     * @param context The Spring application context.
      */
     void willScanForComponents(AnnotationConfigApplicationContext context);
 
