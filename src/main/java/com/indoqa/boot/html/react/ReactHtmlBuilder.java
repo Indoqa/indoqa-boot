@@ -43,60 +43,59 @@ public class ReactHtmlBuilder implements HtmlBuilder {
     private HtmlEscapingAwareJsonTransformer jsonTransformer;
     private Map<String, String> proxyUrlMappings = new HashMap<>();
 
-    private List<String> headHtml = new ArrayList<>();
-    private List<String> postAppHtml = new ArrayList<>();
-    private List<String> preAppHtml = new ArrayList<>();
+    private List<HtmlBuilder> headHtml = new ArrayList<>();
+    private List<HtmlBuilder> postAppHtml = new ArrayList<>();
+    private List<HtmlBuilder> preAppHtml = new ArrayList<>();
 
     public ReactHtmlBuilder() {
         this.initialStateProvider = req -> null;
     }
 
-    public ReactHtmlBuilder addHeadHtml(String html) {
+    public ReactHtmlBuilder addHeadHtml(HtmlBuilder html) {
         this.headHtml.add(html);
         return this;
     }
 
-    public ReactHtmlBuilder addPostAppHtml(String html) {
+    public ReactHtmlBuilder addPostAppHtml(HtmlBuilder html) {
         this.postAppHtml.add(html);
         return this;
     }
 
-    public ReactHtmlBuilder addPreAppHtml(String html) {
+    public ReactHtmlBuilder addPreAppHtml(HtmlBuilder html) {
         this.preAppHtml.add(html);
         return this;
     }
 
     @Override
     public String html(Request request) {
-        return new StringBuilder()
-            .append("<!DOCTYPE html><html><head>")
-            .append("<meta http-equiv=\"")
-            .append(RESPONSE_HEADER_CONTENT_TYPE)
-            .append("\" content=\"")
-            .append(CONTENT_TYPE_HTML)
-            .append("\">")
-            .append("<link rel=\"stylesheet\" href=\"")
-            .append(this.mainCssPath)
-            .append("\" />")
-            .append(this.headHtml.stream().collect(joining(" ")))
-            .append("</head>")
-            .append("<body>")
-            .append(this.preAppHtml.stream().collect(joining(" ")))
-            .append("<div id=\"")
-            .append(this.rootElementId)
-            .append("\"></div>")
-            .append(this.postAppHtml.stream().collect(joining(" ")))
-            .append("<script>window.__INITIAL_STATE__ = ")
-            .append(this.createInitialStateJson(request))
-            .append(";</script>")
-            .append("<script>")
-            .append(this.createProxyMappingScript())
-            .append(";</script>")
-            .append("<script src=\"")
-            .append(this.mainJavascriptPath)
-            .append("\"></script>")
-            .append("</body></html>")
-            .toString();
+        return new StringBuilder().append("<!DOCTYPE html><html><head>")
+                .append("<meta http-equiv=\"")
+                .append(RESPONSE_HEADER_CONTENT_TYPE)
+                .append("\" content=\"")
+                .append(CONTENT_TYPE_HTML)
+                .append("\">")
+                .append("<link rel=\"stylesheet\" href=\"")
+                .append(this.mainCssPath)
+                .append("\" />")
+                .append(this.createHtmlSnippets(this.headHtml, request))
+                .append("</head>")
+                .append("<body>")
+                .append(this.createHtmlSnippets(this.preAppHtml, request))
+                .append("<div id=\"")
+                .append(this.rootElementId)
+                .append("\"></div>")
+                .append(this.createHtmlSnippets(this.postAppHtml, request))
+                .append("<script>window.__INITIAL_STATE__ = ")
+                .append(this.createInitialStateJson(request))
+                .append(";</script>")
+                .append("<script>")
+                .append(this.createProxyMappingScript())
+                .append(";</script>")
+                .append("<script src=\"")
+                .append(this.mainJavascriptPath)
+                .append("\"></script>")
+                .append("</body></html>")
+                .toString();
     }
 
     public ReactHtmlBuilder initialStateProvider(InitialStateProvider initialStateProvider,
@@ -121,6 +120,10 @@ public class ReactHtmlBuilder implements HtmlBuilder {
         return this;
     }
 
+    private String createHtmlSnippets(List<HtmlBuilder> builders, Request request) {
+        return builders.stream().map(builder -> builder.html(request)).filter(html -> html != null).collect(joining(" "));
+    }
+
     private String createInitialStateJson(Request request) {
         String initialStateJson = EMPTY_INITIAL_STATE;
         if (this.initialStateProvider != null && this.jsonTransformer != null) {
@@ -134,15 +137,14 @@ public class ReactHtmlBuilder implements HtmlBuilder {
     }
 
     private String createProxyMappingEntryScript(Entry<String, String> entry) {
-        return new StringBuilder()
-            .append("window.")
-            .append(entry.getKey())
-            .append(" = ")
-            .append("'")
-            .append(entry.getValue())
-            .append("'")
-            .append(";")
-            .toString();
+        return new StringBuilder().append("window.")
+                .append(entry.getKey())
+                .append(" = ")
+                .append("'")
+                .append(entry.getValue())
+                .append("'")
+                .append(";")
+                .toString();
     }
 
     private String createProxyMappingScript() {
