@@ -29,6 +29,7 @@ import org.springframework.core.env.Environment;
 
 import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.html.resources.AbstractHtmlResourcesBase;
+import com.indoqa.boot.html.resources.HtmlResponseModifier;
 import com.indoqa.boot.profile.ProfileDetector;
 
 import spark.Spark;
@@ -85,8 +86,12 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
     protected ReactHtmlBuilder createHtmlBuilder() {
         return new ReactHtmlBuilder();
     }
-
+    
     protected void html(String mountPath, String classPathLocation, String fileSystemLocation) {
+        this.html(mountPath, classPathLocation, fileSystemLocation, null);
+    }
+
+    protected void html(String mountPath, String classPathLocation, String fileSystemLocation, HtmlResponseModifier responseModifier) {
         ReactHtmlBuilder htmlBuilder = this.createHtmlBuilder();
 
         if (ProfileDetector.isDev(this.environment)) {
@@ -97,6 +102,6 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
 
         this.configureHtmlBuilder(htmlBuilder);
 
-        this.html(mountPath + "/*", htmlBuilder);
+        this.html(mountPath + "/*", htmlBuilder, responseModifier);
     }
 }
