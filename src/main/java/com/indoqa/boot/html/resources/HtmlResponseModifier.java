@@ -19,8 +19,11 @@ package com.indoqa.boot.html.resources;
 import spark.Request;
 import spark.Response;
 
+/**
+ * Use this function to get access to the Spark request and response.
+ */
 @FunctionalInterface
 public interface HtmlResponseModifier {
-    
+
     void modify(Request request, Response response);
 }
