@@ -20,15 +20,15 @@ The first obvious choice would have been using [Spring Boot](https://projects.sp
 
 ## Goals
 
- * Build on stable and widely adapted open source software with active communities
+ * Build on stable and widely adopted open source software with active communities
 
- * Simple project setup, cover HTTP endpoints, JSON, dependency injection and logging.
+ * Simple project setup, cover HTTP endpoints, JSON, dependency injection and logging
 
  * Seamless integration of [React](https://facebook.github.io/react/)/[Redux](http://redux.js.org/) single page applications based on [indoqa-react-app](https://github.com/Indoqa/indoqa-react-app) and [indoqa-webpack](https://github.com/Indoqa/indoqa-webpack).
 
  * Reduce the usage of annotations to a minimum. We are not strictly against annotations (we use them e.g. for dependency injection or the mapping of Java objects to JSON) but for the most other use cases (e.g. configuration of Indoqa Boot, creation of HTTP endpoints) we prefer to write plain Java code.
 
- * Support proxying of web services
+ * Support of web service HTTP proxies
 
  * Creation of an as small as possible runnable Java archive (currently 11.5 megabytes) to make the distribution and the deployment of the application simple by not relying on (bloated) Java application servers
 
