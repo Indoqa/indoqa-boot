@@ -16,13 +16,14 @@
  */
 package com.indoqa.boot.html.resources;
 
+import static spark.Spark.after;
+
 import java.util.Collections;
 import java.util.Set;
 
 import com.indoqa.boot.html.builder.HtmlBuilder;
 
 import spark.Filter;
-import spark.Spark;
 import spark.utils.MimeParse;
 
 /**
@@ -36,30 +37,30 @@ public abstract class AbstractHtmlResourcesBase {
     protected void html(String path, HtmlBuilder htmlBuilder) {
         this.html(path, htmlBuilder, null);
     }
-    
+
     protected void html(String path, HtmlBuilder htmlBuilder, HtmlResponseModifier responseModifier) {
-        Spark.after(path, (Filter) (req, res) -> {
+        after(path, (Filter) (req, res) -> {
             if (res.body() != null) {
                 return;
             }
-            
+
             String acceptHeader = req.headers("Accept");
             if (acceptHeader == null) {
                 return;
             }
-            
+
             String bestMatch = MimeParse.bestMatch(ACCEPTED_TYPES, acceptHeader);
             if (bestMatch.equals(MimeParse.NO_MIME_TYPE)) {
                 return;
             }
-            
+
             if (responseModifier != null) {
                 responseModifier.modify(req, res);
             }
-            
+
             res.type(CONTENT_TYPE_HTML);
             res.body(htmlBuilder.html(req));
         });
-        
+
     }
 }

@@ -19,7 +19,7 @@ package com.indoqa.boot.html.react;
 import spark.Request;
 
 /**
- * Use this function to provicde the initial state object which will be marshalled as JSON string and added to the frontend resource.
+ * Use this function to provide the initial state object which will be marshalled as JSON string and added to the frontend resource.
  */
 @FunctionalInterface
 public interface InitialStateProvider {
