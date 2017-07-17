@@ -25,7 +25,7 @@ import com.indoqa.boot.html.react.AbstractReactResourceBase;
 
 /**
  * <p>
- * The Indoqa Boot startup process has several callback methods to hook into the startup process. You can implement them to run code at
+ * The Indoqa-Boot startup process has several callback methods to hook into the startup process. You can implement them to run code at
  * particular times in this process. Methods prefixed with will are called right before something happens, and methods prefixed with
  * did are called right after something happens.
  * </p>
@@ -88,7 +88,8 @@ public interface StartupLifecycle {
     void willInitialize();
 
     /**
-     * Use this method to access the Spring application context before it will be refreshed.
+     * Use this method to access the Spring application context before it will be refreshed. E.g. register Spring beans with the
+     * application context if you do not want to use the component scan.
      * 
      * @param context The Spring application context.
      */
