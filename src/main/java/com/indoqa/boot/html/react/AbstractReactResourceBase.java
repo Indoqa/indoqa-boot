@@ -16,7 +16,9 @@
  */
 package com.indoqa.boot.html.react;
 
+import static com.indoqa.boot.html.react.WebpackAssetsUtils.*;
 import static java.util.concurrent.TimeUnit.DAYS;
+import static org.slf4j.LoggerFactory.getLogger;
 import static spark.Spark.*;
 
 import java.nio.file.Files;
@@ -25,6 +27,7 @@ import java.nio.file.Paths;
 
 import javax.inject.Inject;
 
+import org.slf4j.Logger;
 import org.springframework.core.env.Environment;
 
 import com.indoqa.boot.ApplicationInitializationException;
@@ -39,6 +42,7 @@ import spark.Spark;
  */
 public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBase {
 
+    private static final Logger LOGGER = getLogger(AbstractReactResourceBase.class);
     private static final long EXPIRE_TIME = DAYS.toSeconds(1000);
 
     @Inject
@@ -46,8 +50,7 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
 
     private static void checkFileSystemLocation(Path fileSystemLocationPath) {
         if (!Files.exists(fileSystemLocationPath)) {
-            throw new ApplicationInitializationException(
-                "The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " does not exist.");
+            LOGGER.warn("The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " does not exist.");
         }
         if (!Files.isDirectory(fileSystemLocationPath)) {
             throw new ApplicationInitializationException(
@@ -58,8 +61,7 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
                 "The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " is not readable.");
         }
         if (fileSystemLocationPath.toFile().list().length == 0) {
-            throw new ApplicationInitializationException(
-                "The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " does not contain any resources.");
+            LOGGER.warn("The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " does not contain any resources.");
         }
     }
 
@@ -68,8 +70,7 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
 
         staticFileLocation(classPathLocation);
 
-        WebpackAssetsUtils
-            .findWebpackAssetsInClasspath(mountPath, classPathLocation, htmlBuilder::mainCssPath, htmlBuilder::mainJavascriptPath);
+        findWebpackAssetsInClasspath(mountPath, classPathLocation, htmlBuilder::mainCssPath, htmlBuilder::mainJavascriptPath);
     }
 
     private static void configureFileSystemAssets(String mountPath, String fileSystemLocation, ReactHtmlBuilder htmlBuilder) {
@@ -78,8 +79,7 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
 
         externalStaticFileLocation(fileSystemLocation);
 
-        WebpackAssetsUtils
-            .findWebpackAssetsInFilesystem(mountPath, fileSystemLocation, htmlBuilder::mainCssPath, htmlBuilder::mainJavascriptPath);
+        findWebpackAssetsInFilesystem(mountPath, fileSystemLocation, htmlBuilder::mainCssPath, htmlBuilder::mainJavascriptPath);
     }
 
     protected void configureHtmlBuilder(@SuppressWarnings("unused") ReactHtmlBuilder reactHtmlBuilder) {
@@ -89,7 +89,7 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
     protected ReactHtmlBuilder createHtmlBuilder() {
         return new ReactHtmlBuilder();
     }
-    
+
     protected void html(String mountPath, String classPathLocation, String fileSystemLocation) {
         this.html(mountPath, classPathLocation, fileSystemLocation, null);
     }
