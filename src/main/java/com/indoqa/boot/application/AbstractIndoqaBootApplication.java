@@ -158,13 +158,13 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     /**
-     * Provide an array of patterns which will be used by Spring to automatically detect Spring beans. The default is the package name
-     * of the class extending the {@link #AbstractIndoqaBootApplication()}.
+     * Provide an array of package names which will be used by Spring to automatically detect Spring beans. The default is
+     * <code>null</code>.
      * 
-     * @return An array of patterns or null if this feature should be disabled.
+     * @return An array of package names or null if this feature should be disabled.
      */
     protected String[] getComponentScanBasePackages() {
-        return new String[] {this.getClass().getPackage().getName()};
+        return null;
     }
 
     /**

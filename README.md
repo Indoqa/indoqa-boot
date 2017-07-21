@@ -56,7 +56,7 @@ Indoqa-Boot is built upon following open source libraries and frameworks:
 
 ## Usage
 
- * [Initialization in your Java main method]()
+ * [Initialization in your Java main method](./docs/initialization-java-main.md)
  * [Spring: Manage your components](./docs/spring-manage-your-components.md)
  * [Spark: Register your HTTP endpoints]()
  * [Jackson: Dealing with Json]()
