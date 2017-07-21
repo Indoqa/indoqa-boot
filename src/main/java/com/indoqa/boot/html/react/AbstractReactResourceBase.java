@@ -48,9 +48,10 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
     @Inject
     private Environment environment;
 
-    private static void checkFileSystemLocation(Path fileSystemLocationPath) {
+    private static boolean checkFileSystemLocation(Path fileSystemLocationPath) {
         if (!Files.exists(fileSystemLocationPath)) {
-            LOGGER.warn("The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " does not exist.");
+            LOGGER.error("The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " does not exist.");
+            return false;
         }
         if (!Files.isDirectory(fileSystemLocationPath)) {
             throw new ApplicationInitializationException(
@@ -61,8 +62,11 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
                 "The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " is not readable.");
         }
         if (fileSystemLocationPath.toFile().list().length == 0) {
-            LOGGER.warn("The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " does not contain any resources.");
+            LOGGER.error("The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " does not contain any resources.");
+            return false;
         }
+
+        return true;
     }
 
     private static void configureClasspathAssets(String mountPath, String classPathLocation, ReactHtmlBuilder htmlBuilder) {
@@ -75,10 +79,13 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
 
     private static void configureFileSystemAssets(String mountPath, String fileSystemLocation, ReactHtmlBuilder htmlBuilder) {
         Path fileSystemLocationPath = Paths.get(fileSystemLocation);
-        checkFileSystemLocation(fileSystemLocationPath);
+        boolean localResourcesAvailable = checkFileSystemLocation(fileSystemLocationPath);
+
+        if (!localResourcesAvailable) {
+            return;
+        }
 
         externalStaticFileLocation(fileSystemLocation);
-
         findWebpackAssetsInFilesystem(mountPath, fileSystemLocation, htmlBuilder::mainCssPath, htmlBuilder::mainJavascriptPath);
     }
 
