@@ -61,7 +61,7 @@ Indoqa-Boot is built upon following open source libraries and frameworks:
  * [Spark: Register your HTTP endpoints]()
  * [Jackson: Dealing with Json]()
  * [Configuration: Provide properties for run profiles, ports etc.]()
- * [React/Redux: Integrate with a Javascript single page application]()
+ * [React/Redux: Integrate a Javascript single page application]()
  * [log4j2: Configure logging]()
  * [Monitoring: Health checks and system info]()
  * [Maven: Configure your Maven build and produce deployment artifacts]()

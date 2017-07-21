@@ -54,6 +54,10 @@ public class ReactHtmlBuilder implements HtmlBuilder {
         this.initialStateProvider = req -> null;
     }
 
+    private static String createHtmlSnippets(List<HtmlBuilder> builders, Request request) {
+        return builders.stream().map(builder -> builder.html(request)).filter(html -> html != null).collect(joining(" "));
+    }
+
     public ReactHtmlBuilder addHeadHtml(HtmlBuilder html) {
         this.headHtml.add(html);
         return this;
@@ -71,34 +75,35 @@ public class ReactHtmlBuilder implements HtmlBuilder {
 
     @Override
     public String html(Request request) {
-        return new StringBuilder().append("<!DOCTYPE html><html><head>")
-                .append("<meta http-equiv=\"")
-                .append(RESPONSE_HEADER_CONTENT_TYPE)
-                .append("\" content=\"")
-                .append(CONTENT_TYPE_HTML)
-                .append("\">")
-                .append("<link rel=\"stylesheet\" href=\"")
-                .append(this.mainCssPath)
-                .append("\" />")
-                .append(this.createHtmlSnippets(this.headHtml, request))
-                .append("</head>")
-                .append("<body>")
-                .append(this.createHtmlSnippets(this.preAppHtml, request))
-                .append("<div id=\"")
-                .append(this.rootElementId)
-                .append("\"></div>")
-                .append(this.createHtmlSnippets(this.postAppHtml, request))
-                .append("<script>window.__INITIAL_STATE__ = ")
-                .append(this.createInitialStateJson(request))
-                .append(";</script>")
-                .append("<script>")
-                .append(this.createProxyMappingScript())
-                .append(";</script>")
-                .append("<script src=\"")
-                .append(this.mainJavascriptPath)
-                .append("\"></script>")
-                .append("</body></html>")
-                .toString();
+        return new StringBuilder()
+            .append("<!DOCTYPE html><html><head>")
+            .append("<meta http-equiv=\"")
+            .append(RESPONSE_HEADER_CONTENT_TYPE)
+            .append("\" content=\"")
+            .append(CONTENT_TYPE_HTML)
+            .append("\">")
+            .append("<link rel=\"stylesheet\" href=\"")
+            .append(this.mainCssPath)
+            .append("\" />")
+            .append(createHtmlSnippets(this.headHtml, request))
+            .append("</head>")
+            .append("<body>")
+            .append(createHtmlSnippets(this.preAppHtml, request))
+            .append("<div id=\"")
+            .append(this.rootElementId)
+            .append("\"></div>")
+            .append(createHtmlSnippets(this.postAppHtml, request))
+            .append("<script>window.__INITIAL_STATE__ = ")
+            .append(this.createInitialStateJson(request))
+            .append(";</script>")
+            .append("<script>")
+            .append(this.createProxyMappingScript())
+            .append(";</script>")
+            .append("<script src=\"")
+            .append(this.mainJavascriptPath)
+            .append("\"></script>")
+            .append("</body></html>")
+            .toString();
     }
 
     public ReactHtmlBuilder initialStateProvider(InitialStateProvider initialStateProvider,
@@ -123,10 +128,6 @@ public class ReactHtmlBuilder implements HtmlBuilder {
         return this;
     }
 
-    private String createHtmlSnippets(List<HtmlBuilder> builders, Request request) {
-        return builders.stream().map(builder -> builder.html(request)).filter(html -> html != null).collect(joining(" "));
-    }
-
     private String createInitialStateJson(Request request) {
         String initialStateJson = EMPTY_INITIAL_STATE;
         if (this.initialStateProvider != null && this.jsonTransformer != null) {
@@ -140,14 +141,15 @@ public class ReactHtmlBuilder implements HtmlBuilder {
     }
 
     private String createProxyMappingEntryScript(Entry<String, String> entry) {
-        return new StringBuilder().append("window.")
-                .append(entry.getKey())
-                .append(" = ")
-                .append("'")
-                .append(entry.getValue())
-                .append("'")
-                .append(";")
-                .toString();
+        return new StringBuilder()
+            .append("window.")
+            .append(entry.getKey())
+            .append(" = ")
+            .append("'")
+            .append(entry.getValue())
+            .append("'")
+            .append(";")
+            .toString();
     }
 
     private String createProxyMappingScript() {
