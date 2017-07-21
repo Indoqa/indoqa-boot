@@ -15,6 +15,7 @@ public class Application extends AbstractIndoqaBootApplication {
     }
 }
 ```
+Additionally to `getApplicationName` there are more template methods that you can override: `checkLoggerInitialization`, `getAsciiLogoPath`, `getComponentScanBasePackages`, `getJsonTransformerClass`, `getVersionProvider` and `isDevEnvironment`. See [AbstractIndoqaBootApplication](https://www.javadoc.io/page/com.indoqa/indoqa-boot/latest/com/indoqa/boot/application/AbstractIndoqaBootApplication.html) for further details.
 
 ## Custom StartupLifecycle implementation
 
