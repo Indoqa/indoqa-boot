@@ -6,7 +6,7 @@ The [AbstractIndoqaBootApplication](https://www.javadoc.io/page/com.indoqa/indoq
 
 ## Option 2: Register a Spring configuration
 
-The Indoqa-boot [StartupLifecycle](https://www.javadoc.io/page/com.indoqa/indoqa-boot/latest/com/indoqa/boot/application/StartupLifecycle.html) gives access to the Spring application context.
+The Indoqa-boot [StartupLifecycle](https://www.javadoc.io/page/com.indoqa/indoqa-boot/latest/com/indoqa/boot/application/StartupLifecycle.html) gives access to the Spring application context. Use `willRefreshSpringContext` to register the Spring configuration:
 
 ```java
 @Override
@@ -15,4 +15,4 @@ public void willRefreshSpringContext(AnnotationConfigApplicationContext context)
 }
 ```
 
-See [Initialization in your Java main method](./initialization-java-main.md) for information how to make use of the StartupLifecycle.
+See [Initialization in your Java main method](./initialization-java-main.md) for more detailed information about how to make use of the StartupLifecycle.
