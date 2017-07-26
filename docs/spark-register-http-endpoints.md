@@ -17,6 +17,6 @@ public class MyResource {
 }
 ```
 
-Annotating a Spring component method with `@PostConstruct` ensures that this happens after all dependencies are injected. Indoqa-Boot has a 
+Annotating a Spring component method with `@PostConstruct` ensures that this happens after all dependencies are injected.
 
 In the case that you want to make use of Spark configurations that have to be executed before any route is mapped (e.g. registering static files), make sure that this happens before. See [Custom StartupLifecycle implementation](./initialization-java-main.md) for details.
