@@ -113,12 +113,12 @@ public class ReactHtmlBuilder implements HtmlBuilder {
         return this;
     }
 
-    public ReactHtmlBuilder mainCssPath(String mainCssPath) {
+    public ReactHtmlBuilder setMainCssPath(String mainCssPath) {
         this.mainCssPath = mainCssPath;
         return this;
     }
 
-    public ReactHtmlBuilder mainJavascriptPath(String mainJavascriptPath) {
+    public ReactHtmlBuilder setMainJavascriptPath(String mainJavascriptPath) {
         this.mainJavascriptPath = mainJavascriptPath;
         return this;
     }
