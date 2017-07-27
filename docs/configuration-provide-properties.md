@@ -4,7 +4,7 @@ Indoqa-Boot allows setting several Spring properties to adapt Indoqa-Boot to you
 
 ## Spring properties
 
-The Spring properties can be set either as system properties or via a Spring property source.
+The Spring properties can be set either as system properties or via a Spring property source. The [Spring documentation](https://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#beans-property-source-abstraction) contains detailed information about this topic.
 
 ### port
 
