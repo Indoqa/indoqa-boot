@@ -39,6 +39,9 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.support.ResourcePropertySource;
 
 import com.indoqa.boot.ApplicationInitializationException;
+import com.indoqa.boot.actuate.activators.ActuatorActivators;
+import com.indoqa.boot.actuate.activators.DefaultHealthActuatorActivator;
+import com.indoqa.boot.actuate.resources.HealthResources;
 import com.indoqa.boot.json.interceptor.DefaultContentTypeAfterInterceptor;
 import com.indoqa.boot.json.transformer.JacksonTransformer;
 import com.indoqa.boot.spark.ShutdownResource;
@@ -114,6 +117,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
         this.initializeJsonTransformer();
         this.initializeDefaultResources();
+        this.initializeActuators();
 
         lifecycle.willScanForComponents(this.context);
         this.initializeSpringComponentScan();
@@ -138,8 +142,17 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     /**
+     * Activate actuators.
+     * 
+     * @param actuatorActivators Use it to enable {@link ActuatorActivators}.
+     */
+    protected void enableActuators(ActuatorActivators actuatorActivators) {
+        // do nothing
+    }
+
+    /**
      * Provide a custom application name. The default is the simple name of the class extending the
-     * {@link #AbstractIndoqaBootApplication()}
+     * {@link #AbstractIndoqaBootApplication()}.
      * 
      * @return The custom application name.
      */
@@ -248,6 +261,17 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     private boolean haveSpringBeansNotChanged() {
         return this.beansHashCode == this.getBeansHashCode();
+    }
+
+    private void initializeActuators() {
+        this.context.register(HealthResources.class);
+
+        ActuatorActivators actuatorActivators = new ActuatorActivators();
+        actuatorActivators.enable(DefaultHealthActuatorActivator.class);
+
+        this.enableActuators(actuatorActivators);
+
+        actuatorActivators.getActuatorActivators().forEach(this.context::register);
     }
 
     private void initializeApplicationContext() {
