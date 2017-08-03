@@ -16,6 +16,15 @@
  */
 package com.indoqa.boot.systeminfo;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 public class BasicSystemInfo extends AbstractSystemInfo {
-    // no additions necessary
+
+    private static final String[] ALLOWED_GIT_PROPERTIES = {"git.dirty", "git.commit.time", "git.commit.id", "git.commit.id.abbrev",
+        "git.build.time"};
+
+    @Override
+    protected boolean filterGitProperty(Object object) {
+        return ArrayUtils.contains(ALLOWED_GIT_PROPERTIES, object);
+    }
 }
