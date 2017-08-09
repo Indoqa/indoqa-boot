@@ -16,7 +16,7 @@ Indoqa-Boot usually start a second Spark service that exposes all administrative
 
 ### admin.separate-service
 
-If you want to expose all administrative HTTP endpoints via the default Spark service, set this property to true. But be aware that in this case that internal information will be exposed and the `/shutdown` resource can be invoked.
+If you want to expose all administrative HTTP endpoints via the default Spark service, set this property to true. But be aware that in this case internal information will be exposed and the `/shutdown` resource can be invoked.
 
 ## System properties
 
