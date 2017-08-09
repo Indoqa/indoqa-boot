@@ -42,6 +42,7 @@ import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.actuate.activators.ActuatorActivators;
 import com.indoqa.boot.actuate.activators.DefaultHealthActuatorActivator;
 import com.indoqa.boot.actuate.resources.HealthResources;
+import com.indoqa.boot.actuate.resources.SpringBeansResources;
 import com.indoqa.boot.actuate.resources.ThreadDumpResources;
 import com.indoqa.boot.json.interceptor.DefaultContentTypeAfterInterceptor;
 import com.indoqa.boot.json.transformer.JacksonTransformer;
@@ -267,6 +268,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     private void initializeActuators() {
         this.context.register(HealthResources.class);
         this.context.register(ThreadDumpResources.class);
+        this.context.register(SpringBeansResources.class);
 
         ActuatorActivators actuatorActivators = new ActuatorActivators();
         actuatorActivators.enable(DefaultHealthActuatorActivator.class);
