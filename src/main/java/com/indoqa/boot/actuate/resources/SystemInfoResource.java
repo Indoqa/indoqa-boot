@@ -14,23 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.systeminfo;
+package com.indoqa.boot.actuate.resources;
 
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
-import com.indoqa.boot.json.resources.AbstractJsonResourcesBase;
-import com.indoqa.boot.json.transformer.JsonTransformer;
 import com.indoqa.boot.spark.SparkAdminService;
+import com.indoqa.boot.systeminfo.BasicSystemInfo;
+import com.indoqa.boot.systeminfo.SystemInfo;
 
 import spark.Response;
 
 /**
  * An admin resource that provides information about the application state and environment (e.g. used Spring properties, etc.).
  */
-public class SystemInfoResource extends AbstractJsonResourcesBase {
+public class SystemInfoResource extends AbstractActuatorResources {
 
     @Inject
     private SystemInfo systemInfo;
@@ -39,22 +39,15 @@ public class SystemInfoResource extends AbstractJsonResourcesBase {
     private BasicSystemInfo reducedSystemInfo;
 
     @Inject
-    private JsonTransformer jsonTransformer;
-
-    @Inject
     private SparkAdminService sparkAdminService;
 
     @PostConstruct
     public void mount() {
-        if (this.sparkAdminService.isAvailable()) {
-            this.get("/system-info", (request, response) -> this.sendReducedSystemInfo(response));
-            this.sparkAdminService
-                .instance()
-                .get("/system-info", (request, response) -> this.sendSystemInfo(response), this.jsonTransformer);
-        }
+        this.get("/system-info", (request, response) -> this.sendSystemInfo(response));
 
-        else {
-            this.get("/system-info", (request, response) -> this.sendSystemInfo(response));
+        // minimal systemInfo exposed via the business application REST service
+        if (!this.sparkAdminService.isAvailable()) {
+            this.get("/system-info", (request, response) -> this.sendReducedSystemInfo(response));
         }
     }
 

@@ -20,7 +20,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -29,25 +28,13 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.LiveBeansView;
 import org.springframework.util.Assert;
 
-import com.indoqa.boot.json.resources.AbstractJsonResourcesBase;
-import com.indoqa.boot.spark.SparkAdminService;
-
-import spark.Spark;
-
-public class SpringBeansResources extends AbstractJsonResourcesBase implements ApplicationContextAware {
-
-    @Inject
-    private SparkAdminService sparkAdminService;
+public class SpringBeansResources extends AbstractActuatorResources implements ApplicationContextAware {
 
     private final HierarchyAwareLiveBeansView liveBeansView = new HierarchyAwareLiveBeansView();
 
     @PostConstruct
     public void mount() {
-        if (this.sparkAdminService.isAvailable()) {
-            this.sparkAdminService.instance().get("/beans", (req, res) -> this.getSpringBeansLiveView());
-        } else {
-            Spark.get("/beans", (req, res) -> this.getSpringBeansLiveView());
-        }
+        this.get("/spring-beans", (req, res) -> this.getSpringBeansLiveView());
     }
 
     @Override

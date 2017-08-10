@@ -31,20 +31,11 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.indoqa.boot.actuate.health.Health;
 import com.indoqa.boot.actuate.health.HealthIndicator;
-import com.indoqa.boot.json.resources.AbstractJsonResourcesBase;
-import com.indoqa.boot.json.transformer.JsonTransformer;
-import com.indoqa.boot.spark.SparkAdminService;
 
-public class HealthResources extends AbstractJsonResourcesBase {
-
-    @Inject
-    private SparkAdminService sparkAdminService;
+public class HealthResources extends AbstractActuatorResources {
 
     @Inject
     private Collection<HealthIndicator> healthIndicators;
-
-    @Inject
-    private JsonTransformer jsonTransformer;
 
     private static String getKey(String name) {
         int index = name.toLowerCase(US).indexOf("healthindicator");
@@ -56,11 +47,7 @@ public class HealthResources extends AbstractJsonResourcesBase {
 
     @PostConstruct
     public void mount() {
-        if (this.sparkAdminService.isAvailable()) {
-            this.sparkAdminService.instance().get("/health", (req, res) -> this.getHealthCheckResult(), this.jsonTransformer);
-        } else {
-            this.get("/health", (req, res) -> this.getHealthCheckResult());
-        }
+        this.get("/health", (req, res) -> this.getHealthCheckResult());
     }
 
     private ActuatorResults getHealthCheckResult() {
