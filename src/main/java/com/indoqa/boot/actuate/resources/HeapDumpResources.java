@@ -16,11 +16,151 @@
  */
 package com.indoqa.boot.actuate.resources;
 
+import static java.lang.Thread.currentThread;
+import static java.util.Locale.US;
+import static java.util.concurrent.TimeUnit.*;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.PlatformManagedObject;
+import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import javax.annotation.PostConstruct;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import spark.Response;
 
 public class HeapDumpResources extends AbstractActuatorResources {
 
+    private final long timeout = SECONDS.toMillis(30);
+    private final Lock lock = new ReentrantLock();
+
+    private HeapDumper heapDumper;
+
+    private static File createTempFile(boolean live) throws IOException {
+        String date = new SimpleDateFormat("yyyy-MM-dd-HH-mm", US).format(new Date());
+        File file = File.createTempFile("heapdump" + date + (live ? "-live" : ""), ".hprof");
+        file.delete();
+        return file;
+    }
+
+    public Object invokeHeapDump(Response res) throws IOException {
+        try {
+            if (this.lock.tryLock(this.timeout, MILLISECONDS)) {
+                try {
+                    return this.dumpHeap(true, res);
+                } finally {
+                    this.lock.unlock();
+                }
+            }
+        } catch (InterruptedException ex) {
+            currentThread().interrupt();
+        }
+        res.status(TOO_MANY_REQUESTS.value());
+        return EMPTY;
+    }
+
     @PostConstruct
     public void mount() {
+        if (this.isAdminServiceAvailable()) {
+            this.getSparkAdminService().get("/heap-dump", (req, res) -> this.invokeHeapDump(res));
+        }
+    }
+
+    /**
+     * Factory method used to create the {@link HeapDumper}.
+     * 
+     * @return the heap dumper to use
+     * @throws HeapDumperUnavailableException if the heap dumper cannot be created
+     */
+    protected HeapDumper createHeapDumper() throws HeapDumperUnavailableException {
+        return new HotSpotDiagnosticMXBeanHeapDumper();
+    }
+
+    private InputStream dumpHeap(boolean live, Response res) throws IOException, InterruptedException {
+        if (this.heapDumper == null) {
+            this.heapDumper = this.createHeapDumper();
+        }
+        File file = createTempFile(live);
+        try {
+            this.heapDumper.dumpHeap(file, live);
+
+            res.type("application/octet-stream");
+            res.header("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
+            return new FileInputStream(file);
+        } finally {
+            file.delete();
+        }
+    }
+
+    /**
+     * Strategy interface used to dump the heap to a file.
+     */
+    @FunctionalInterface
+    protected interface HeapDumper {
+
+        /**
+         * Dump the current heap to the specified file.
+         * 
+         * @param file the file to dump the heap to
+         * @param live if only <em>live</em> objects (i.e. objects that are reachable from others) should be dumped
+         * @throws IOException on IO error
+         * @throws InterruptedException on thread interruption
+         */
+        void dumpHeap(File file, boolean live) throws IOException, InterruptedException;
+
+    }
+
+    /**
+     * Exception to be thrown if the {@link HeapDumper} cannot be created.
+     */
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    protected static class HeapDumperUnavailableException extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        public HeapDumperUnavailableException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    /**
+     * {@link HeapDumper} that uses {@code com.sun.management.HotSpotDiagnosticMXBean} available on Oracle and OpenJDK to dump the heap
+     * to a file.
+     */
+    protected static class HotSpotDiagnosticMXBeanHeapDumper implements HeapDumper {
+
+        private Object diagnosticMXBean;
+
+        private Method dumpHeapMethod;
+
+        @SuppressWarnings("unchecked")
+        protected HotSpotDiagnosticMXBeanHeapDumper() {
+            try {
+                Class<?> diagnosticMXBeanClass = ClassUtils.resolveClassName("com.sun.management.HotSpotDiagnosticMXBean", null);
+                this.diagnosticMXBean = ManagementFactory.getPlatformMXBean((Class<PlatformManagedObject>) diagnosticMXBeanClass);
+                this.dumpHeapMethod = ReflectionUtils.findMethod(diagnosticMXBeanClass, "dumpHeap", String.class, Boolean.TYPE);
+            } catch (Throwable ex) {
+                throw new HeapDumperUnavailableException("Unable to locate HotSpotDiagnosticMXBean", ex);
+            }
+        }
+
+        @Override
+        public void dumpHeap(File file, boolean live) {
+            ReflectionUtils.invokeMethod(this.dumpHeapMethod, this.diagnosticMXBean, file.getAbsolutePath(), live);
+        }
     }
 }

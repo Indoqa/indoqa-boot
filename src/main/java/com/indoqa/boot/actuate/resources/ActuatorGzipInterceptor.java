@@ -16,35 +16,14 @@
  */
 package com.indoqa.boot.actuate.resources;
 
-import javax.inject.Inject;
+import javax.annotation.PostConstruct;
 
-import com.indoqa.boot.json.transformer.JsonTransformer;
-import com.indoqa.boot.spark.SparkAdminService;
+public class ActuatorGzipInterceptor extends AbstractActuatorResources {
 
-import spark.Route;
-import spark.Service;
-
-public abstract class AbstractActuatorResources {
-
-    @Inject
-    private SparkAdminService sparkAdminService;
-
-    @Inject
-    private JsonTransformer jsonTransformer;
-
-    protected void get(String path, Route route) {
-        if (this.isAdminServiceAvailable()) {
-            this.sparkAdminService.instance().get(path, route, this.jsonTransformer);
-        } else {
-            this.get(path, route);
-        }
-    }
-
-    protected Service getSparkAdminService() {
-        return this.sparkAdminService.instance();
-    }
-
-    protected boolean isAdminServiceAvailable() {
-        return this.sparkAdminService.isAvailable();
+    @PostConstruct
+    public void mount() {
+        this.getSparkAdminService().after((request, response) -> {
+            response.header("Content-Encoding", "gzip");
+        });
     }
 }

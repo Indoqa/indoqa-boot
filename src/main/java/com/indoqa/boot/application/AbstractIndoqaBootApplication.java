@@ -272,7 +272,9 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.context.register(SystemInfoResource.class);
         this.context.register(HealthResources.class);
         this.context.register(ThreadDumpResources.class);
+        this.context.register(HeapDumpResources.class);
         this.context.register(SpringBeansResources.class);
+        this.context.register(ActuatorGzipInterceptor.class);
 
         ActuatorActivators actuatorActivators = new ActuatorActivators();
         actuatorActivators.enable(DefaultHealthActuatorActivator.class);

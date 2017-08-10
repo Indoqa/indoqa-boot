@@ -29,7 +29,6 @@ import javax.inject.Inject;
 
 import org.springframework.core.env.Environment;
 
-import com.indoqa.boot.spark.SparkAdminService;
 import com.indoqa.boot.systeminfo.SystemInfo;
 
 public class OverviewResources extends AbstractActuatorResources {
@@ -43,12 +42,23 @@ public class OverviewResources extends AbstractActuatorResources {
     @Inject
     private Environment environment;
 
+    private static StringBuilder createDownloadLinkItem(String name, String link) {
+        return new StringBuilder()
+            .append("<li>")
+            .append("<a href=\"")
+            .append(link)
+            .append("\">")
+            .append(name)
+            .append("</a>")
+            .append("</li>");
+    }
+
     private static StringBuilder createLinkItem(String name, String link) {
         return new StringBuilder()
             .append("<li>")
             .append("<a href=\"")
             .append(link)
-            .append("\" target=\"_new\">")
+            .append("\" target=\"_blank\">")
             .append(name)
             .append("</a>")
             .append("</li>");
@@ -119,9 +129,10 @@ public class OverviewResources extends AbstractActuatorResources {
             .append("<ul>")
             .append(createLinkItem("Application home", "http://localhost:" + systemInfo.getPort(), () -> isDev(environment)))
             .append(createLinkItem("System info", "./system-info"))
+            .append(createLinkItem("Spring beans", "./spring-beans"))
             .append(createLinkItem("Health checks", "./health"))
-            .append(createLinkItem("Heap dump", "./heap-dump"))
             .append(createLinkItem("Thread dump", "./thread-dump"))
+            .append(createDownloadLinkItem("Heap dump", "./heap-dump"))
             .append("</ul>")
             .append("<br/><small>created at: ")
             .append(new Date())
@@ -132,11 +143,8 @@ public class OverviewResources extends AbstractActuatorResources {
 
     @PostConstruct
     public void mount() {
-        SparkAdminService sparkAdminService = this.getSparkAdminService();
-        if (sparkAdminService.isAvailable()) {
-            sparkAdminService
-                .instance()
-                .get("/", CONTENT_TYPE_HTML, (req, res) -> sendOverviewPage(this.systemInfo, this.environment));
+        if (this.isAdminServiceAvailable()) {
+            this.getSparkAdminService().get("/", CONTENT_TYPE_HTML, (req, res) -> sendOverviewPage(this.systemInfo, this.environment));
         }
     }
 }
