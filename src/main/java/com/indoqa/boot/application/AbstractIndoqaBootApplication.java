@@ -24,6 +24,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
@@ -41,9 +42,7 @@ import org.springframework.core.io.support.ResourcePropertySource;
 import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.actuate.activators.ActuatorActivators;
 import com.indoqa.boot.actuate.activators.DefaultHealthActuatorActivator;
-import com.indoqa.boot.actuate.resources.HealthResources;
-import com.indoqa.boot.actuate.resources.SpringBeansResources;
-import com.indoqa.boot.actuate.resources.ThreadDumpResources;
+import com.indoqa.boot.actuate.resources.*;
 import com.indoqa.boot.json.interceptor.DefaultContentTypeAfterInterceptor;
 import com.indoqa.boot.json.transformer.JacksonTransformer;
 import com.indoqa.boot.spark.ShutdownResource;
@@ -51,7 +50,6 @@ import com.indoqa.boot.spark.SparkAdminService;
 import com.indoqa.boot.spark.SparkDefaultService;
 import com.indoqa.boot.systeminfo.BasicSystemInfo;
 import com.indoqa.boot.systeminfo.SystemInfo;
-import com.indoqa.boot.systeminfo.SystemInfoResource;
 import com.indoqa.boot.version.VersionProvider;
 
 import spark.ResponseTransformer;
@@ -73,6 +71,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     private SystemInfo systemInfo;
     private int beansHashCode;
+    private String asciiLogo;
 
     private static ResourcePropertySource getProperties(String propertiesLocation) {
         try {
@@ -99,6 +98,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
      * @param lifecycle Provide an implementation of the callback interface.
      */
     public void invoke(StartupLifecycle lifecycle) {
+        this.initializeAsciiLogo();
         this.printLogo();
 
         lifecycle.willInitialize();
@@ -222,6 +222,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.systemInfo.setStarted(START_TIME);
         this.systemInfo.setInitialized(true);
         this.systemInfo.recheckForRandomlyAssignedPorts();
+        this.systemInfo.setApplicationName(this.getApplicationName());
+        this.systemInfo.setAsciiLogo(this.asciiLogo);
 
         BasicSystemInfo reducedSystemInfo = this.context.getBean(BasicSystemInfo.class);
         reducedSystemInfo.setInitialized(true);
@@ -266,6 +268,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void initializeActuators() {
+        this.context.register(OverviewResources.class);
+        this.context.register(SystemInfoResource.class);
         this.context.register(HealthResources.class);
         this.context.register(ThreadDumpResources.class);
         this.context.register(SpringBeansResources.class);
@@ -282,9 +286,22 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.context = new AnnotationConfigApplicationContext();
     }
 
+    private void initializeAsciiLogo() {
+        String asciiLogoPath = this.getAsciiLogoPath();
+
+        if (asciiLogoPath == null) {
+            return;
+        }
+
+        try (InputStream asciiLogoInputStream = AbstractIndoqaBootApplication.class.getResourceAsStream(asciiLogoPath)) {
+            this.asciiLogo = IOUtils.toString(asciiLogoInputStream, UTF_8);
+        } catch (Exception e) {
+            throw new ApplicationInitializationException("Error while reading ASCII logo from " + asciiLogoPath, e);
+        }
+    }
+
     private void initializeDefaultResources() {
         this.context.register(DefaultContentTypeAfterInterceptor.class);
-        this.context.register(SystemInfoResource.class);
         this.context.register(ShutdownResource.class);
     }
 
@@ -395,20 +412,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void printLogo() {
-        String asciiLogoPath = this.getAsciiLogoPath();
-
-        if (asciiLogoPath == null) {
-            return;
-        }
-
-        try (InputStream asciiLogoInputStream = AbstractIndoqaBootApplication.class.getResourceAsStream(asciiLogoPath)) {
-            String asciiLogo = IOUtils.toString(asciiLogoInputStream, UTF_8);
-            if (asciiLogo == null) {
-                return;
-            }
-            getInitializationLogger().info(asciiLogo);
-        } catch (Exception e) {
-            throw new ApplicationInitializationException("Error while reading ASCII logo from " + asciiLogoPath, e);
+        if (isNotBlank(this.asciiLogo)) {
+            getInitializationLogger().info(this.asciiLogo);
         }
     }
 

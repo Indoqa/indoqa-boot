@@ -16,22 +16,11 @@
  */
 package com.indoqa.boot.actuate.resources;
 
-import static java.util.Arrays.asList;
-
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
-import java.util.List;
-
 import javax.annotation.PostConstruct;
 
-public class ThreadDumpResources extends AbstractActuatorResources {
-
-    private static List<ThreadInfo> getThreadDump() {
-        return asList(ManagementFactory.getThreadMXBean().dumpAllThreads(true, true));
-    }
+public class HeapDumpResources extends AbstractActuatorResources {
 
     @PostConstruct
     public void mount() {
-        this.get("/thread-dump", (req, res) -> getThreadDump());
     }
 }

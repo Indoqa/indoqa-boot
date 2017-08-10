@@ -19,8 +19,11 @@ package com.indoqa.boot.systeminfo;
 import static java.lang.System.getenv;
 import static java.util.Locale.US;
 import static java.util.stream.Collectors.toMap;
+import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.core.env.StandardEnvironment.*;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
@@ -31,6 +34,7 @@ import java.util.stream.StreamSupport;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
+import org.slf4j.Logger;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.PropertySource;
@@ -44,8 +48,11 @@ import spark.Service;
 
 public class SystemInfo extends AbstractSystemInfo {
 
+    private static final Logger LOGGER = getLogger(SystemInfo.class);
+
     private Date started;
     private long initializationDuration;
+    private String applicationName;
     private Map<String, String> systemProperties;
     private Map<String, SpringProperty> springProperties;
     private Map<String, String> javaEnvironment;
@@ -53,7 +60,11 @@ public class SystemInfo extends AbstractSystemInfo {
     private String[] profiles;
     private String port;
     private String adminPort;
+    private String hostname;
     private Map<String, String> more = new HashMap<>();
+
+    @JsonIgnore
+    private String asciiLogo;
 
     @JsonIgnore
     @Inject
@@ -83,6 +94,15 @@ public class SystemInfo extends AbstractSystemInfo {
 
     private static String initAdminPort(ConfigurableEnvironment springEnvironment) {
         return springEnvironment.getProperty("admin-port");
+    }
+
+    private static String initHostname() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            LOGGER.warn("Error while resolving the hostname.", e);
+            return "[unknown]";
+        }
     }
 
     private static Map<String, String> initJavaEnvironmentMap() {
@@ -154,6 +174,18 @@ public class SystemInfo extends AbstractSystemInfo {
         return this.adminPort;
     }
 
+    public String getApplicationName() {
+        return this.applicationName;
+    }
+
+    public String getAsciiLogo() {
+        return this.asciiLogo;
+    }
+
+    public String getHostname() {
+        return this.hostname;
+    }
+
     @JsonProperty("initialization-duration")
     public long getInitializationDuration() {
         return this.initializationDuration;
@@ -210,6 +242,7 @@ public class SystemInfo extends AbstractSystemInfo {
         this.systemProperties = initSystemPropertiesMap();
         this.springProperties = initSpringProperties(this.springEnvironment);
         this.springPropertySources = initSpringPropertySources(this.springEnvironment);
+        this.hostname = initHostname();
     }
 
     public void recheckForRandomlyAssignedPorts() {
@@ -219,6 +252,14 @@ public class SystemInfo extends AbstractSystemInfo {
         if (adminServiceInstance != null) {
             this.adminPort = Integer.toString(JettyPortReader.getAdminPort(adminServiceInstance));
         }
+    }
+
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
+    }
+
+    public void setAsciiLogo(String asciiLogo) {
+        this.asciiLogo = asciiLogo;
     }
 
     public void setInitializationDuration(long duration) {

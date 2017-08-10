@@ -16,22 +16,34 @@
  */
 package com.indoqa.boot.actuate.resources;
 
-import static java.util.Arrays.asList;
+import javax.inject.Inject;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
-import java.util.List;
+import com.indoqa.boot.json.transformer.JsonTransformer;
+import com.indoqa.boot.spark.SparkAdminService;
 
-import javax.annotation.PostConstruct;
+import spark.Route;
 
-public class ThreadDumpResources extends AbstractActuatorResources {
+public abstract class AbstractActuatorResources {
 
-    private static List<ThreadInfo> getThreadDump() {
-        return asList(ManagementFactory.getThreadMXBean().dumpAllThreads(true, true));
+    @Inject
+    private SparkAdminService sparkAdminService;
+
+    @Inject
+    private JsonTransformer jsonTransformer;
+
+    protected void get(String path, Route route) {
+        if (this.isAdminServiceAvailable()) {
+            this.sparkAdminService.instance().get(path, route, this.jsonTransformer);
+        } else {
+            this.get(path, route);
+        }
     }
 
-    @PostConstruct
-    public void mount() {
-        this.get("/thread-dump", (req, res) -> getThreadDump());
+    protected SparkAdminService getSparkAdminService() {
+        return this.sparkAdminService;
+    }
+
+    protected boolean isAdminServiceAvailable() {
+        return this.sparkAdminService.isAvailable();
     }
 }
