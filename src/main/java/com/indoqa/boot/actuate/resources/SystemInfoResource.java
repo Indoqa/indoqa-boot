@@ -21,9 +21,9 @@ import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
+import com.indoqa.boot.actuate.systeminfo.BasicSystemInfo;
+import com.indoqa.boot.actuate.systeminfo.SystemInfo;
 import com.indoqa.boot.spark.SparkAdminService;
-import com.indoqa.boot.systeminfo.BasicSystemInfo;
-import com.indoqa.boot.systeminfo.SystemInfo;
 
 import spark.Response;
 

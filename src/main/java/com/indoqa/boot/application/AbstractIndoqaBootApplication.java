@@ -43,13 +43,13 @@ import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.actuate.activators.ActuatorActivators;
 import com.indoqa.boot.actuate.activators.DefaultHealthActuatorActivator;
 import com.indoqa.boot.actuate.resources.*;
+import com.indoqa.boot.actuate.systeminfo.BasicSystemInfo;
+import com.indoqa.boot.actuate.systeminfo.SystemInfo;
 import com.indoqa.boot.json.interceptor.DefaultContentTypeAfterInterceptor;
 import com.indoqa.boot.json.transformer.JacksonTransformer;
 import com.indoqa.boot.spark.ShutdownResource;
 import com.indoqa.boot.spark.SparkAdminService;
 import com.indoqa.boot.spark.SparkDefaultService;
-import com.indoqa.boot.systeminfo.BasicSystemInfo;
-import com.indoqa.boot.systeminfo.SystemInfo;
 import com.indoqa.boot.version.VersionProvider;
 
 import spark.ResponseTransformer;

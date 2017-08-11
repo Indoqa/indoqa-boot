@@ -29,7 +29,7 @@ import javax.inject.Inject;
 
 import org.springframework.core.env.Environment;
 
-import com.indoqa.boot.systeminfo.SystemInfo;
+import com.indoqa.boot.actuate.systeminfo.SystemInfo;
 
 public class OverviewResources extends AbstractActuatorResources {
 
