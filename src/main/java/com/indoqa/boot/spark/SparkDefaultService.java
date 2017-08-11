@@ -36,12 +36,8 @@ public class SparkDefaultService extends AbstractSparkService {
         int port = this.getPort();
         int adminPort = this.getAdminPort();
 
-        if (this.isAdminSeparateService()) {
-            int shutdownPort = adminPort > 0 ? adminPort : port;
-            this.claimPortOrShutdown(port, shutdownPort);
-        } else {
-            this.claimPortOrShutdown(port, port);
-        }
+        int shutdownPort = adminPort > 0 ? adminPort : port;
+        this.claimPortOrShutdown(port, shutdownPort);
 
         Spark.port(port);
     }

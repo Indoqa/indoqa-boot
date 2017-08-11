@@ -24,7 +24,7 @@ import javax.inject.Inject;
 import com.indoqa.boot.actuate.metrics.Metric;
 import com.indoqa.boot.actuate.metrics.PublicMetrics;
 
-public class MetricsResources extends AbstractActuatorResources {
+public class MetricsResources extends AbstractAdminResources {
 
     @Inject
     private Collection<PublicMetrics> publicMetrics;

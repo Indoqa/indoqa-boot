@@ -24,7 +24,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-public class ThreadDumpResources extends AbstractActuatorResources {
+public class ThreadDumpResources extends AbstractAdminResources {
 
     private static List<ThreadInfo> getThreadDump() {
         return asList(ManagementFactory.getThreadMXBean().dumpAllThreads(true, true));

@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.indoqa.boot.actuate.health.Health;
 import com.indoqa.boot.actuate.health.HealthIndicator;
 
-public class HealthResources extends AbstractActuatorResources {
+public class HealthResources extends AbstractAdminResources {
 
     @Inject
     private Collection<HealthIndicator> healthIndicators;

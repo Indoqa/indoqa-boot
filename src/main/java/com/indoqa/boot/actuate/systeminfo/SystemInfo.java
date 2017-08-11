@@ -22,6 +22,8 @@ import static java.util.stream.Collectors.toMap;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.core.env.StandardEnvironment.*;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
@@ -49,6 +51,8 @@ import spark.Service;
 public class SystemInfo extends AbstractSystemInfo {
 
     private static final Logger LOGGER = getLogger(SystemInfo.class);
+    private static final String INDOQA_BOOT_PROPERTIES_PATH = "/META-INF/maven/com.indoqa/indoqa-boot/pom.properties";
+    private static final String UNKNOWN_VALUE = "[unknown]";
 
     private Date started;
     private long initializationDuration;
@@ -61,6 +65,7 @@ public class SystemInfo extends AbstractSystemInfo {
     private String port;
     private String adminPort;
     private String hostname;
+    private String indoqaBootVersion;
     private Map<String, String> more = new HashMap<>();
 
     @JsonIgnore
@@ -101,7 +106,18 @@ public class SystemInfo extends AbstractSystemInfo {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
             LOGGER.warn("Error while resolving the hostname.", e);
-            return "[unknown]";
+            return UNKNOWN_VALUE;
+        }
+    }
+
+    private static String initIndoqaBootVersion() {
+        try (InputStream indoqaBootPropertiesInputStream = SystemInfo.class.getResourceAsStream(INDOQA_BOOT_PROPERTIES_PATH)) {
+            Properties indoqaBootProperties = new Properties();
+            indoqaBootProperties.load(indoqaBootPropertiesInputStream);
+            return indoqaBootProperties.getProperty("version", UNKNOWN_VALUE);
+        } catch (IOException e) {
+            LOGGER.warn("Error while reading Indoqa-Boot Maven properties.", e);
+            return UNKNOWN_VALUE;
         }
     }
 
@@ -186,6 +202,11 @@ public class SystemInfo extends AbstractSystemInfo {
         return this.hostname;
     }
 
+    @JsonProperty("indoqa-boot-version")
+    public String getIndoqaBootVersion() {
+        return this.indoqaBootVersion;
+    }
+
     @JsonProperty("initialization-duration")
     public long getInitializationDuration() {
         return this.initializationDuration;
@@ -243,6 +264,7 @@ public class SystemInfo extends AbstractSystemInfo {
         this.springProperties = initSpringProperties(this.springEnvironment);
         this.springPropertySources = initSpringPropertySources(this.springEnvironment);
         this.hostname = initHostname();
+        this.indoqaBootVersion = initIndoqaBootVersion();
     }
 
     public void recheckForRandomlyAssignedPorts() {

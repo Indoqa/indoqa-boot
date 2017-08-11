@@ -31,7 +31,7 @@ import spark.Spark;
 /**
  * An admin resource that provides information about the application state and environment (e.g. used Spring properties, etc.).
  */
-public class SystemInfoResource extends AbstractActuatorResources {
+public class SystemInfoResource extends AbstractAdminResources {
 
     @Inject
     private SystemInfo systemInfo;
@@ -47,13 +47,7 @@ public class SystemInfoResource extends AbstractActuatorResources {
         this.getActuator("/system-info", (request, response) -> this.sendSystemInfo(response));
 
         // minimal systemInfo exposed via the business application REST service
-        if (this.isAdminServiceAvailable()) {
-            Spark.get(
-                "/system-info",
-                "application/json",
-                (request, response) -> this.sendReducedSystemInfo(response),
-                this.jsonTransformer);
-        }
+        Spark.get("/system-info", (request, response) -> this.sendReducedSystemInfo(response), this.jsonTransformer);
     }
 
     private BasicSystemInfo sendReducedSystemInfo(Response response) {

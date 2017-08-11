@@ -27,12 +27,13 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 
 import spark.Response;
+import spark.Spark;
 
 /**
  * An resource to shutdown the Indoqa-Boot application. By default this method is only available via the admin service. Be careful if
  * you expose this method publicly.
  */
-public class ShutdownResource extends AbstractActuatorResources {
+public class ShutdownResource extends AbstractAdminResources {
 
     private static final Logger LOGGER = getLogger(ShutdownResource.class);
     private static final int SHUTDOWN_DELAY = 50;
@@ -57,7 +58,13 @@ public class ShutdownResource extends AbstractActuatorResources {
 
     @PostConstruct
     public void mount() {
-        this.postActuator("/shutdown", (req, res) -> shutdown(res));
+        if (this.isAdminServiceAvailable()) {
+            this.getSparkAdminService().post("/shutdown", (req, res) -> shutdown(res), this.getTransformer());
+        }
+
+        else if (this.isEnabledViaDefaultService()) {
+            Spark.post("/shutdown", (req, res) -> shutdown(res), this.getTransformer());
+        }
     }
 
     private static class ShutdownTask extends TimerTask {
