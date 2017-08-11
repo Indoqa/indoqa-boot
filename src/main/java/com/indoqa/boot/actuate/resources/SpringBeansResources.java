@@ -28,15 +28,19 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.LiveBeansView;
 import org.springframework.util.Assert;
 
+import spark.Spark;
+
 public class SpringBeansResources extends AbstractActuatorResources implements ApplicationContextAware {
 
     private final HierarchyAwareLiveBeansView liveBeansView = new HierarchyAwareLiveBeansView();
 
     @PostConstruct
     public void mount() {
-        // don't use this.get because it uses a json transformer
+        // getSpringBeansLiveView returns already a string -> avoid using the jsonTransformer
         if (this.isAdminServiceAvailable()) {
             this.getSparkAdminService().get("/spring-beans", (req, res) -> this.getSpringBeansLiveView());
+        } else {
+            Spark.get("/spring-beans", "application/json", (req, res) -> this.getSpringBeansLiveView());
         }
     }
 

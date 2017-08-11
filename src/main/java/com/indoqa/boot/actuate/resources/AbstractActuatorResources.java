@@ -18,23 +18,20 @@ package com.indoqa.boot.actuate.resources;
 
 import javax.inject.Inject;
 
-import com.indoqa.boot.json.transformer.JsonTransformer;
+import com.indoqa.boot.json.resources.AbstractJsonResourcesBase;
 import com.indoqa.boot.spark.SparkAdminService;
 
 import spark.Route;
 import spark.Service;
 
-public abstract class AbstractActuatorResources {
+public abstract class AbstractActuatorResources extends AbstractJsonResourcesBase {
 
     @Inject
     private SparkAdminService sparkAdminService;
 
-    @Inject
-    private JsonTransformer jsonTransformer;
-
-    protected void get(String path, Route route) {
+    protected void getActuator(String path, Route route) {
         if (this.isAdminServiceAvailable()) {
-            this.sparkAdminService.instance().get(path, route, this.jsonTransformer);
+            this.sparkAdminService.instance().get(path, route, this.getTransformer());
         } else {
             this.get(path, route);
         }
@@ -46,5 +43,13 @@ public abstract class AbstractActuatorResources {
 
     protected boolean isAdminServiceAvailable() {
         return this.sparkAdminService.isAvailable();
+    }
+
+    protected void postActuator(String path, Route route) {
+        if (this.isAdminServiceAvailable()) {
+            this.sparkAdminService.instance().post(path, route, this.getTransformer());
+        } else {
+            this.post(path, route);
+        }
     }
 }

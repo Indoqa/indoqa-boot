@@ -23,9 +23,10 @@ import javax.inject.Inject;
 
 import com.indoqa.boot.actuate.systeminfo.BasicSystemInfo;
 import com.indoqa.boot.actuate.systeminfo.SystemInfo;
-import com.indoqa.boot.spark.SparkAdminService;
+import com.indoqa.boot.json.transformer.JsonTransformer;
 
 import spark.Response;
+import spark.Spark;
 
 /**
  * An admin resource that provides information about the application state and environment (e.g. used Spring properties, etc.).
@@ -39,15 +40,19 @@ public class SystemInfoResource extends AbstractActuatorResources {
     private BasicSystemInfo reducedSystemInfo;
 
     @Inject
-    private SparkAdminService sparkAdminService;
+    private JsonTransformer jsonTransformer;
 
     @PostConstruct
     public void mount() {
-        this.get("/system-info", (request, response) -> this.sendSystemInfo(response));
+        this.getActuator("/system-info", (request, response) -> this.sendSystemInfo(response));
 
         // minimal systemInfo exposed via the business application REST service
-        if (!this.sparkAdminService.isAvailable()) {
-            this.get("/system-info", (request, response) -> this.sendReducedSystemInfo(response));
+        if (this.isAdminServiceAvailable()) {
+            Spark.get(
+                "/system-info",
+                "application/json",
+                (request, response) -> this.sendReducedSystemInfo(response),
+                this.jsonTransformer);
         }
     }
 

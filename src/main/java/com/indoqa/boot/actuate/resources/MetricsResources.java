@@ -46,6 +46,6 @@ public class MetricsResources extends AbstractActuatorResources {
 
     @PostConstruct
     public void mount() {
-        this.get("/metrics", (req, res) -> this.getMetrics());
+        this.getActuator("/metrics", (req, res) -> this.getMetrics());
     }
 }

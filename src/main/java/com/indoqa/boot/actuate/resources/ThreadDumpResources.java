@@ -32,6 +32,6 @@ public class ThreadDumpResources extends AbstractActuatorResources {
 
     @PostConstruct
     public void mount() {
-        this.get("/thread-dump", (req, res) -> getThreadDump());
+        this.getActuator("/thread-dump", (req, res) -> getThreadDump());
     }
 }
