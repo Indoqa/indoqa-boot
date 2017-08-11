@@ -131,6 +131,7 @@ public class OverviewResources extends AbstractActuatorResources {
             .append(createLinkItem("System info", "./system-info"))
             .append(createLinkItem("Spring beans", "./spring-beans"))
             .append(createLinkItem("Health checks", "./health"))
+            .append(createLinkItem("Metrics", "./metrics"))
             .append(createLinkItem("Thread dump", "./thread-dump"))
             .append(createDownloadLinkItem("Heap dump", "./heap-dump"))
             .append("</ul>")

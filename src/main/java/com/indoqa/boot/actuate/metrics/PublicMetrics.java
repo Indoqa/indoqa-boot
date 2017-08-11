@@ -14,24 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.actuate.activators;
+package com.indoqa.boot.actuate.metrics;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+/**
+ * Interface to expose specific {@link Metric}s via a {@link MetricsEndpoint}. Implementations should take care that the metrics they
+ * provide have unique names in the application context, but they shouldn't have to care about global uniqueness in the JVM or across a
+ * distributed system.
+ */
+@FunctionalInterface
+public interface PublicMetrics {
 
-import com.indoqa.boot.actuate.health.HealthIndicator;
-import com.indoqa.boot.actuate.health.SystemHealthIndicator;
-
-@Configuration
-public class DefaultHealthActuatorActivator implements ActuatorActivator {
-
-    @Bean
-    public Collection<HealthIndicator> getHealthIndicators() {
-        Collection<HealthIndicator> healthIndicators = new ArrayList<>();
-        healthIndicators.add(new SystemHealthIndicator());
-        return healthIndicators;
-    }
+    /**
+     * Return an indication of current state through metrics.
+     * 
+     * @return the public metrics
+     */
+    Collection<Metric<?>> metrics();
 }
