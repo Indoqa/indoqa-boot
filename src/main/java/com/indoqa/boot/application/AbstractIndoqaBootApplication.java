@@ -41,7 +41,7 @@ import org.springframework.core.io.support.ResourcePropertySource;
 
 import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.actuate.activators.ActuatorActivators;
-import com.indoqa.boot.actuate.activators.DefaultHealthActuatorActivator;
+import com.indoqa.boot.actuate.activators.DefaultActuatorActivator;
 import com.indoqa.boot.actuate.resources.*;
 import com.indoqa.boot.actuate.systeminfo.BasicSystemInfo;
 import com.indoqa.boot.actuate.systeminfo.SystemInfo;
@@ -268,20 +268,21 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void initializeActuators() {
+        // register actuator activators
+        ActuatorActivators actuatorActivators = new ActuatorActivators();
+        actuatorActivators.enable(DefaultActuatorActivator.class);
+        this.enableActuators(actuatorActivators);
+        actuatorActivators.getActuatorActivators().forEach(this.context::register);
+
+        // register actuator resources
         this.context.register(OverviewResources.class);
         this.context.register(SystemInfoResource.class);
         this.context.register(HealthResources.class);
         this.context.register(ThreadDumpResources.class);
         this.context.register(HeapDumpResources.class);
         this.context.register(SpringBeansResources.class);
+        this.context.register(MetricsResources.class);
         this.context.register(ActuatorGzipInterceptor.class);
-
-        ActuatorActivators actuatorActivators = new ActuatorActivators();
-        actuatorActivators.enable(DefaultHealthActuatorActivator.class);
-
-        this.enableActuators(actuatorActivators);
-
-        actuatorActivators.getActuatorActivators().forEach(this.context::register);
     }
 
     private void initializeApplicationContext() {

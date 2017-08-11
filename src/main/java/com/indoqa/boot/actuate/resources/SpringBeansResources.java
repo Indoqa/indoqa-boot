@@ -34,7 +34,10 @@ public class SpringBeansResources extends AbstractActuatorResources implements A
 
     @PostConstruct
     public void mount() {
-        this.get("/spring-beans", (req, res) -> this.getSpringBeansLiveView());
+        // don't use this.get because it uses a json transformer
+        if (this.isAdminServiceAvailable()) {
+            this.getSparkAdminService().get("/spring-beans", (req, res) -> this.getSpringBeansLiveView());
+        }
     }
 
     @Override
