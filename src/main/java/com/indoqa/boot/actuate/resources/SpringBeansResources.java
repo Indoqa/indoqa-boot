@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
 
 import spark.Spark;
 
-public class SpringBeansResources extends AbstractActuatorResources implements ApplicationContextAware {
+public class SpringBeansResources extends AbstractAdminResources implements ApplicationContextAware {
 
     private final HierarchyAwareLiveBeansView liveBeansView = new HierarchyAwareLiveBeansView();
 
@@ -39,8 +39,10 @@ public class SpringBeansResources extends AbstractActuatorResources implements A
         // getSpringBeansLiveView returns already a string -> avoid using the jsonTransformer
         if (this.isAdminServiceAvailable()) {
             this.getSparkAdminService().get("/spring-beans", (req, res) -> this.getSpringBeansLiveView());
-        } else {
-            Spark.get("/spring-beans", "application/json", (req, res) -> this.getSpringBeansLiveView());
+        }
+
+        else if (this.isEnabledViaDefaultService()) {
+            Spark.get(resolveAdminPath("/spring-beans"), (req, res) -> this.getSpringBeansLiveView());
         }
     }
 

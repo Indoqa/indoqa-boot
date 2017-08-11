@@ -40,13 +40,6 @@ public final class SparkAdminService extends AbstractSparkService {
             return;
         }
 
-        if (!this.isAdminSeparateService()) {
-            LOGGER.info(
-                "The separate HTTP admin service was disabled by setting the property '{}' to false",
-                PROPERTY_SEPARATE_ADMIN_SERVICE);
-            return;
-        }
-
         int adminPort = this.getAdminPort();
         if (adminPort == -1) {
             LOGGER.info("The admin service is deactivated because the property admin.port is set to -1.");

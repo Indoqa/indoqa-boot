@@ -18,7 +18,7 @@ package com.indoqa.boot.actuate.resources;
 
 import javax.annotation.PostConstruct;
 
-public class ActuatorGzipInterceptor extends AbstractActuatorResources {
+public class ActuatorGzipInterceptor extends AbstractAdminResources {
 
     @PostConstruct
     public void mount() {

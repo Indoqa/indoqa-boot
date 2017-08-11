@@ -14,9 +14,9 @@ The property `port` configures the port of the default Spark service which shoul
 
 Indoqa-Boot usually start a second Spark service that exposes all administrative HTTP endpoints like `/status-info` or `/shutdown`. The default admin port is `34567`.
 
-### admin.separate-service
+### admin.enabled-via-default-service
 
-If you want to expose all administrative HTTP endpoints via the default Spark service, set this property to true. But be aware that in this case internal information will be exposed and the `/shutdown` resource can be invoked.
+If you want to expose all administrative HTTP endpoints via the default Spark service, set this property to true. But be aware that in this case internal information will be exposed and the `/shutdown` resource can be invoked. The default value is `false`.
 
 ## System properties
 

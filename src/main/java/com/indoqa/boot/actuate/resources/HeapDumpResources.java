@@ -39,8 +39,9 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 import spark.Response;
+import spark.Spark;
 
-public class HeapDumpResources extends AbstractActuatorResources {
+public class HeapDumpResources extends AbstractAdminResources {
 
     private static final int HTTP_SC_TOO_MANY_REQUESTS = 429;
     private final long timeout = SECONDS.toMillis(30);
@@ -73,7 +74,13 @@ public class HeapDumpResources extends AbstractActuatorResources {
 
     @PostConstruct
     public void mount() {
-        this.getActuator("/heap-dump", (req, res) -> this.invokeHeapDump(res));
+        if (this.isAdminServiceAvailable()) {
+            this.getSparkAdminService().get("/heap-dump", (req, res) -> this.invokeHeapDump(res));
+        }
+
+        else if (this.isEnabledViaDefaultService()) {
+            Spark.get(resolveAdminPath("/heap-dump"), (req, res) -> this.invokeHeapDump(res));
+        }
     }
 
     /**

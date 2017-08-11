@@ -31,10 +31,11 @@ import org.springframework.core.env.Environment;
 
 import com.indoqa.boot.actuate.systeminfo.SystemInfo;
 
-public class OverviewResources extends AbstractActuatorResources {
+import spark.Response;
+
+public class OverviewResources extends AbstractAdminResources {
 
     private static final String RESPONSE_HEADER_CONTENT_TYPE = "Content-Type";
-    private static final String CONTENT_TYPE_HTML = "text/html; charset=utf-8";
 
     @Inject
     private SystemInfo systemInfo;
@@ -78,7 +79,7 @@ public class OverviewResources extends AbstractActuatorResources {
             .append("  background-color: #000033;")
             .append("  color: #fff;")
             .append("  font-family: monospace;")
-            .append("  font-size: 15px;")
+            .append("  font-size: 14px;")
             .append("  margin: 5px;")
             .append("}")
             .append("a, a:link, a:active, a:visited, a:hover {")
@@ -86,6 +87,11 @@ public class OverviewResources extends AbstractActuatorResources {
             .append("}")
             .append("ul {")
             .append("  list-style-type: square;")
+            .append("}")
+            .append("span.info {")
+            .append("  background-color: green;")
+            .append("  border-radius: 2px;")
+            .append("  padding: 1px 4px;")
             .append("}")
             .append("</style>");
     }
@@ -101,31 +107,17 @@ public class OverviewResources extends AbstractActuatorResources {
         }
         return headerBuilder
             .append("<p><small>")
-            .append("version: ")
+            .append("version: <span class=\"info\">")
             .append(systemInfo.getVersion())
-            .append(", hostname: ")
+            .append("</span>, hostname: <span class=\"info\">")
             .append(systemInfo.getHostname())
-            .append(", active profile(s): ")
+            .append("</span>, active profile(s): <span class=\"info\">")
             .append(join("|", asList(systemInfo.getProfiles())))
-            .append("</small></p>");
+            .append("</span></small></p>");
     }
 
-    private static String sendOverviewPage(SystemInfo systemInfo, Environment environment) {
+    private static StringBuilder printLinks(SystemInfo systemInfo, Environment environment) {
         return new StringBuilder()
-            .append("<!DOCTYPE html><html><head>")
-            .append("<meta http-equiv=\"")
-            .append(RESPONSE_HEADER_CONTENT_TYPE)
-            .append("\" content=\"")
-            .append(CONTENT_TYPE_HTML)
-            .append("\">")
-            .append(printCss())
-            .append("<title>")
-            .append(systemInfo.getApplicationName())
-            .append(" :: Admin")
-            .append("</title>")
-            .append("</head>")
-            .append("<body>")
-            .append(printHeader(systemInfo))
             .append("<ul>")
             .append(createLinkItem("Application home", "http://localhost:" + systemInfo.getPort(), () -> isDev(environment)))
             .append(createLinkItem("System info", "./system-info"))
@@ -134,19 +126,50 @@ public class OverviewResources extends AbstractActuatorResources {
             .append(createLinkItem("Metrics", "./metrics"))
             .append(createLinkItem("Thread dump", "./thread-dump"))
             .append(createDownloadLinkItem("Heap dump", "./heap-dump"))
-            .append("</ul>")
+            .append("</ul>");
+
+    }
+
+    private static StringBuilder printMeta() {
+        return new StringBuilder()
+            .append("<meta http-equiv=\"")
+            .append(RESPONSE_HEADER_CONTENT_TYPE)
+            .append("\" content=\"")
+            .append(CONTENT_TYPE_HTML)
+            .append("\">");
+    }
+
+    private static StringBuilder printPageFooter(SystemInfo systemInfo) {
+        return new StringBuilder()
             .append("<br/><small>created at: ")
             .append(new Date())
-            .append("</small>")
+            .append(", powered by Indoqa-Boot v")
+            .append(systemInfo.getIndoqaBootVersion())
+            .append("</small>");
+    }
+
+    private static StringBuilder printTitle(SystemInfo systemInfo) {
+        return new StringBuilder().append("<title>").append(systemInfo.getApplicationName()).append(" :: Admin").append("</title>");
+    }
+
+    private static String sendOverviewPage(Response res, SystemInfo systemInfo, Environment environment) {
+        res.type(CONTENT_TYPE_HTML);
+        return new StringBuilder()
+            .append("<!DOCTYPE html><html><head>")
+            .append(printMeta())
+            .append(printCss())
+            .append(printTitle(systemInfo))
+            .append("</head>")
+            .append("<body>")
+            .append(printHeader(systemInfo))
+            .append(printLinks(systemInfo, environment))
+            .append(printPageFooter(systemInfo))
             .append("</body></html>")
             .toString();
     }
 
     @PostConstruct
     public void mount() {
-        // this resource should only be available, if it is registered with the admin service.
-        if (this.isAdminServiceAvailable()) {
-            this.getSparkAdminService().get("/", CONTENT_TYPE_HTML, (req, res) -> sendOverviewPage(this.systemInfo, this.environment));
-        }
+        this.getActuatorHtml("/", (req, res) -> sendOverviewPage(res, this.systemInfo, this.environment));
     }
 }

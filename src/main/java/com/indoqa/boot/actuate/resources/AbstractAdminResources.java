@@ -16,24 +16,52 @@
  */
 package com.indoqa.boot.actuate.resources;
 
+import static java.lang.Boolean.FALSE;
+
 import javax.inject.Inject;
+
+import org.springframework.core.env.Environment;
 
 import com.indoqa.boot.json.resources.AbstractJsonResourcesBase;
 import com.indoqa.boot.spark.SparkAdminService;
 
 import spark.Route;
 import spark.Service;
+import spark.Spark;
 
-public abstract class AbstractActuatorResources extends AbstractJsonResourcesBase {
+public abstract class AbstractAdminResources extends AbstractJsonResourcesBase {
+
+    protected static final String CONTENT_TYPE_HTML = "text/html; charset=utf-8";
+    private static final String PROPERTY_ADMIN_ENABLED_VIA_DEFAULT_SERVICE = "admin.enabled-via-default-service";
+    private static final String ADMIN_BASE_PATH = "/admin";
 
     @Inject
     private SparkAdminService sparkAdminService;
 
+    @Inject
+    private Environment environment;
+
+    protected static String resolveAdminPath(String path) {
+        return new StringBuilder(ADMIN_BASE_PATH).append(path).toString();
+    }
+
     protected void getActuator(String path, Route route) {
         if (this.isAdminServiceAvailable()) {
             this.sparkAdminService.instance().get(path, route, this.getTransformer());
-        } else {
-            this.get(path, route);
+        }
+
+        else if (this.isEnabledViaDefaultService()) {
+            this.get(resolveAdminPath(path), route);
+        }
+    }
+
+    protected void getActuatorHtml(String path, Route route) {
+        if (this.isAdminServiceAvailable()) {
+            this.getSparkAdminService().get(path, CONTENT_TYPE_HTML, route);
+        }
+
+        else if (this.isEnabledViaDefaultService()) {
+            Spark.get(resolveAdminPath(path), CONTENT_TYPE_HTML, route);
         }
     }
 
@@ -45,11 +73,7 @@ public abstract class AbstractActuatorResources extends AbstractJsonResourcesBas
         return this.sparkAdminService.isAvailable();
     }
 
-    protected void postActuator(String path, Route route) {
-        if (this.isAdminServiceAvailable()) {
-            this.sparkAdminService.instance().post(path, route, this.getTransformer());
-        } else {
-            this.post(path, route);
-        }
+    protected Boolean isEnabledViaDefaultService() {
+        return this.environment.getProperty(PROPERTY_ADMIN_ENABLED_VIA_DEFAULT_SERVICE, Boolean.class, FALSE);
     }
 }

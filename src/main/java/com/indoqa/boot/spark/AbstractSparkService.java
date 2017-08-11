@@ -18,7 +18,6 @@ package com.indoqa.boot.spark;
 
 import static com.indoqa.boot.logging.InitializationLogger.getInitializationLogger;
 import static com.indoqa.boot.spark.PortUtils.*;
-import static java.lang.Boolean.*;
 import static java.lang.System.currentTimeMillis;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -41,7 +40,6 @@ public abstract class AbstractSparkService {
 
     protected static final String PROPERTY_PORT = "port";
     protected static final String PROPERTY_ADMIN_PORT = "admin.port";
-    protected static final String PROPERTY_SEPARATE_ADMIN_SERVICE = "admin.separate-service";
 
     private static final String DEFAULT_SPARK_PORT = "4567";
     private static final String DEFAULT_ADMIN_PORT = "34567";
@@ -128,9 +126,5 @@ public abstract class AbstractSparkService {
     protected int getPort() {
         String portProperty = this.environment.getProperty(PROPERTY_PORT, DEFAULT_SPARK_PORT);
         return parseIntegerProperty(portProperty, PROPERTY_PORT);
-    }
-
-    protected boolean isAdminSeparateService() {
-        return parseBoolean(this.environment.getProperty(PROPERTY_SEPARATE_ADMIN_SERVICE, TRUE.toString()));
     }
 }
