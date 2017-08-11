@@ -20,7 +20,6 @@ import static java.lang.Thread.currentThread;
 import static java.util.Locale.US;
 import static java.util.concurrent.TimeUnit.*;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,15 +35,14 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import spark.Response;
 
 public class HeapDumpResources extends AbstractActuatorResources {
 
+    private static final int HTTP_SC_TOO_MANY_REQUESTS = 429;
     private final long timeout = SECONDS.toMillis(30);
     private final Lock lock = new ReentrantLock();
 
@@ -69,7 +67,7 @@ public class HeapDumpResources extends AbstractActuatorResources {
         } catch (InterruptedException ex) {
             currentThread().interrupt();
         }
-        res.status(TOO_MANY_REQUESTS.value());
+        res.status(HTTP_SC_TOO_MANY_REQUESTS);
         return EMPTY;
     }
 
@@ -127,7 +125,6 @@ public class HeapDumpResources extends AbstractActuatorResources {
     /**
      * Exception to be thrown if the {@link HeapDumper} cannot be created.
      */
-    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     protected static class HeapDumperUnavailableException extends RuntimeException {
 
         private static final long serialVersionUID = 1L;

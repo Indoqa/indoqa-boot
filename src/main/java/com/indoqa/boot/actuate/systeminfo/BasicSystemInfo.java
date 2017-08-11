@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.systeminfo;
+package com.indoqa.boot.actuate.systeminfo;
 
 import org.apache.commons.lang3.ArrayUtils;
 

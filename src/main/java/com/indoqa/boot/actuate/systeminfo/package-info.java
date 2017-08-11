@@ -18,4 +18,4 @@
 /**
  * Resources and data types for system information
  */
-package com.indoqa.boot.systeminfo;
+package com.indoqa.boot.actuate.systeminfo;
