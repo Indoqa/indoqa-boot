@@ -16,7 +16,9 @@
  */
 package com.indoqa.boot.actuate.systeminfo;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,9 +33,8 @@ import java.util.jar.Manifest;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.version.VersionProvider;
 
@@ -43,6 +44,8 @@ public abstract class AbstractSystemInfo {
 
     private String version;
     private boolean initialized;
+
+    @JsonInclude(NON_NULL)
     private Map<String, String> git;
 
     @JsonIgnore
@@ -60,7 +63,7 @@ public abstract class AbstractSystemInfo {
     }
 
     private static String getKey(Entry<Object, Object> entry) {
-        return StringUtils.substringAfter((String) entry.getKey(), GIT_PREFIX);
+        return substringAfter((String) entry.getKey(), GIT_PREFIX);
     }
 
     private static Manifest getManifest(Class<?> archivedClass) throws IOException {
