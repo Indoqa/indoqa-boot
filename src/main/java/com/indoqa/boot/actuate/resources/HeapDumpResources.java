@@ -73,9 +73,7 @@ public class HeapDumpResources extends AbstractActuatorResources {
 
     @PostConstruct
     public void mount() {
-        if (this.isAdminServiceAvailable()) {
-            this.getSparkAdminService().get("/heap-dump", (req, res) -> this.invokeHeapDump(res));
-        }
+        this.getActuator("/heap-dump", (req, res) -> this.invokeHeapDump(res));
     }
 
     /**

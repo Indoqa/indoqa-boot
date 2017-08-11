@@ -144,6 +144,7 @@ public class OverviewResources extends AbstractActuatorResources {
 
     @PostConstruct
     public void mount() {
+        // this resource should only be available, if it is registered with the admin service.
         if (this.isAdminServiceAvailable()) {
             this.getSparkAdminService().get("/", CONTENT_TYPE_HTML, (req, res) -> sendOverviewPage(this.systemInfo, this.environment));
         }

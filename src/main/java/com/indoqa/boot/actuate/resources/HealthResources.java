@@ -47,7 +47,7 @@ public class HealthResources extends AbstractActuatorResources {
 
     @PostConstruct
     public void mount() {
-        this.get("/health", (req, res) -> this.getHealthCheckResult());
+        this.getActuator("/health", (req, res) -> this.getHealthCheckResult());
     }
 
     private ActuatorResults getHealthCheckResult() {

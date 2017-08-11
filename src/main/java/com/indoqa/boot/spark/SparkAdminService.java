@@ -48,6 +48,11 @@ public final class SparkAdminService extends AbstractSparkService {
         }
 
         int adminPort = this.getAdminPort();
+        if (adminPort == -1) {
+            LOGGER.info("The admin service is deactivated because the property admin.port is set to -1.");
+            return;
+        }
+
         this.claimPortOrShutdown(adminPort, adminPort);
 
         this.service = Service.ignite();

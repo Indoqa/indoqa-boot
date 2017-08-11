@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.indoqa.boot.spark;
+package com.indoqa.boot.actuate.resources;
 
 import static java.net.HttpURLConnection.*;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -23,12 +23,8 @@ import static spark.globalstate.ServletFlag.isRunningFromServlet;
 import java.util.TimerTask;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 
 import org.slf4j.Logger;
-
-import com.indoqa.boot.json.resources.AbstractJsonResourcesBase;
-import com.indoqa.boot.json.transformer.JsonTransformer;
 
 import spark.Response;
 
@@ -36,16 +32,10 @@ import spark.Response;
  * An resource to shutdown the Indoqa-Boot application. By default this method is only available via the admin service. Be careful if
  * you expose this method publicly.
  */
-public class ShutdownResource extends AbstractJsonResourcesBase {
+public class ShutdownResource extends AbstractActuatorResources {
 
     private static final Logger LOGGER = getLogger(ShutdownResource.class);
     private static final int SHUTDOWN_DELAY = 50;
-
-    @Inject
-    private SparkAdminService sparkAdminService;
-
-    @Inject
-    private JsonTransformer jsonTransformer;
 
     private static String shutdown(Response response) {
         if (isRunningFromServlet()) {
@@ -67,11 +57,7 @@ public class ShutdownResource extends AbstractJsonResourcesBase {
 
     @PostConstruct
     public void mount() {
-        if (this.sparkAdminService.isAvailable()) {
-            this.sparkAdminService.instance().post("/shutdown", (req, res) -> shutdown(res), this.jsonTransformer);
-        } else {
-            this.post("/shutdown", (req, res) -> shutdown(res));
-        }
+        this.postActuator("/shutdown", (req, res) -> shutdown(res));
     }
 
     private static class ShutdownTask extends TimerTask {
