@@ -143,7 +143,7 @@ public class OverviewResources extends AbstractAdminResources {
         return new StringBuilder()
             .append("<br/><small>created at: ")
             .append(new Date())
-            .append(", powered by Indoqa-Boot v")
+            .append(", powered by <a href=\"https://github.com/indoqa/indoqa-boot#indoqa-boot\" target=\"_blank\">Indoqa-Boot</a> v")
             .append(systemInfo.getIndoqaBootVersion())
             .append("</small>");
     }

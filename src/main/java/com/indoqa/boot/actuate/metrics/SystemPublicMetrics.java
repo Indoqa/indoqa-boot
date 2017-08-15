@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  */
 public class SystemPublicMetrics implements PublicMetrics {
 
+    private static final int BYTES_TO_KBYTES = 1024;
     private long timestamp;
 
     public SystemPublicMetrics() {
@@ -69,7 +70,7 @@ public class SystemPublicMetrics implements PublicMetrics {
     }
 
     private static Metric<Long> newMemoryMetric(String name, long bytes) {
-        return new Metric<>(name, bytes / 1024);
+        return new Metric<>(name, bytes / BYTES_TO_KBYTES);
     }
 
     @Override

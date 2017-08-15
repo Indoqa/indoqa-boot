@@ -18,12 +18,20 @@ package com.indoqa.boot.actuate.activators;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.indoqa.boot.actuate.health.SystemHealthIndicator;
+import com.indoqa.boot.actuate.metrics.RequestCounterMetrics;
 import com.indoqa.boot.actuate.metrics.SystemPublicMetrics;
 
 @Configuration
+@EnableScheduling
 public class DefaultActuatorActivator implements ActuatorActivator {
+
+    @Bean
+    public RequestCounterMetrics getRequestCounterMetrics() {
+        return new RequestCounterMetrics();
+    }
 
     @Bean
     public SystemHealthIndicator getSystemHealthIndicator() {
