@@ -16,6 +16,7 @@
  */
 package com.indoqa.boot.actuate.metrics;
 
+import static java.util.Calendar.MINUTE;
 import static java.util.Locale.US;
 import static spark.Spark.afterAfter;
 
@@ -23,6 +24,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -37,11 +39,13 @@ import spark.Response;
  */
 public class RequestCounterMetrics implements PublicMetrics {
 
+    private static final int STATUS_CODES_COUNT = 5;
     private static final int MINUTES_PER_HOUR = 60;
     private static final int EVERY_MINUTE = 60000;
 
-    private volatile Map<String, AtomicInteger> counter = new ConcurrentHashMap<>();
+    private volatile Map<String, AtomicInteger> counter = new ConcurrentHashMap<>(STATUS_CODES_COUNT);
     private Map<Integer, List<Metric<Integer>>> counterRepository = new ConcurrentHashMap<>(MINUTES_PER_HOUR);
+    private ReentrantLock lock = new ReentrantLock();
 
     private static String getKeyFromStatus(int status) {
         if (status < 200) {
@@ -68,11 +72,9 @@ public class RequestCounterMetrics implements PublicMetrics {
         Map<String, AtomicInteger> lastCounter = this.counter;
         this.counter = new ConcurrentHashMap<>();
 
-        List<Metric<Integer>> metricsPerMinute = new ArrayList<>();
-        Calendar now = Calendar.getInstance(TimeZone.getDefault(), US);
-
-        int minute = now.get(Calendar.MINUTE);
+        int minute = Calendar.getInstance(TimeZone.getDefault(), US).get(MINUTE);
         int total = 0;
+        List<Metric<Integer>> metricsPerMinute = new ArrayList<>();
 
         for (Entry<String, AtomicInteger> eachCounterEntry : lastCounter.entrySet()) {
             String status = eachCounterEntry.getKey();
@@ -103,7 +105,25 @@ public class RequestCounterMetrics implements PublicMetrics {
     private void incrementRequestCount(Response res) {
         String statusKey = getKeyFromStatus(res.status());
 
-        AtomicInteger requestsByStatusCounter = this.counter.getOrDefault(statusKey, new AtomicInteger());
+        AtomicInteger requestsByStatusCounter = this.counter.get(statusKey);
+        if (requestsByStatusCounter == null) {
+            try {
+                // acquire a lock to avoid double instantiation
+                this.lock.lock();
+
+                // check again if the counter is available
+                requestsByStatusCounter = this.counter.get(statusKey);
+
+                // if not, create a new one under the protection of the lock
+                if (requestsByStatusCounter == null) {
+                    requestsByStatusCounter = new AtomicInteger();
+                }
+            } finally {
+                // release the lock
+                this.lock.unlock();
+            }
+        }
+
         requestsByStatusCounter.incrementAndGet();
 
         this.counter.put(statusKey, requestsByStatusCounter);
