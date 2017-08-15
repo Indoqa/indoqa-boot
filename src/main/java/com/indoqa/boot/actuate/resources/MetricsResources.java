@@ -30,7 +30,7 @@ public class MetricsResources extends AbstractAdminResources {
     private Collection<PublicMetrics> publicMetrics;
 
     public Map<String, Object> getMetrics() {
-        Map<String, Object> result = new LinkedHashMap<>();
+        SortedMap<String, Object> result = new TreeMap<>();
         List<PublicMetrics> metrics = new ArrayList<>(this.publicMetrics);
         for (PublicMetrics publicMetric : metrics) {
             try {
