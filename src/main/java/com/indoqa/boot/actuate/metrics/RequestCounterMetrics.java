@@ -41,14 +41,15 @@ import spark.Response;
 public class RequestCounterMetrics implements PublicMetrics {
 
     private static final String METRIC_MINUTE = "minute";
-    private static final String METRIC_TOTAL = "total";
     private static final String METRIC_HOUR = "hour";
+    private static final String METRIC_TOTAL = "total";
 
     private static final String METRIC_PREFIX_PER_MINUTE = "requests.per_minute.";
     private static final String METRIC_PREFIX_PER_HOUR = "requests.per_hour.";
     private static final String METRIC_PREFIX_CURRENT_TIME = "requests.current_time.";
 
     private static final int STATUS_CODES_COUNT = 5;
+    private static final int CURRENT_TIME_METRICS_COUNT = 2;
     private static final int MINUTES_PER_HOUR = 60;
     private static final int HOURS_PER_DAY = 24;
     private static final int EVERY_MINUTE = 60000;
@@ -61,7 +62,14 @@ public class RequestCounterMetrics implements PublicMetrics {
 
     private Map<Integer, List<Metric<Integer>>> minuteMetricsRepository = new ConcurrentHashMap<>(MINUTES_PER_HOUR);
     private Map<Integer, List<Metric<Integer>>> hourMetricsRepository = new ConcurrentHashMap<>(HOURS_PER_DAY);
-    private Map<String, Metric<Integer>> currentTimeMetricsRepository = new ConcurrentHashMap<>(2);
+    private Map<String, Metric<Integer>> currentTimeMetricsRepository = new ConcurrentHashMap<>(CURRENT_TIME_METRICS_COUNT);
+
+    private static int calcPreviousHour(int currentHour) {
+        if (currentHour == 0) {
+            return HOURS_PER_DAY - 1;
+        }
+        return currentHour - 1;
+    }
 
     private static int calcPreviousMinute(int currentMinute) {
         if (currentMinute == 0) {
@@ -88,8 +96,8 @@ public class RequestCounterMetrics implements PublicMetrics {
     }
 
     private static List<Metric<Integer>> createMinuteMetrics(Map<String, AtomicInteger> lastCounter, int currentMinute) {
-        int total = 0;
         List<Metric<Integer>> metricsPerMinute = new ArrayList<>(STATUS_CODES_COUNT);
+        int total = 0;
 
         for (Entry<String, AtomicInteger> eachCounterEntry : lastCounter.entrySet()) {
             String status = eachCounterEntry.getKey();
@@ -99,6 +107,8 @@ public class RequestCounterMetrics implements PublicMetrics {
             Metric<Integer> minuteStatusMetric = new Metric<Integer>(getMetricPerMinuteName(currentMinute, status), count);
             metricsPerMinute.add(minuteStatusMetric);
         }
+
+        // add total metric
         metricsPerMinute.add(new Metric<Integer>(getMetricPerMinuteName(currentMinute, METRIC_TOTAL), total));
         return metricsPerMinute;
     }
@@ -139,12 +149,13 @@ public class RequestCounterMetrics implements PublicMetrics {
     public void exportMetrics() {
         Map<String, AtomicInteger> lastCounter = this.resetMinutesCounter();
 
-        Calendar instance = Calendar.getInstance(TimeZone.getDefault(), US);
-        int currentMinute = instance.get(MINUTE);
+        Calendar now = Calendar.getInstance(TimeZone.getDefault(), US);
+        int currentMinute = now.get(MINUTE);
+        int currentHour = now.get(HOUR_OF_DAY);
         int previousMinute = calcPreviousMinute(currentMinute);
-        int currentHour = instance.get(HOUR_OF_DAY);
+        int previousHour = calcPreviousHour(currentHour);
 
-        this.exportHourMetrics(previousMinute, currentHour);
+        this.exportHourMetrics(previousMinute, previousHour);
         this.exportMinuteMetrics(lastCounter, previousMinute);
         this.incrementActiveHourCounter(lastCounter);
         this.exportCurrentTimeMetrics(currentMinute, currentHour);
