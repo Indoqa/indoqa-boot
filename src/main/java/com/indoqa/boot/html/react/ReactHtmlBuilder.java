@@ -17,12 +17,15 @@
 package com.indoqa.boot.html.react;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.indoqa.boot.html.builder.HtmlBuilder;
 import com.indoqa.boot.json.transformer.HtmlEscapingAwareJsonTransformer;
@@ -54,6 +57,13 @@ public class ReactHtmlBuilder implements HtmlBuilder {
         this.initialStateProvider = req -> null;
     }
 
+    private static CharSequence createCssLink(String cssPath) {
+        if (StringUtils.isBlank(cssPath)) {
+            return EMPTY;
+        }
+        return new StringBuilder().append("<link rel=\"stylesheet\" href=\"").append(cssPath).append("\" />");
+    }
+
     private static String createHtmlSnippets(List<HtmlBuilder> builders, Request request) {
         return builders.stream().map(builder -> builder.html(request)).filter(html -> html != null).collect(joining(" "));
     }
@@ -82,9 +92,7 @@ public class ReactHtmlBuilder implements HtmlBuilder {
             .append("\" content=\"")
             .append(CONTENT_TYPE_HTML)
             .append("\">")
-            .append("<link rel=\"stylesheet\" href=\"")
-            .append(this.mainCssPath)
-            .append("\" />")
+            .append(createCssLink(this.mainCssPath))
             .append(createHtmlSnippets(this.headHtml, request))
             .append("</head>")
             .append("<body>")
@@ -113,6 +121,11 @@ public class ReactHtmlBuilder implements HtmlBuilder {
         return this;
     }
 
+    public ReactHtmlBuilder rootElementId(String rootElementId) {
+        this.rootElementId = rootElementId;
+        return this;
+    }
+
     public ReactHtmlBuilder setMainCssPath(String mainCssPath) {
         this.mainCssPath = mainCssPath;
         return this;
@@ -120,11 +133,6 @@ public class ReactHtmlBuilder implements HtmlBuilder {
 
     public ReactHtmlBuilder setMainJavascriptPath(String mainJavascriptPath) {
         this.mainJavascriptPath = mainJavascriptPath;
-        return this;
-    }
-
-    public ReactHtmlBuilder rootElementId(String rootElementId) {
-        this.rootElementId = rootElementId;
         return this;
     }
 
