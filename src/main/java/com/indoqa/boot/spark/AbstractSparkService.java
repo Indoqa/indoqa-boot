@@ -98,7 +98,7 @@ public abstract class AbstractSparkService {
         }
 
         // REST request to shut down the application that uses the port
-        // This will only work for an Indoqa Boot applications.
+        // This will only work for an Indoqa-Boot application.
         shutdownRunningApplication(shutdownPort);
 
         // check if the other application was shut down, otherwise stop the initialization process here
