@@ -108,9 +108,9 @@ public class RequestCounterMetrics implements PublicMetrics {
             if (value == 0) {
                 continue;
             }
+            hourTotal += value;
 
             hourMetrics.add(new Metric<>(getMetricPerHourName(currentHour, status), value));
-            hourTotal += value;
         }
 
         // add total metric
