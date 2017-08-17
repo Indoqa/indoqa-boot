@@ -104,6 +104,11 @@ public class RequestCounterMetrics implements PublicMetrics {
         for (Entry<String, Integer> eachHourStatusEntry : activeHourCounter.entrySet()) {
             String status = eachHourStatusEntry.getKey();
             Integer value = eachHourStatusEntry.getValue();
+
+            if (value == 0) {
+                continue;
+            }
+
             hourMetrics.add(new Metric<>(getMetricPerHourName(currentHour, status), value));
             hourTotal += value;
         }
