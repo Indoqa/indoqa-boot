@@ -24,7 +24,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,6 +39,14 @@ import spark.Response;
  */
 public class RequestCounterMetrics implements PublicMetrics {
 
+    private static final String STATUS_CODE_GROUP_1xx = "1xx";
+    private static final String STATUS_CODE_GROUP_2xx = "2xx";
+    private static final String STATUS_CODE_GROUP_3xx = "3xx";
+    private static final String STATUS_CODE_GROUP_4xx = "4xx";
+    private static final String STATUS_CODE_GROUP_5xx = "5xx";
+    private static final String[] STATUS_CODE_GROUPS = {STATUS_CODE_GROUP_1xx, STATUS_CODE_GROUP_2xx, STATUS_CODE_GROUP_3xx,
+        STATUS_CODE_GROUP_4xx, STATUS_CODE_GROUP_5xx};
+
     private static final String METRIC_MINUTE = "minute";
     private static final String METRIC_HOUR = "hour";
     private static final String METRIC_TOTAL = "total";
@@ -48,16 +55,17 @@ public class RequestCounterMetrics implements PublicMetrics {
     private static final String METRIC_PREFIX_PER_HOUR = "requests.per_hour.";
     private static final String METRIC_PREFIX_CURRENT_TIME = "requests.current_time.";
 
-    private static final int STATUS_CODES_COUNT = 5;
     private static final int CURRENT_TIME_METRICS_COUNT = 2;
     private static final int MINUTES_PER_HOUR = 60;
     private static final int HOURS_PER_DAY = 24;
     private static final int EVERY_MINUTE = 60000;
 
-    private ReentrantLock lock = new ReentrantLock();
     private boolean firstFullHourReached;
 
-    private volatile Map<String, AtomicInteger> activeMinutesCounter = new ConcurrentHashMap<>(STATUS_CODES_COUNT);
+    // volatile to avoid updates of swapped instances
+    private volatile Map<String, AtomicInteger> activeMinutesCounter = createActiveMinutesCounter();
+
+    // not volatile because only the export thread will manipulate this map
     private Map<String, Integer> activeHourCounter = new ConcurrentHashMap<>(HOURS_PER_DAY);
 
     private Map<Integer, List<Metric<Integer>>> minuteMetricsRepository = new ConcurrentHashMap<>(MINUTES_PER_HOUR);
@@ -78,6 +86,16 @@ public class RequestCounterMetrics implements PublicMetrics {
         return currentMinute - 1;
     }
 
+    private static Map<String, AtomicInteger> createActiveMinutesCounter() {
+        ConcurrentHashMap<String, AtomicInteger> counters = new ConcurrentHashMap<>(STATUS_CODE_GROUPS.length);
+        counters.put(STATUS_CODE_GROUP_1xx, new AtomicInteger());
+        counters.put(STATUS_CODE_GROUP_2xx, new AtomicInteger());
+        counters.put(STATUS_CODE_GROUP_3xx, new AtomicInteger());
+        counters.put(STATUS_CODE_GROUP_4xx, new AtomicInteger());
+        counters.put(STATUS_CODE_GROUP_5xx, new AtomicInteger());
+        return counters;
+    }
+
     private static List<Metric<Integer>> createHourMetrics(Map<String, Integer> activeHourCounter, int currentHour) {
         List<Metric<Integer>> hourMetrics = new ArrayList<>();
         int hourTotal = 0;
@@ -95,13 +113,33 @@ public class RequestCounterMetrics implements PublicMetrics {
         return hourMetrics;
     }
 
-    private static List<Metric<Integer>> createMinuteMetrics(Map<String, AtomicInteger> lastCounter, int currentMinute) {
-        List<Metric<Integer>> metricsPerMinute = new ArrayList<>(STATUS_CODES_COUNT);
+    private static String createKeyFromStatus(int status) {
+        if (status < 200) {
+            return STATUS_CODE_GROUP_1xx;
+        }
+        if (status < 300) {
+            return STATUS_CODE_GROUP_2xx;
+        }
+        if (status < 400) {
+            return STATUS_CODE_GROUP_3xx;
+        }
+        if (status < 500) {
+            return STATUS_CODE_GROUP_4xx;
+        }
+        return STATUS_CODE_GROUP_5xx;
+    }
+
+    private static List<Metric<Integer>> createMinuteMetrics(Map<String, AtomicInteger> minuteCounters, int currentMinute) {
+        List<Metric<Integer>> metricsPerMinute = new ArrayList<>(STATUS_CODE_GROUPS.length);
         int total = 0;
 
-        for (Entry<String, AtomicInteger> eachCounterEntry : lastCounter.entrySet()) {
+        for (Entry<String, AtomicInteger> eachCounterEntry : minuteCounters.entrySet()) {
             String status = eachCounterEntry.getKey();
+
             int count = eachCounterEntry.getValue().get();
+            if (count == 0) {
+                continue;
+            }
             total += count;
 
             Metric<Integer> minuteStatusMetric = new Metric<Integer>(getMetricPerMinuteName(currentMinute, status), count);
@@ -115,22 +153,6 @@ public class RequestCounterMetrics implements PublicMetrics {
 
     private static String createTimeMetricName(String id) {
         return METRIC_PREFIX_CURRENT_TIME + id;
-    }
-
-    private static String getKeyFromStatus(int status) {
-        if (status < 200) {
-            return "1xx";
-        }
-        if (status < 300) {
-            return "2xx";
-        }
-        if (status < 400) {
-            return "3xx";
-        }
-        if (status < 500) {
-            return "4xx";
-        }
-        return "5xx";
     }
 
     private static String getMetricName(String prefix, int nr, String id) {
@@ -147,7 +169,7 @@ public class RequestCounterMetrics implements PublicMetrics {
 
     @Scheduled(fixedRate = EVERY_MINUTE)
     public void exportMetrics() {
-        Map<String, AtomicInteger> lastCounter = this.resetMinutesCounter();
+        Map<String, AtomicInteger> lastMinuteCounters = this.resetMinutesCounters();
 
         Calendar now = Calendar.getInstance(TimeZone.getDefault(), US);
         int currentMinute = now.get(MINUTE);
@@ -156,8 +178,8 @@ public class RequestCounterMetrics implements PublicMetrics {
         int previousHour = calcPreviousHour(currentHour);
 
         this.exportHourMetrics(previousMinute, previousHour);
-        this.exportMinuteMetrics(lastCounter, previousMinute);
-        this.incrementActiveHourCounter(lastCounter);
+        this.exportMinuteMetrics(lastMinuteCounters, previousMinute);
+        this.incrementActiveHourCounter(lastMinuteCounters);
         this.exportCurrentTimeMetrics(currentMinute, currentHour);
     }
 
@@ -185,19 +207,17 @@ public class RequestCounterMetrics implements PublicMetrics {
         this.currentTimeMetricsRepository.put(METRIC_MINUTE, new Metric<>(createTimeMetricName(METRIC_MINUTE), currentMinute));
     }
 
-    private void exportHourMetrics(int previousMinute, int currentHour) {
+    private void exportHourMetrics(int previousMinute, int previousHour) {
         if (previousMinute != 0) {
             return;
         }
 
-        this.firstFullHourReached = true;
-
-        // as long as there are no status metrics collected, do not perform an export
-        if (this.activeHourCounter.isEmpty()) {
+        if (!this.firstFullHourReached) {
+            this.firstFullHourReached = true;
             return;
         }
 
-        this.hourMetricsRepository.put(currentHour, createHourMetrics(this.activeHourCounter, currentHour));
+        this.hourMetricsRepository.put(previousHour, createHourMetrics(this.activeHourCounter, previousHour));
         this.activeHourCounter.clear();
     }
 
@@ -205,12 +225,12 @@ public class RequestCounterMetrics implements PublicMetrics {
         this.minuteMetricsRepository.put(currentMinute, createMinuteMetrics(lastCounter, currentMinute));
     }
 
-    private void incrementActiveHourCounter(Map<String, AtomicInteger> lastCounter) {
+    private void incrementActiveHourCounter(Map<String, AtomicInteger> minutesCounters) {
         if (!this.firstFullHourReached) {
             return;
         }
 
-        for (Entry<String, AtomicInteger> eachCounterEntry : lastCounter.entrySet()) {
+        for (Entry<String, AtomicInteger> eachCounterEntry : minutesCounters.entrySet()) {
             String status = eachCounterEntry.getKey();
             int nextCount = eachCounterEntry.getValue().get();
             Integer currentHourCount = this.activeHourCounter.getOrDefault(status, 0);
@@ -219,35 +239,17 @@ public class RequestCounterMetrics implements PublicMetrics {
     }
 
     private void incrementRequestCount(Response res) {
-        String statusKey = getKeyFromStatus(res.status());
+        String statusKey = createKeyFromStatus(res.status());
 
         AtomicInteger requestsByStatusCounter = this.activeMinutesCounter.get(statusKey);
-        if (requestsByStatusCounter == null) {
-            try {
-                // acquire a lock to avoid double instantiation of the counter
-                this.lock.lock();
-
-                // check again if the activeMinutesCounter is available
-                requestsByStatusCounter = this.activeMinutesCounter.get(statusKey);
-
-                // if not, create a new one under the protection of the lock
-                if (requestsByStatusCounter == null) {
-                    requestsByStatusCounter = new AtomicInteger();
-                }
-            } finally {
-                // release the lock
-                this.lock.unlock();
-            }
-        }
-
         requestsByStatusCounter.incrementAndGet();
 
         this.activeMinutesCounter.put(statusKey, requestsByStatusCounter);
     }
 
-    private Map<String, AtomicInteger> resetMinutesCounter() {
+    private Map<String, AtomicInteger> resetMinutesCounters() {
         Map<String, AtomicInteger> lastCounter = this.activeMinutesCounter;
-        this.activeMinutesCounter = new ConcurrentHashMap<>();
+        this.activeMinutesCounter = createActiveMinutesCounter();
         return lastCounter;
     }
 }
