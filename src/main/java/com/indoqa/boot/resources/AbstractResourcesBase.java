@@ -16,26 +16,11 @@
  */
 package com.indoqa.boot.resources;
 
-import static org.apache.commons.lang3.StringUtils.endsWith;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.startsWith;
-
-import java.time.Instant;
-import java.util.UUID;
+import static org.apache.commons.lang3.StringUtils.*;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 
 import com.indoqa.boot.ApplicationInitializationException;
-import com.indoqa.boot.json.transformer.JsonTransformer;
-import com.indoqa.boot.resources.error.RestResourceError;
-import com.indoqa.boot.resources.error.RestResoureErrorLogger;
-import com.indoqa.boot.resources.exception.AbstractRestResourceException;
-import com.indoqa.boot.resources.exception.HttpStatusCode;
-
-import spark.Request;
-import spark.Response;
-import spark.Spark;
 
 /**
  * A base implementation that exposes the method {@link #getResourceBase()} to conveniently mount resources to a particular base path.
@@ -44,52 +29,12 @@ public abstract class AbstractResourcesBase {
 
     private static final String DEFAULT_BASE_PATH = "";
 
-    @Inject
-    private JsonTransformer transformer;
-
     public AbstractResourcesBase() {
         super();
     }
 
     @PostConstruct
-    public void initialize() {
-        this.checkResourceBase();
-        this.mapException();
-    }
-
-    protected CharSequence getResourceBase() {
-        return DEFAULT_BASE_PATH;
-    }
-
-    protected String resolvePath(CharSequence path) {
-        if (!startsWith(path, "/")) {
-            throw new ApplicationInitializationException(
-                "A Spark resource cannot be mounted to '" + path + "'. The path has to start with a '/'.");
-        }
-
-        return new StringBuilder(this.getResourceBase()).append(path).toString();
-    }
-
-    private RestResourceError buildError(Exception exception) {
-        final String uuid = UUID.randomUUID().toString();
-        final Instant now = Instant.now();
-
-        HttpStatusCode status = HttpStatusCode.INTERNAL_SERVER_ERROR;
-
-        String error = exception.getMessage();
-        Object payload = null;
-
-        if (exception instanceof AbstractRestResourceException) {
-            AbstractRestResourceException restResourceException = (AbstractRestResourceException) exception;
-
-            status = restResourceException.getStatusCode();
-            payload = restResourceException.getErrorData();
-        }
-
-        return RestResourceError.build(status.getCode(), now, uuid, error, payload);
-    }
-
-    private void checkResourceBase() {
+    public void checkResourceBase() {
         CharSequence resourceBase = this.getResourceBase();
         if (isBlank(resourceBase)) {
             return;
@@ -106,16 +51,16 @@ public abstract class AbstractResourcesBase {
         }
     }
 
-    private void mapException() {
-        Spark.exception(Exception.class, (e, req, res) -> this.mapException(req, res, e));
+    protected CharSequence getResourceBase() {
+        return DEFAULT_BASE_PATH;
     }
 
-    private void mapException(Request req, Response res, Exception e) {
-        RestResourceError error = this.buildError(e);
+    protected String resolvePath(CharSequence path) {
+        if (!startsWith(path, "/")) {
+            throw new ApplicationInitializationException(
+                "A Spark resource cannot be mounted to '" + path + "'. The path has to start with a '/'.");
+        }
 
-        RestResoureErrorLogger.logException(req, error, e);
-
-        res.status(error.getStatus());
-        res.body(this.transformer.render(error));
+        return new StringBuilder(this.getResourceBase()).append(path).toString();
     }
 }
