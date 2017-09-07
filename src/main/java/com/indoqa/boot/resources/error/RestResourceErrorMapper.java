@@ -16,8 +16,9 @@
  */
 package com.indoqa.boot.resources.error;
 
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
+
 import java.time.Instant;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -32,6 +33,7 @@ import spark.Spark;
 
 public class RestResourceErrorMapper {
 
+    private static final int RANDOM_CHARS_COUNT = 8;
     @Inject
     private JsonTransformer transformer;
 
@@ -41,7 +43,7 @@ public class RestResourceErrorMapper {
     }
 
     private RestResourceError buildError(Exception exception) {
-        final String uuid = UUID.randomUUID().toString();
+        final String uuid = randomAlphanumeric(RANDOM_CHARS_COUNT);
         final Instant now = Instant.now();
 
         HttpStatusCode status = HttpStatusCode.INTERNAL_SERVER_ERROR;
