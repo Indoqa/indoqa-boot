@@ -34,15 +34,11 @@ import spark.Spark;
 public class RestResourceErrorMapper {
 
     private static final int RANDOM_CHARS_COUNT = 8;
+
     @Inject
     private JsonTransformer transformer;
 
-    @PostConstruct
-    public void initialize() {
-        Spark.exception(Exception.class, (e, req, res) -> this.mapException(req, res, e));
-    }
-
-    private RestResourceError buildError(Exception exception) {
+    private static RestResourceError buildError(Exception exception) {
         final String uuid = randomAlphanumeric(RANDOM_CHARS_COUNT);
         final Instant now = Instant.now();
 
@@ -61,8 +57,13 @@ public class RestResourceErrorMapper {
         return RestResourceError.build(status.getCode(), now, uuid, error, payload);
     }
 
+    @PostConstruct
+    public void initialize() {
+        Spark.exception(Exception.class, (e, req, res) -> this.mapException(req, res, e));
+    }
+
     private void mapException(Request req, Response res, Exception e) {
-        RestResourceError error = this.buildError(e);
+        RestResourceError error = buildError(e);
 
         RestResoureErrorLogger.logException(req, error, e);
 

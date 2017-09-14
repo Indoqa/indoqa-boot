@@ -17,18 +17,16 @@
 package com.indoqa.boot.resources.error;
 
 import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
-import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
+import static org.apache.commons.lang3.exception.ExceptionUtils.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import spark.Request;
 
 public class RestResoureErrorLogger {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RestResoureErrorLogger.class);
-
+    private static final Logger LOGGER = getLogger(RestResoureErrorLogger.class);
     private static final String UNKNOWN = "unknown";
 
     private RestResoureErrorLogger() {
@@ -54,15 +52,15 @@ public class RestResoureErrorLogger {
     }
 
     private static String getErrorMessage(RestResourceError resourceError) {
-        StringBuilder result = new StringBuilder();
-        result.append("Client error: ");
-        result.append(resourceError.getStatus());
-        result.append(": '");
-        result.append(resourceError.getError());
-        result.append("' UUID: {{{ ");
-        result.append(resourceError.getUuid());
-        result.append(" }}}");
-        return result.toString();
+        return new StringBuilder()
+            .append("Client error: ")
+            .append(resourceError.getStatus())
+            .append(": '")
+            .append(resourceError.getError())
+            .append("' UUID: {{{ ")
+            .append(resourceError.getUuid())
+            .append(" }}}")
+            .toString();
     }
 
     private static String getExceptionLocation(Exception e) {
