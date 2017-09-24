@@ -25,7 +25,6 @@
     <artifactId>indoqa-oss-parent</artifactId>
     <version>5</version>
   </parent>
-
   <artifactId>indoqa-boot</artifactId>
   <version>0.8.1-SNAPSHOT</version>
 
