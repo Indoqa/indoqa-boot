@@ -1,0 +1,26 @@
+[Unit]
+#Change the Description accordingly
+Description=Indoqa Boot
+After=syslog.target network.target
+
+[Service]
+Type=simple
+#Change the User accordingly
+User=user
+
+#Change the WorkingDirectory to the path on the system
+WorkingDirectory=/working/directory/
+#Add the configuration file to the WorkingDirectory, rename accordingly
+EnvironmentFile=/working/directory/indoqa-boot.conf
+
+#Change the path to the java binary accordingly
+#/srv/j2sdk/archive/jdk1.8.0/current/bin/java
+ExecStart=/usr/share/java -jar $OPTIONS indoqa-boot-main-runnable.jar
+SuccessExitStatus=143
+
+TimeoutStopSec=1min
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
