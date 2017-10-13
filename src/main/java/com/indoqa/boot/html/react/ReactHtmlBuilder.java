@@ -19,10 +19,7 @@ package com.indoqa.boot.html.react;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +62,7 @@ public class ReactHtmlBuilder implements HtmlBuilder {
     }
 
     private static String createHtmlSnippets(List<HtmlBuilder> builders, Request request) {
-        return builders.stream().map(builder -> builder.html(request)).filter(html -> html != null).collect(joining(" "));
+        return builders.stream().map(builder -> builder.html(request)).filter(Objects::nonNull).collect(joining(" "));
     }
 
     public ReactHtmlBuilder addHeadHtml(HtmlBuilder html) {

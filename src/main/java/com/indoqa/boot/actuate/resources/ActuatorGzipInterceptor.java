@@ -23,9 +23,7 @@ public class ActuatorGzipInterceptor extends AbstractAdminResources {
     @PostConstruct
     public void mount() {
         if (this.isAdminServiceAvailable()) {
-            this.getSparkAdminService().after((request, response) -> {
-                response.header("Content-Encoding", "gzip");
-            });
+            this.getSparkAdminService().after((request, response) -> response.header("Content-Encoding", "gzip"));
         }
     }
 }

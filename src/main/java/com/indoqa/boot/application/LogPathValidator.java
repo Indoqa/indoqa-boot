@@ -33,13 +33,13 @@ import org.slf4j.Logger;
         // hide utility class constructor
     }
 
-    public static void checkLogDir() {
+    static void checkLogDir() {
         String logPath = System.getProperty(LOG_PATH_PROPERTY);
         checkLogPathPropertyIsAvailable(logPath);
 
         File logPathFile = new File(logPath);
         checkLogPathExists(logPathFile);
-        checkLogpathIsDirectory(logPathFile);
+        checkLogPathIsDirectory(logPathFile);
     }
 
     private static void checkLogPathExists(File logPathFile) {
@@ -49,23 +49,23 @@ import org.slf4j.Logger;
 
         try {
             getInitializationLogger()
-                .error("Application initilization error: The log-path '" + logPathFile.getCanonicalPath() + "' does not exist.");
+                .error("Application initialization error: The log-path '" + logPathFile.getCanonicalPath() + "' does not exist.");
         } catch (IOException e) { // NOSONAR (the stacktrace is of no value here)
-            getInitializationLogger().error("Application initilization error: " + e.getMessage());
+            getInitializationLogger().error("Application initialization error: " + e.getMessage());
         }
         terminate();
     }
 
-    private static void checkLogpathIsDirectory(File logPathFile) {
+    private static void checkLogPathIsDirectory(File logPathFile) {
         if (logPathFile.isDirectory()) {
             return;
         }
 
         try {
             INIT_LOGGER
-                .error("Application initilization error: The log-path '" + logPathFile.getCanonicalPath() + "' is not a directory.");
+                .error("Application initialization error: The log-path '" + logPathFile.getCanonicalPath() + "' is not a directory.");
         } catch (IOException e) { // NOSONAR (the stacktrace is of no value here)
-            INIT_LOGGER.error("Application initilization error: " + e.getMessage());
+            INIT_LOGGER.error("Application initialization error: " + e.getMessage());
         }
         terminate();
     }
@@ -75,7 +75,7 @@ import org.slf4j.Logger;
             return;
         }
 
-        INIT_LOGGER.error("Application initilization error: Make sure that the system property '" + LOG_PATH_PROPERTY + "' is set.");
+        INIT_LOGGER.error("Application initialization error: Make sure that the system property '" + LOG_PATH_PROPERTY + "' is set.");
         terminate();
     }
 

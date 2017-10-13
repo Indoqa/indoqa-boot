@@ -90,7 +90,7 @@ public class SystemInfo extends AbstractSystemInfo {
                 .stream()
                 .filter(isSingleEntryOfSource(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME).negate())
                 .filter(isSingleEntryOfSource(SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME).negate())
-                .collect(toMap(entry -> entry.getKey(), entry -> entry.getValue())));
+                .collect(toMap(Entry::getKey, Entry::getValue)));
     }
 
     private static String[] initActiveProfiles(ConfigurableEnvironment springEnvironment) {
@@ -157,7 +157,7 @@ public class SystemInfo extends AbstractSystemInfo {
     private static List<String> initSpringPropertySources(ConfigurableEnvironment env) {
         return StreamSupport
             .stream(env.getPropertySources().spliterator(), false)
-            .map(source -> source.getName())
+            .map(PropertySource::getName)
             .collect(Collectors.toList());
     }
 

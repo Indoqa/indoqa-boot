@@ -18,7 +18,7 @@ package com.indoqa.boot;
 
 /**
  * Use this exception to indicate any problem while initializing Indoqa-Boot. Usually this exception leads to an immediate stop of the
- * intialization process and a shutdown of the Java virtual machine.
+ * initialization process and a shutdown of the Java virtual machine.
  */
 public class ApplicationInitializationException extends RuntimeException {
 

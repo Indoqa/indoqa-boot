@@ -36,6 +36,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.support.ResourcePropertySource;
 
@@ -66,7 +67,6 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     private static final Date START_TIME = new Date();
 
     private AnnotationConfigApplicationContext context;
-    private ResourcePropertySource propertySource;
 
     private SystemInfo systemInfo;
     private int beansHashCode;
@@ -153,7 +153,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     /**
      * Provide a custom application name. The default is the simple name of the class extending the
-     * {@link #AbstractIndoqaBootApplication()}.
+     * this class.
      * 
      * @return The custom application name.
      */
@@ -310,8 +310,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     private void initializeExternalProperties() {
         if (isExternalPropertiesFileProvided()) {
             String propertiesLocation = System.getProperty("properties");
-            this.propertySource = getProperties(propertiesLocation);
-            this.context.getEnvironment().getPropertySources().addFirst(this.propertySource);
+            ResourcePropertySource propertySource = getProperties(propertiesLocation);
+            this.context.getEnvironment().getPropertySources().addFirst(propertySource);
             LOGGER.info("Using external properties from {}", propertiesLocation);
         } else {
             LOGGER.info(

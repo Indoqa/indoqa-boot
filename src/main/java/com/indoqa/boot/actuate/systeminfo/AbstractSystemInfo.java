@@ -123,7 +123,7 @@ public abstract class AbstractSystemInfo {
 
     private Map<String, String> filterGitPropertiesInternal(Properties allGitProperties) {
         return allGitProperties.entrySet().stream().filter(entry -> this.filterGitProperty(entry.getKey())).collect(
-            toMap(entry -> getKey(entry), entry -> (String) entry.getValue()));
+            toMap(AbstractSystemInfo::getKey, entry -> (String) entry.getValue()));
     }
 
     private Map<String, String> initGitProperties() {

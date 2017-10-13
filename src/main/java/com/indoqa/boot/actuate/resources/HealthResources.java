@@ -69,7 +69,7 @@ public class HealthResources extends AbstractAdminResources {
             }
 
             else {
-                List<Health> healths = healthIndicators.stream().map(healthIndicator -> healthIndicator.health()).collect(toList());
+                List<Health> healths = healthIndicators.stream().map(HealthIndicator::health).collect(toList());
                 actuatorResults.add(eachHealthIndicatorEntry.getKey(), healths);
             }
         }

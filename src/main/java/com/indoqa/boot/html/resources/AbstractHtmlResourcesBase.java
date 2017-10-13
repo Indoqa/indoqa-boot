@@ -23,7 +23,6 @@ import java.util.Set;
 
 import com.indoqa.boot.html.builder.HtmlBuilder;
 
-import spark.Filter;
 import spark.utils.MimeParse;
 
 /**
@@ -39,7 +38,7 @@ public abstract class AbstractHtmlResourcesBase {
     }
 
     protected void html(String path, HtmlBuilder htmlBuilder, HtmlResponseModifier responseModifier) {
-        after(path, (Filter) (req, res) -> {
+        after(path, (req, res) -> {
             if (res.body() != null) {
                 return;
             }

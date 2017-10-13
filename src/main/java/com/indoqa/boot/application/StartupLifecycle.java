@@ -76,7 +76,7 @@ public interface StartupLifecycle {
     void willCreateDefaultSparkRoutes(AnnotationConfigApplicationContext context);
 
     /**
-     * Use this method for preparations for Spring or Spark. {@link #willCreateSpringContext()} is called before Spring and Spark
+     * Use this method for preparations for Spring or Spark. This method is called before Spring and Spark
      * initialized and after the startup message is printed to the console.
      */
     void willCreateSpringContext();
