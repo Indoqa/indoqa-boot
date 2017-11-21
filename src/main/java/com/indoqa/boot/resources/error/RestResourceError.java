@@ -16,10 +16,14 @@
  */
 package com.indoqa.boot.resources.error;
 
+import static com.indoqa.boot.resources.exception.HttpStatusCode.INTERNAL_SERVER_ERROR;
+
 import java.io.Serializable;
 import java.time.Instant;
 
-public class RestResourceError implements Serializable {
+import com.indoqa.boot.resources.exception.HttpStatusCode;
+
+/*default*/ class RestResourceError implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -33,18 +37,22 @@ public class RestResourceError implements Serializable {
         super();
     }
 
-    public static RestResourceError build(int status, Instant timestamp, String id, String error) {
-        return build(status, timestamp, id, error, null);
-    }
-
-    public static RestResourceError build(int status, Instant timestamp, String id, String error, Object payload) {
+    public static RestResourceError build(String id, Instant timestamp, String message, RestResourceErrorInfo errorInfo) {
         RestResourceError result = new RestResourceError();
         result.setId(id);
-        result.setStatus(status);
+        result.setStatus(getStatusCode(errorInfo));
         result.setTimestamp(timestamp);
-        result.setError(error);
-        result.setPayload(payload);
+        result.setError(message);
+        result.setPayload(errorInfo.getPayload());
         return result;
+    }
+
+    private static int getStatusCode(RestResourceErrorInfo errorInfo) {
+        HttpStatusCode statusCode = errorInfo.getStatusCode();
+        if (statusCode == null) {
+            return INTERNAL_SERVER_ERROR.getCode();
+        }
+        return statusCode.getCode();
     }
 
     public String getError() {

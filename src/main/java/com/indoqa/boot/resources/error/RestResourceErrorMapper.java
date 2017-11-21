@@ -20,13 +20,13 @@ import static java.util.Locale.US;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
 import java.time.Instant;
-
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Function;
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 
 import com.indoqa.boot.json.transformer.JsonTransformer;
 import com.indoqa.boot.resources.exception.AbstractRestResourceException;
-import com.indoqa.boot.resources.exception.HttpStatusCode;
 
 import spark.Request;
 import spark.Response;
@@ -36,31 +36,42 @@ public class RestResourceErrorMapper {
 
     private static final int RANDOM_CHARS_COUNT = 6;
 
-    @Inject
-    private JsonTransformer transformer;
+    private final JsonTransformer transformer;
+    private final LinkedHashMap<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>> errorProviders = new LinkedHashMap<>();
 
-    private static RestResourceError buildError(Exception exception) {
-        final String id = randomAlphanumeric(RANDOM_CHARS_COUNT).toUpperCase(US);
-        final Instant now = Instant.now();
+    public RestResourceErrorMapper(JsonTransformer transformer) {
+        this.transformer = transformer;
+        this.registerException(AbstractRestResourceException.class, (exception) -> {
+            AbstractRestResourceException abstractRestResourceException = (AbstractRestResourceException) exception;
+            return new RestResourceErrorInfo(abstractRestResourceException.getStatusCode(),
+                abstractRestResourceException.getErrorData()
+            );
+        });
+    }
 
-        HttpStatusCode status = HttpStatusCode.INTERNAL_SERVER_ERROR;
-
-        String error = exception.getMessage();
-        Object payload = null;
-
-        if (exception instanceof AbstractRestResourceException) {
-            AbstractRestResourceException restResourceException = (AbstractRestResourceException) exception;
-
-            status = restResourceException.getStatusCode();
-            payload = restResourceException.getErrorData();
-        }
-
-        return RestResourceError.build(status.getCode(), now, id, error, payload);
+    public void registerException(Class<? extends Exception> exception, Function<Exception, RestResourceErrorInfo> errorProvider) {
+        this.errorProviders.put(exception, errorProvider);
     }
 
     @PostConstruct
     public void initialize() {
         Spark.exception(Exception.class, (e, req, res) -> this.mapException(req, res, e));
+    }
+
+    private RestResourceError buildError(Exception exception) {
+        final String id = randomAlphanumeric(RANDOM_CHARS_COUNT).toUpperCase(US);
+        final Instant now = Instant.now();
+        final String message = exception.getMessage();
+        final RestResourceErrorInfo errorInfo = this.errorProviders
+            .entrySet()
+            .stream()
+            .filter(providerEntry -> providerEntry.getKey().isAssignableFrom(exception.getClass()))
+            .map(Map.Entry::getValue)
+            .findFirst()
+            .orElse(e -> new RestResourceErrorInfo(null, null))
+            .apply(exception);
+
+        return RestResourceError.build(id, now, message, errorInfo);
     }
 
     private void mapException(Request req, Response res, Exception e) {
