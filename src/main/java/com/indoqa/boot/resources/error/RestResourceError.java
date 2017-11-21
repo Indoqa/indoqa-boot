@@ -23,75 +23,67 @@ public class RestResourceError implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private String id;
     private int status;
-
     private Instant timestamp;
-    private String uuid;
     private String error;
-
     private Object payload;
 
     private RestResourceError() {
         super();
     }
 
-    public static RestResourceError build(int status, Instant timestamp, String uuid, String error) {
-        return build(status, timestamp, uuid, error, null);
+    public static RestResourceError build(int status, Instant timestamp, String id, String error) {
+        return build(status, timestamp, id, error, null);
     }
 
-    public static RestResourceError build(int status, Instant timestamp, String uuid, String error, Object payload) {
+    public static RestResourceError build(int status, Instant timestamp, String id, String error, Object payload) {
         RestResourceError result = new RestResourceError();
-
+        result.setId(id);
         result.setStatus(status);
         result.setTimestamp(timestamp);
-        result.setUuid(uuid);
         result.setError(error);
         result.setPayload(payload);
-
         return result;
-    }
-
-    public static long getSerialversionuid() {
-        return serialVersionUID;
     }
 
     public String getError() {
         return this.error;
     }
 
+    private void setError(String error) {
+        this.error = error;
+    }
+
     public Object getPayload() {
         return this.payload;
+    }
+
+    private void setPayload(Object payload) {
+        this.payload = payload;
     }
 
     public int getStatus() {
         return this.status;
     }
 
-    public Instant getTimestamp() {
-        return this.timestamp;
-    }
-
-    public String getUuid() {
-        return this.uuid;
-    }
-
-    public void setError(String error) {
-        this.error = error;
-    }
-
-    public void setPayload(Object payload) {
-        this.payload = payload;
-    }
-
     public void setStatus(int status) {
         this.status = status;
     }
 
-    public void setTimestamp(Instant timestamp) {
+    public Instant getTimestamp() {
+        return this.timestamp;
+    }
+
+    private void setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
     }
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
+    public String getId() {
+        return this.id;
+    }
+
+    private void setId(String id) {
+        this.id = id;
     }
 }

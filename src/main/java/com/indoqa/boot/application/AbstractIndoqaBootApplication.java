@@ -32,14 +32,6 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.io.support.ResourcePropertySource;
-
 import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.actuate.activators.ActuatorActivators;
 import com.indoqa.boot.actuate.activators.DefaultActuatorActivator;
@@ -51,6 +43,12 @@ import com.indoqa.boot.json.transformer.JacksonTransformer;
 import com.indoqa.boot.spark.SparkAdminService;
 import com.indoqa.boot.spark.SparkDefaultService;
 import com.indoqa.boot.version.VersionProvider;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.io.support.ResourcePropertySource;
 
 import spark.ResponseTransformer;
 import spark.Spark;
@@ -93,7 +91,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     /**
      * Start the Indoqa-Boot application and hook into the startup lifecycle.
-     * 
+     *
      * @param lifecycle Provide an implementation of the callback interface.
      */
     public void invoke(StartupLifecycle lifecycle) {
@@ -135,7 +133,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     /**
      * If the log-path system property is not set or is invalid, the application fails hard.
-     * 
+     *
      * @return Return false if the check is not required. Default is true.
      */
     protected boolean checkLoggerInitialization() {
@@ -144,7 +142,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     /**
      * Activate actuators.
-     * 
+     *
      * @param actuatorActivators Use it to enable {@link ActuatorActivators}.
      */
     protected void enableActuators(ActuatorActivators actuatorActivators) {
@@ -154,7 +152,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     /**
      * Provide a custom application name. The default is the simple name of the class extending the
      * this class.
-     * 
+     *
      * @return The custom application name.
      */
     protected String getApplicationName() {
@@ -164,7 +162,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     /**
      * Provide the path to a resource containing the ascii logo which will be printed to the console at startup. The resource is looked
      * up in the classpath.
-     * 
+     *
      * @return The resource path of the ascii logo.
      */
     protected String getAsciiLogoPath() {
@@ -174,7 +172,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     /**
      * Provide an array of package names which will be used by Spring to automatically detect Spring beans. The default is
      * <code>null</code>.
-     * 
+     *
      * @return An array of package names or null if this feature should be disabled.
      */
     protected String[] getComponentScanBasePackages() {
@@ -184,7 +182,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     /**
      * The class of the JSON transformer that should be used to marshal Java objects as JSON strings. The default is the
      * {@link JacksonTransformer}.
-     * 
+     *
      * @return The class of the response transformer.
      */
     protected Class<? extends ResponseTransformer> getJsonTransformerClass() {
@@ -195,7 +193,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
      * Provide an alternative {@link VersionProvider} which will be used to lookup the jar manifest that contains the
      * Implementation-Version. The version information is provided by the {@link SystemInfoResource} and is printed as part of the
      * status message printed to the console at startup.
-     * 
+     *
      * @return An alternative {@link VersionProvider}.
      */
     protected VersionProvider getVersionProvider() {
@@ -206,7 +204,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
      * Indoqa-Boot uses this method to decided whether the application runs in production or development mode. The default
      * implementation detects if the application runs from within a runnable Java archive (jar) and if this is true, <code>false</code>
      * is returned.
-     * 
+     *
      * @return True if the application should run in development mode.
      */
     protected boolean isDevEnvironment() {
@@ -236,9 +234,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
         // check if Hotswap-Agent is available at all
         if (!this.isHotswapAgentInstalled()) {
-            LOGGER.info(
-                "Application reloading is NOT enabled. Install Hotswap Agent by following "
-                    + "the instructions at https://github.com/HotswapProjects/HotswapAgent");
+            LOGGER.info("Application reloading is NOT enabled. Install Hotswap Agent by following "
+                + "the instructions at https://github.com/HotswapProjects/HotswapAgent");
             return;
         }
 
@@ -249,12 +246,11 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private int getBeansHashCode() {
-        List<String> beanDefinitions = asList(this.context.getBeanFactory().getBeanDefinitionNames());
-        List<Object> beans = beanDefinitions
-            .stream()
+        return Arrays
+            .stream(this.context.getBeanFactory().getBeanDefinitionNames())
             .map(bd -> this.context.getBeanFactory().getBean(bd))
-            .collect(Collectors.toList());
-        return beans.hashCode();
+            .collect(Collectors.toList())
+            .hashCode();
     }
 
     private boolean hasNoActiveProfile() {
@@ -313,10 +309,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             ResourcePropertySource propertySource = getProperties(propertiesLocation);
             this.context.getEnvironment().getPropertySources().addFirst(propertySource);
             LOGGER.info("Using external properties from {}", propertiesLocation);
-        } else {
-            LOGGER.info(
-                "No external properties set. Use the system property 'properties' "
-                    + "to provide application properties as a Java properties file.");
+        }
+        else {
+            LOGGER.info("No external properties set. Use the system property 'properties' "
+                + "to provide application properties as a Java properties file.");
         }
     }
 

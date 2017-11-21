@@ -24,16 +24,16 @@ import org.slf4j.Logger;
 
 import spark.Request;
 
-public class RestResoureErrorLogger {
+/*default*/ final class RestResourceErrorLogger {
 
-    private static final Logger LOGGER = getLogger(RestResoureErrorLogger.class);
+    private static final Logger LOGGER = getLogger(RestResourceErrorLogger.class);
     private static final String UNKNOWN = "unknown";
 
-    private RestResoureErrorLogger() {
-        // hide util class constructor
+    private RestResourceErrorLogger() {
+        // hide utility class constructor
     }
 
-    public static void logException(Request req, RestResourceError error, Exception e) {
+    static void logException(Request req, RestResourceError error, Exception e) {
         int status = error.getStatus();
         String errorMessage = getErrorMessage(error);
         String requestMessage = getRequestMessage(req);
@@ -41,7 +41,7 @@ public class RestResoureErrorLogger {
             case 3:
             case 4:
                 LOGGER.info("{} {} :{} line: {}", requestMessage, errorMessage, getRootCauseMessage(e), getExceptionLocation(e));
-                LOGGER.debug("ClientErrorUUID: {}: Exception: ", error.getUuid(), e);
+                LOGGER.debug("ClientErrorUUID: {}: Exception: ", error.getId(), e);
                 break;
             case 2:
                 LOGGER.warn("Unexpected log of exception {} ({}), ", requestMessage, errorMessage, e);
@@ -58,7 +58,7 @@ public class RestResoureErrorLogger {
             .append(": '")
             .append(resourceError.getError())
             .append("' UUID: {{{ ")
-            .append(resourceError.getUuid())
+            .append(resourceError.getId())
             .append(" }}}")
             .toString();
     }
@@ -66,7 +66,7 @@ public class RestResoureErrorLogger {
     private static String getExceptionLocation(Exception e) {
         Throwable rootCause = getRootCause(e);
 
-        Throwable cause = ofNullable(rootCause).orElseGet(() -> e);
+        Throwable cause = ofNullable(rootCause).orElse(e);
         StackTraceElement[] stackTrace = cause.getStackTrace();
         if (stackTrace == null || stackTrace.length == 0) {
             return UNKNOWN;
@@ -77,11 +77,6 @@ public class RestResoureErrorLogger {
     }
 
     private static String getRequestMessage(Request req) {
-        StringBuilder result = new StringBuilder();
-        result.append(req.requestMethod());
-        result.append(" @ '");
-        result.append(req.uri());
-        result.append('\'');
-        return result.toString();
+        return new StringBuilder().append(req.requestMethod()).append(" @ '").append(req.uri()).append('\'').toString();
     }
 }

@@ -16,6 +16,7 @@
  */
 package com.indoqa.boot.resources.error;
 
+import static java.util.Locale.US;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
 import java.time.Instant;
@@ -33,13 +34,13 @@ import spark.Spark;
 
 public class RestResourceErrorMapper {
 
-    private static final int RANDOM_CHARS_COUNT = 8;
+    private static final int RANDOM_CHARS_COUNT = 6;
 
     @Inject
     private JsonTransformer transformer;
 
     private static RestResourceError buildError(Exception exception) {
-        final String uuid = randomAlphanumeric(RANDOM_CHARS_COUNT);
+        final String id = randomAlphanumeric(RANDOM_CHARS_COUNT).toUpperCase(US);
         final Instant now = Instant.now();
 
         HttpStatusCode status = HttpStatusCode.INTERNAL_SERVER_ERROR;
@@ -54,7 +55,7 @@ public class RestResourceErrorMapper {
             payload = restResourceException.getErrorData();
         }
 
-        return RestResourceError.build(status.getCode(), now, uuid, error, payload);
+        return RestResourceError.build(status.getCode(), now, id, error, payload);
     }
 
     @PostConstruct
@@ -65,7 +66,7 @@ public class RestResourceErrorMapper {
     private void mapException(Request req, Response res, Exception e) {
         RestResourceError error = buildError(e);
 
-        RestResoureErrorLogger.logException(req, error, e);
+        RestResourceErrorLogger.logException(req, error, e);
 
         res.status(error.getStatus());
         res.body(this.transformer.render(error));
