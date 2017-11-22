@@ -23,12 +23,18 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 public final class RestResourceErrorMapperRegistrationUtils {
 
-    private static final String ERROR_MAPPER_BEAN_NAME = RestResourceErrorMapper.class.getName();
-
     private RestResourceErrorMapperRegistrationUtils() {
         // hide utility class constructor
     }
 
+    /**
+     * Register a {@link RestResourceErrorMapper} with Spring and Spark. Use this method in the
+     * {@link com.indoqa.boot.application.StartupLifecycle#didInitializeSpring(AnnotationConfigApplicationContext)}
+     * phase of the application's startup lifecycle.
+     *
+     * @param context             The Spring application context.
+     * @param errorMapperConsumer Provide additional error information for custom application exceptions.
+     */
     public static void registerRestResoureErrorMapper(AnnotationConfigApplicationContext context,
         Consumer<RestResourceErrorMapper> errorMapperConsumer) {
         JsonTransformer jsonTransformer = context.getBean(JsonTransformer.class);
@@ -37,6 +43,6 @@ public final class RestResourceErrorMapperRegistrationUtils {
         errorMapperConsumer.accept(errorMapper);
         errorMapper.initialize();
 
-        context.getBeanFactory().registerSingleton(ERROR_MAPPER_BEAN_NAME, errorMapper);
+        context.getBeanFactory().registerSingleton(RestResourceErrorMapper.class.getName(), errorMapper);
     }
 }
