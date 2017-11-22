@@ -23,7 +23,6 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
-import javax.annotation.PostConstruct;
 
 import com.indoqa.boot.json.transformer.JsonTransformer;
 import com.indoqa.boot.resources.exception.AbstractRestResourceException;
@@ -36,10 +35,11 @@ public class RestResourceErrorMapper {
 
     private static final int RANDOM_CHARS_COUNT = 6;
 
-    private final JsonTransformer transformer;
     private final LinkedHashMap<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>> errorProviders = new LinkedHashMap<>();
 
-    public RestResourceErrorMapper(JsonTransformer transformer) {
+    private final JsonTransformer transformer;
+
+    RestResourceErrorMapper(JsonTransformer transformer) {
         this.transformer = transformer;
         this.registerException(AbstractRestResourceException.class, (exception) -> {
             AbstractRestResourceException abstractRestResourceException = (AbstractRestResourceException) exception;
@@ -53,8 +53,7 @@ public class RestResourceErrorMapper {
         this.errorProviders.put(exception, errorProvider);
     }
 
-    @PostConstruct
-    public void initialize() {
+    void initialize() {
         Spark.exception(Exception.class, (e, req, res) -> this.mapException(req, res, e));
     }
 
