@@ -28,11 +28,11 @@ public final class RestResourceErrorInfo {
         this.payload = payload;
     }
 
-    public HttpStatusCode getStatusCode() {
+    HttpStatusCode getStatusCode() {
         return this.statusCode;
     }
 
-    public Object getPayload() {
+    Object getPayload() {
         return this.payload;
     }
 }

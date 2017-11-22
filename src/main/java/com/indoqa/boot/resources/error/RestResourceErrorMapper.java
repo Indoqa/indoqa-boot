@@ -31,7 +31,7 @@ import spark.Request;
 import spark.Response;
 import spark.Spark;
 
-public class RestResourceErrorMapper {
+public final class RestResourceErrorMapper {
 
     private static final int RANDOM_CHARS_COUNT = 6;
 

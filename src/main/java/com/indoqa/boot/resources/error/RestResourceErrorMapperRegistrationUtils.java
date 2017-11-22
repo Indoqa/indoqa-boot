@@ -28,21 +28,34 @@ public final class RestResourceErrorMapperRegistrationUtils {
     }
 
     /**
-     * Register a {@link RestResourceErrorMapper} with Spring and Spark. Use this method in the
+     * Register a {@link RestResourceErrorMapper} with additional exception mappings at Spring and Spark. Use this method in the
      * {@link com.indoqa.boot.application.StartupLifecycle#didInitializeSpring(AnnotationConfigApplicationContext)}
      * phase of the application's startup lifecycle.
      *
      * @param context             The Spring application context.
      * @param errorMapperConsumer Provide additional error information for custom application exceptions.
      */
-    public static void registerRestResoureErrorMapper(AnnotationConfigApplicationContext context,
+    public static void registerRestResourceErrorMapper(AnnotationConfigApplicationContext context,
         Consumer<RestResourceErrorMapper> errorMapperConsumer) {
         JsonTransformer jsonTransformer = context.getBean(JsonTransformer.class);
 
         RestResourceErrorMapper errorMapper = new RestResourceErrorMapper(jsonTransformer);
-        errorMapperConsumer.accept(errorMapper);
+        if (errorMapperConsumer != null) {
+            errorMapperConsumer.accept(errorMapper);
+        }
         errorMapper.initialize();
 
         context.getBeanFactory().registerSingleton(RestResourceErrorMapper.class.getName(), errorMapper);
+    }
+
+    /**
+     * Register a {@link RestResourceErrorMapper} at Spring and Spark. Use this method in the
+     * {@link com.indoqa.boot.application.StartupLifecycle#didInitializeSpring(AnnotationConfigApplicationContext)}
+     * phase of the application's startup lifecycle.
+     *
+     * @param context The Spring application context.
+     */
+    public static void registerRestResourceErrorMapper(AnnotationConfigApplicationContext context) {
+        registerRestResourceErrorMapper(context, null);
     }
 }
