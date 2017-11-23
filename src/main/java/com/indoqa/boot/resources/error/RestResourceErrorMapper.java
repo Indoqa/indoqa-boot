@@ -46,14 +46,16 @@ public final class RestResourceErrorMapper {
 
     RestResourceErrorMapper(JsonTransformer transformer) {
         this.transformer = transformer;
-        this.registerException(AbstractRestResourceException.class, (exception) -> {
-            AbstractRestResourceException abstractRestResourceException = (AbstractRestResourceException) exception;
-            return new RestResourceErrorInfo(abstractRestResourceException.getStatusCode(),
-                abstractRestResourceException.getErrorData()
-            );
-        });
+        registerDefaultExceptionMapping();
     }
 
+    /**
+     * Map from an exception type to a {@link RestResourceErrorInfo}. If an exception is caught, the list of mappings is processed in
+     * reverse order. The first exception mapping that is assignable from the caught exception, will be applied.
+     *
+     * @param exception     The exception to be checked.
+     * @param errorProvider The function that should be applied with an exception.
+     */
     public void registerException(Class<? extends Exception> exception, Function<Exception, RestResourceErrorInfo> errorProvider) {
         this.errorProviders.put(exception, errorProvider);
     }
@@ -61,6 +63,15 @@ public final class RestResourceErrorMapper {
     void initialize() {
         sortErrorProviders();
         Spark.exception(Exception.class, (e, req, res) -> this.mapException(req, res, e));
+    }
+
+    private void registerDefaultExceptionMapping() {
+        this.registerException(AbstractRestResourceException.class, (exception) -> {
+            AbstractRestResourceException abstractRestResourceException = (AbstractRestResourceException) exception;
+            return new RestResourceErrorInfo(abstractRestResourceException.getStatusCode(),
+                abstractRestResourceException.getErrorData()
+            );
+        });
     }
 
     private void sortErrorProviders() {
