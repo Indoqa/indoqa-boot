@@ -16,12 +16,15 @@
  */
 package com.indoqa.boot.resources.error;
 
+import static java.util.Collections.reverseOrder;
 import static java.util.Locale.US;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 import com.indoqa.boot.json.transformer.JsonTransformer;
@@ -34,10 +37,12 @@ import spark.Spark;
 public final class RestResourceErrorMapper {
 
     private static final int RANDOM_CHARS_COUNT = 6;
-
-    private final LinkedHashMap<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>> errorProviders = new LinkedHashMap<>();
+    private static final BinaryOperator<Function<Exception, RestResourceErrorInfo>> MERGE_FUNCTION = (x, y) -> {
+        throw new AssertionError();
+    };
 
     private final JsonTransformer transformer;
+    private Map<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>> errorProviders = new LinkedHashMap<>();
 
     RestResourceErrorMapper(JsonTransformer transformer) {
         this.transformer = transformer;
@@ -54,7 +59,16 @@ public final class RestResourceErrorMapper {
     }
 
     void initialize() {
+        sortErrorProviders();
         Spark.exception(Exception.class, (e, req, res) -> this.mapException(req, res, e));
+    }
+
+    private void sortErrorProviders() {
+        this.errorProviders = this.errorProviders
+            .entrySet()
+            .stream()
+            .sorted(reverseOrder())
+            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, MERGE_FUNCTION, LinkedHashMap::new));
     }
 
     private RestResourceError buildError(Exception exception) {
