@@ -20,10 +20,9 @@ import static java.lang.Boolean.FALSE;
 
 import javax.inject.Inject;
 
-import org.springframework.core.env.Environment;
-
 import com.indoqa.boot.json.resources.AbstractJsonResourcesBase;
 import com.indoqa.boot.spark.SparkAdminService;
+import org.springframework.core.env.Environment;
 
 import spark.Route;
 import spark.Service;
@@ -47,11 +46,21 @@ public abstract class AbstractAdminResources extends AbstractJsonResourcesBase {
 
     protected void getActuator(String path, Route route) {
         if (this.isAdminServiceAvailable()) {
-            this.sparkAdminService.instance().get(path, route, this.getTransformer());
+            this.sparkAdminService.instance().get(path, CONTENT_TYPE_JSON, route, this.getTransformer());
         }
 
         else if (this.isEnabledViaDefaultService()) {
             this.get(resolveAdminPath(path), route);
+        }
+    }
+
+    protected void headActuator(String path, Route route) {
+        if (this.isAdminServiceAvailable()) {
+            this.sparkAdminService.instance().head(path, route);
+        }
+
+        else if (this.isEnabledViaDefaultService()) {
+            this.head(resolveAdminPath(path), route);
         }
     }
 

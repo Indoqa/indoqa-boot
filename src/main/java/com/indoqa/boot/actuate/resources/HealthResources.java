@@ -16,15 +16,17 @@
  */
 package com.indoqa.boot.actuate.resources;
 
+import static com.indoqa.boot.actuate.health.Status.UP;
 import static java.util.Locale.US;
 import static java.util.stream.Collectors.*;
+import static javax.servlet.http.HttpServletResponse.*;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
@@ -32,7 +34,11 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.indoqa.boot.actuate.health.Health;
 import com.indoqa.boot.actuate.health.HealthIndicator;
 
+import spark.Response;
+
 public class HealthResources extends AbstractAdminResources {
+
+    private static final String PATH_HEALTH = "/health";
 
     @Inject
     private Collection<HealthIndicator> healthIndicators;
@@ -47,10 +53,25 @@ public class HealthResources extends AbstractAdminResources {
 
     @PostConstruct
     public void mount() {
-        this.getActuator("/health", (req, res) -> this.getHealthCheckResult());
+        this.getActuator(PATH_HEALTH, (req, res) -> this.getHealthCheckResult(res));
+        this.headActuator(PATH_HEALTH, (req, res) -> this.headHealthCheckResult(res));
     }
 
-    private ActuatorResults getHealthCheckResult() {
+    private void setHealthHttpStatus(Response res) {
+        boolean allUp = this.healthIndicators
+            .stream()
+            .map(healthIndicator -> healthIndicator.health().getStatus())
+            .allMatch(UP::equals);
+
+        res.status(allUp ? SC_OK : SC_INTERNAL_SERVER_ERROR);
+    }
+
+    private Object headHealthCheckResult(Response res) {
+        setHealthHttpStatus(res);
+        return EMPTY;
+    }
+
+    private ActuatorResults getHealthCheckResult(Response res) {
         Map<String, List<HealthIndicator>> groupedHealthIndicators = this.healthIndicators
             .stream()
             .collect(groupingBy(healthIndicator -> getKey(healthIndicator.getClass().getSimpleName()), toList()));
@@ -64,7 +85,7 @@ public class HealthResources extends AbstractAdminResources {
                 continue;
             }
 
-            else if (healthIndicators.size() == 1) {
+            if (healthIndicators.size() == 1) {
                 actuatorResults.add(eachHealthIndicatorEntry.getKey(), healthIndicators.get(0).health());
             }
 
@@ -73,6 +94,8 @@ public class HealthResources extends AbstractAdminResources {
                 actuatorResults.add(eachHealthIndicatorEntry.getKey(), healths);
             }
         }
+
+        this.setHealthHttpStatus(res);
 
         return actuatorResults;
     }

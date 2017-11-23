@@ -49,6 +49,10 @@ public abstract class AbstractJsonResourcesBase extends AbstractResourcesBase {
         this.get(path, route, this.transformer);
     }
 
+    public void head(String path, Route route) {
+        Spark.head(path, route);
+    }
+
     public void get(String path, Route route, ResponseTransformer responseTransformer) {
         Spark.get(this.resolvePath(path), CONTENT_TYPE_JSON, route, responseTransformer);
     }
