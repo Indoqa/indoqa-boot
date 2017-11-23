@@ -95,6 +95,7 @@ public class HealthResources extends AbstractAdminResources {
             }
         }
 
+        res.type(CONTENT_TYPE_JSON);
         this.setHealthHttpStatus(res);
 
         return actuatorResults;
