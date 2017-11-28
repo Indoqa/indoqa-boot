@@ -18,8 +18,14 @@ package com.indoqa.boot.resources.exception;
 
 public enum HttpStatusCode {
 
-    ACCEPTED(202, true), OK(200, true), NO_CONTENT(204, false), NOT_MODIFIED(304, false), BAD_REQUEST(400, true), FORBIDDEN(403, true),
-    NOT_FOUND(404, true), INTERNAL_SERVER_ERROR(500, true);
+    OK(200, true),
+    ACCEPTED(202, true),
+    NO_CONTENT(204, false),
+    NOT_MODIFIED(304, false),
+    BAD_REQUEST(400, true),
+    FORBIDDEN(403, true),
+    NOT_FOUND(404, true),
+    INTERNAL_SERVER_ERROR(500, true);
 
     private final int code;
     private final boolean hasBody;

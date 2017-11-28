@@ -16,12 +16,14 @@
  */
 package com.indoqa.boot.resources.error;
 
-import static java.util.Collections.reverseOrder;
+import static java.time.Instant.now;
 import static java.util.Locale.US;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BinaryOperator;
@@ -29,6 +31,7 @@ import java.util.function.Function;
 
 import com.indoqa.boot.json.transformer.JsonTransformer;
 import com.indoqa.boot.resources.exception.AbstractRestResourceException;
+import org.apache.commons.lang3.StringUtils;
 
 import spark.Request;
 import spark.Response;
@@ -37,11 +40,23 @@ import spark.Spark;
 public final class RestResourceErrorMapper {
 
     private static final int RANDOM_CHARS_COUNT = 6;
+
     private static final BinaryOperator<Function<Exception, RestResourceErrorInfo>> MERGE_FUNCTION = (x, y) -> {
         throw new AssertionError();
     };
 
+    private static final Comparator<Map.Entry<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>>> EXCEPTION_COMPARATOR = (e1, e2) -> {
+        if (e1.getKey().isAssignableFrom(e2.getKey())) {
+            return 1;
+        }
+        if (e2.getKey().isAssignableFrom(e1.getKey())) {
+            return -1;
+        }
+        return StringUtils.compare(e1.getKey().getName(), e2.getKey().getName());
+    };
+
     private final JsonTransformer transformer;
+
     private Map<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>> errorProviders = new LinkedHashMap<>();
 
     RestResourceErrorMapper(JsonTransformer transformer) {
@@ -50,8 +65,8 @@ public final class RestResourceErrorMapper {
     }
 
     /**
-     * Map from an exception type to a {@link RestResourceErrorInfo}. If an exception is caught, the list of mappings is processed in
-     * reverse order. The first exception mapping that is assignable from the caught exception, will be applied.
+     * Map from an exception type to a {@link RestResourceErrorInfo}. The list is sorted in the way that more specific exceptions
+     * will match before .
      *
      * @param exception     The exception to be checked.
      * @param errorProvider The function that should be applied with an exception.
@@ -65,27 +80,18 @@ public final class RestResourceErrorMapper {
         Spark.exception(Exception.class, (e, req, res) -> this.mapException(req, res, e));
     }
 
-    private void registerDefaultExceptionMapping() {
-        this.registerException(AbstractRestResourceException.class, (exception) -> {
-            AbstractRestResourceException abstractRestResourceException = (AbstractRestResourceException) exception;
-            return new RestResourceErrorInfo(abstractRestResourceException.getStatusCode(),
-                abstractRestResourceException.getErrorData()
-            );
-        });
-    }
-
-    private void sortErrorProviders() {
+    void sortErrorProviders() {
         this.errorProviders = this.errorProviders
             .entrySet()
             .stream()
-            .sorted(reverseOrder())
+            .sorted(EXCEPTION_COMPARATOR)
             .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, MERGE_FUNCTION, LinkedHashMap::new));
     }
 
-    private RestResourceError buildError(Exception exception) {
+    RestResourceError buildError(Exception exception) {
         final String id = randomAlphanumeric(RANDOM_CHARS_COUNT).toUpperCase(US);
-        final Instant now = Instant.now();
-        final String message = exception.getMessage();
+        final Instant now = now();
+        final String message = defaultIfBlank(exception.getMessage(), exception.getClass().getSimpleName());
         final RestResourceErrorInfo errorInfo = this.errorProviders
             .entrySet()
             .stream()
@@ -96,6 +102,15 @@ public final class RestResourceErrorMapper {
             .apply(exception);
 
         return RestResourceError.build(id, now, message, errorInfo);
+    }
+
+    private void registerDefaultExceptionMapping() {
+        this.registerException(AbstractRestResourceException.class, (exception) -> {
+            AbstractRestResourceException abstractRestResourceException = (AbstractRestResourceException) exception;
+            return new RestResourceErrorInfo(abstractRestResourceException.getStatusCode(),
+                abstractRestResourceException.getErrorData()
+            );
+        });
     }
 
     private void mapException(Request req, Response res, Exception e) {
