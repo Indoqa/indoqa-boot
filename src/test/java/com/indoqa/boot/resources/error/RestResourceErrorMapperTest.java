@@ -78,6 +78,36 @@ public class RestResourceErrorMapperTest {
     }
 
     @Test
+    public void testExceptionX() {
+        RestResourceError resourceError = this.mapper.buildError(new ExceptionX());
+        assertEquals("eX", resourceError.getPayload());
+    }
+
+    @Test
+    public void testExceptionY() {
+        RestResourceError resourceError = this.mapper.buildError(new ExceptionY());
+        assertEquals("eY", resourceError.getPayload());
+    }
+
+    @Test
+    public void testExceptionZ() {
+        RestResourceError resourceError = this.mapper.buildError(new ExceptionZ());
+        assertEquals("eZ", resourceError.getPayload());
+    }
+
+    @Test
+    public void testExceptionZ1() {
+        RestResourceError resourceError = this.mapper.buildError(new ExceptionZ1());
+        assertEquals("eZ1", resourceError.getPayload());
+    }
+
+    @Test
+    public void testExceptionZ2() {
+        RestResourceError resourceError = this.mapper.buildError(new ExceptionZ2());
+        assertEquals("eZ2", resourceError.getPayload());
+    }
+
+    @Test
     public void testException() {
         RestResourceError resourceError = this.mapper.buildError(new Exception());
         assertEquals("Exception", resourceError.getError());
@@ -109,13 +139,15 @@ public class RestResourceErrorMapperTest {
     @Before
     public void setUp() {
         this.mapper = new RestResourceErrorMapper(null);
-
         this.mapper.registerException(Exception1.class, e -> new RestResourceErrorInfo(null, "e1"));
         this.mapper.registerException(ExceptionB.class, e -> new RestResourceErrorInfo(null, "eB"));
         this.mapper.registerException(Exception2.class, e -> new RestResourceErrorInfo(null, "e2"));
         this.mapper.registerException(ExceptionA.class, e -> new RestResourceErrorInfo(null, "eA"));
-
-        this.mapper.sortErrorProviders();
+        this.mapper.registerException(ExceptionX.class, e -> new RestResourceErrorInfo(null, "eX"));
+        this.mapper.registerException(ExceptionY.class, e -> new RestResourceErrorInfo(null, "eY"));
+        this.mapper.registerException(ExceptionZ2.class, e -> new RestResourceErrorInfo(null, "eZ2"));
+        this.mapper.registerException(ExceptionZ1.class, e -> new RestResourceErrorInfo(null, "eZ1"));
+        this.mapper.registerException(ExceptionZ.class, e -> new RestResourceErrorInfo(null, "eZ"));
     }
 
     private static class Exception1 extends Exception {
@@ -147,6 +179,26 @@ public class RestResourceErrorMapperTest {
     }
 
     private static class ExceptionBa extends ExceptionB {
+        // nothing
+    }
+
+    private static class ExceptionZ1 extends ExceptionZ {
+        // nothing
+    }
+
+    private static class ExceptionZ2 extends ExceptionZ {
+        // nothing
+    }
+
+    private static class ExceptionZ extends ExceptionX {
+        // nothing
+    }
+
+    private static class ExceptionY extends Exception {
+        // nothing
+    }
+
+    private static class ExceptionX extends Exception {
         // nothing
     }
 

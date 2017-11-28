@@ -18,20 +18,17 @@ package com.indoqa.boot.resources.error;
 
 import static java.time.Instant.now;
 import static java.util.Locale.US;
-import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 import java.time.Instant;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.BinaryOperator;
+import java.util.*;
 import java.util.function.Function;
 
 import com.indoqa.boot.json.transformer.JsonTransformer;
 import com.indoqa.boot.resources.exception.AbstractRestResourceException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import spark.Request;
 import spark.Response;
@@ -40,10 +37,6 @@ import spark.Spark;
 public final class RestResourceErrorMapper {
 
     private static final int RANDOM_CHARS_COUNT = 6;
-
-    private static final BinaryOperator<Function<Exception, RestResourceErrorInfo>> MERGE_FUNCTION = (x, y) -> {
-        throw new AssertionError();
-    };
 
     private static final Comparator<Map.Entry<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>>> EXCEPTION_COMPARATOR = (e1, e2) -> {
         if (e1.getKey().isAssignableFrom(e2.getKey())) {
@@ -56,47 +49,75 @@ public final class RestResourceErrorMapper {
     };
 
     private final JsonTransformer transformer;
-
-    private Map<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>> errorProviders = new LinkedHashMap<>();
+    private final List<SortedSet<Pair<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>>>> mappings = new ArrayList<>();
 
     RestResourceErrorMapper(JsonTransformer transformer) {
         this.transformer = transformer;
         registerDefaultExceptionMapping();
     }
 
+    private static boolean haveSpecificSuperExceptionType(Class<?> e1, Class<?> e2) {
+        while (!e1.isAssignableFrom(e2)) {
+            e1 = e1.getSuperclass();
+        }
+        return !e1.equals(Exception.class) && !e1.equals(RuntimeException.class);
+    }
+
     /**
      * Map from an exception type to a {@link RestResourceErrorInfo}. The list is sorted in the way that more specific exceptions
-     * will match before .
+     * will match first.
      *
-     * @param exception     The exception to be checked.
+     * @param exceptionType The exception to be checked.
      * @param errorProvider The function that should be applied with an exception.
      */
-    public void registerException(Class<? extends Exception> exception, Function<Exception, RestResourceErrorInfo> errorProvider) {
-        this.errorProviders.put(exception, errorProvider);
+    public void registerException(Class<? extends Exception> exceptionType, Function<Exception, RestResourceErrorInfo> errorProvider) {
+        Pair<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>> currentMapping = Pair.of(exceptionType,
+            errorProvider
+        );
+
+        Pair<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>> matchingMapping = null;
+        for (SortedSet<Pair<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>>> eachBucket : this.mappings) {
+            // find out if the currentMapping exception belongs to the bucket
+            for (Pair<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>> eachMapping : eachBucket) {
+                Class<? extends Exception> mappingType = eachMapping.getKey();
+                boolean haveSpecificSuperExceptionType = haveSpecificSuperExceptionType(mappingType, currentMapping.getKey());
+
+                if (exceptionType.isAssignableFrom(mappingType) || mappingType.isAssignableFrom(exceptionType)
+                    || haveSpecificSuperExceptionType) {
+                    matchingMapping = currentMapping;
+                    break;
+                }
+            }
+
+            if (matchingMapping != null) {
+                eachBucket.add(matchingMapping);
+                break;
+            }
+        }
+
+        // if there was no matching bucket, create a new one
+        if (matchingMapping == null) {
+            // use a set that is sorted by the class hierarchy (more specific exceptions come first)
+            SortedSet<Pair<Class<? extends Exception>, Function<Exception, RestResourceErrorInfo>>> newBucket = new TreeSet<>(
+                EXCEPTION_COMPARATOR);
+            newBucket.add(currentMapping);
+            this.mappings.add(newBucket);
+        }
     }
 
     void initialize() {
-        sortErrorProviders();
         Spark.exception(Exception.class, (e, req, res) -> this.mapException(req, res, e));
-    }
-
-    void sortErrorProviders() {
-        this.errorProviders = this.errorProviders
-            .entrySet()
-            .stream()
-            .sorted(EXCEPTION_COMPARATOR)
-            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, MERGE_FUNCTION, LinkedHashMap::new));
     }
 
     RestResourceError buildError(Exception exception) {
         final String id = randomAlphanumeric(RANDOM_CHARS_COUNT).toUpperCase(US);
         final Instant now = now();
         final String message = defaultIfBlank(exception.getMessage(), exception.getClass().getSimpleName());
-        final RestResourceErrorInfo errorInfo = this.errorProviders
-            .entrySet()
+        final RestResourceErrorInfo errorInfo = this.mappings
             .stream()
+            .flatMap(Collection::stream)
             .filter(providerEntry -> providerEntry.getKey().isAssignableFrom(exception.getClass()))
-            .map(Map.Entry::getValue)
+            .map(Pair::getValue)
             .findFirst()
             .orElse(e -> new RestResourceErrorInfo(null, null))
             .apply(exception);
