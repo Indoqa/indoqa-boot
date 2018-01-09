@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
@@ -35,13 +36,13 @@ import spark.utils.Assert;
  * contextual information.
  * <p>
  * {@link Health} instances can be created by using {@link Builder}'s fluent API. Typical usage in a {@link HealthIndicator} would be:
- *
+ * <p>
  * <pre class="code">
  * try {
- *     // do some test to determine state of component
- *     return new Health.Builder().up().withDetail("version", "1.1.2").build();
+ * // do some test to determine state of component
+ * return new Health.Builder().up().withDetail("version", "1.1.2").build();
  * } catch (Exception ex) {
- *     return new Health.Builder().down(ex).build();
+ * return new Health.Builder().down(ex).build();
  * }
  * </pre>
  */
@@ -50,11 +51,12 @@ public class Health {
 
     private final Status status;
 
+    @JsonIgnore
     private final Map<String, Object> details;
 
     /**
      * Create a new {@link Health} instance with the specified status and details.
-     * 
+     *
      * @param builder the Builder to use
      */
     private Health(Builder builder) {
@@ -65,7 +67,7 @@ public class Health {
 
     /**
      * Create a new {@link Builder} instance with a {@link Status#DOWN} status.
-     * 
+     *
      * @return a new {@link Builder} instance
      */
     public static Builder down() {
@@ -74,7 +76,7 @@ public class Health {
 
     /**
      * Create a new {@link Builder} instance with an {@link Status#DOWN} status an the specified exception details.
-     * 
+     *
      * @param ex the exception
      * @return a new {@link Builder} instance
      */
@@ -84,7 +86,7 @@ public class Health {
 
     /**
      * Create a new {@link Builder} instance with an {@link Status#OUT_OF_SERVICE} status.
-     * 
+     *
      * @return a new {@link Builder} instance
      */
     public static Builder outOfService() {
@@ -93,7 +95,7 @@ public class Health {
 
     /**
      * Create a new {@link Builder} instance with a specific {@link Status}.
-     * 
+     *
      * @param status the status
      * @return a new {@link Builder} instance
      */
@@ -103,7 +105,7 @@ public class Health {
 
     /**
      * Create a new {@link Builder} instance with a specific status code.
-     * 
+     *
      * @param statusCode the status code
      * @return a new {@link Builder} instance
      */
@@ -113,7 +115,7 @@ public class Health {
 
     /**
      * Create a new {@link Builder} instance with an {@link Status#UNKNOWN} status.
-     * 
+     *
      * @return a new {@link Builder} instance
      */
     public static Builder unknown() {
@@ -122,28 +124,16 @@ public class Health {
 
     /**
      * Create a new {@link Builder} instance with an {@link Status#UP} status.
-     * 
+     *
      * @return a new {@link Builder} instance
      */
     public static Builder up() {
         return status(Status.UP);
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj != null && obj instanceof Health) {
-            Health other = (Health) obj;
-            return this.status.equals(other.status) && this.details.equals(other.details);
-        }
-        return false;
-    }
-
     /**
      * Return the details of the health.
-     * 
+     *
      * @return the details (or an empty map)
      */
     @JsonAnyGetter
@@ -153,7 +143,7 @@ public class Health {
 
     /**
      * Return the status of the health.
-     * 
+     *
      * @return the status (never {@code null})
      */
     @JsonUnwrapped
@@ -168,6 +158,18 @@ public class Health {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj != null && obj instanceof Health) {
+            Health other = (Health) obj;
+            return this.status.equals(other.status) && this.details.equals(other.details);
+        }
+        return false;
+    }
+
+    @Override
     public String toString() {
         return this.getStatus() + " " + this.getDetails();
     }
@@ -177,9 +179,8 @@ public class Health {
      */
     public static class Builder {
 
+        private final Map<String, Object> details;
         private Status status;
-
-        private Map<String, Object> details;
 
         /**
          * Create new Builder instance.
@@ -191,7 +192,7 @@ public class Health {
 
         /**
          * Create new Builder instance, setting status to given {@code status}.
-         * 
+         *
          * @param status the {@link Status} to use
          */
         public Builder(Status status) {
@@ -202,8 +203,8 @@ public class Health {
 
         /**
          * Create new Builder instance, setting status to given {@code status} and details to given {@code details}.
-         * 
-         * @param status the {@link Status} to use
+         *
+         * @param status  the {@link Status} to use
          * @param details the details {@link Map} to use
          */
         public Builder(Status status, Map<String, ?> details) {
@@ -215,7 +216,7 @@ public class Health {
 
         /**
          * Create a new {@link Health} instance with the previously specified code and details.
-         * 
+         *
          * @return a new {@link Health} instance
          */
         public Health build() {
@@ -224,7 +225,7 @@ public class Health {
 
         /**
          * Set status to {@link Status#DOWN}.
-         * 
+         *
          * @return this {@link Builder} instance
          */
         public Builder down() {
@@ -233,7 +234,7 @@ public class Health {
 
         /**
          * Set status to {@link Status#DOWN} and add details for given {@link Exception}.
-         * 
+         *
          * @param ex the exception
          * @return this {@link Builder} instance
          */
@@ -243,7 +244,7 @@ public class Health {
 
         /**
          * Set status to {@link Status#OUT_OF_SERVICE}.
-         * 
+         *
          * @return this {@link Builder} instance
          */
         public Builder outOfService() {
@@ -252,7 +253,7 @@ public class Health {
 
         /**
          * Set status to given {@link Status} instance.
-         * 
+         *
          * @param status the status
          * @return this {@link Builder} instance
          */
@@ -263,7 +264,7 @@ public class Health {
 
         /**
          * Set status to given {@code statusCode}.
-         * 
+         *
          * @param statusCode the status code
          * @return this {@link Builder} instance
          */
@@ -273,7 +274,7 @@ public class Health {
 
         /**
          * Set status to {@link Status#UNKNOWN} status.
-         * 
+         *
          * @return this {@link Builder} instance
          */
         public Builder unknown() {
@@ -282,7 +283,7 @@ public class Health {
 
         /**
          * Set status to {@link Status#UP} status.
-         * 
+         *
          * @return this {@link Builder} instance
          */
         public Builder up() {
@@ -291,8 +292,8 @@ public class Health {
 
         /**
          * Record detail using given {@code key} and {@code value}.
-         * 
-         * @param key the detail key
+         *
+         * @param key   the detail key
          * @param value the detail value
          * @return this {@link Builder} instance
          */
@@ -305,7 +306,7 @@ public class Health {
 
         /**
          * Record detail for given {@link Exception}.
-         * 
+         *
          * @param ex the exception
          * @return this {@link Builder} instance
          */

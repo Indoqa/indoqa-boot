@@ -31,6 +31,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.indoqa.boot.actuate.health.Health;
 import com.indoqa.boot.actuate.health.HealthIndicator;
 
@@ -103,6 +104,7 @@ public class HealthResources extends AbstractAdminResources {
 
     protected static class ActuatorResults {
 
+        @JsonIgnore
         private final Map<String, Object> results = new HashMap<>();
 
         public void add(String key, Collection<Health> healths) {

@@ -23,7 +23,7 @@ import javax.annotation.PostConstruct;
 import com.indoqa.boot.ApplicationInitializationException;
 
 /**
- * A base implementation that exposes the method {@link #getResourceBase()} to conveniently mount resources to a particular base path.
+ * A base implementation that exposes the method {@link #getResourceBase()} to conveniently initialize resources to a particular base path.
  */
 public abstract class AbstractResourcesBase {
 
