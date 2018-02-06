@@ -16,10 +16,12 @@
  */
 package com.indoqa.boot.actuate.metrics;
 
+import com.indoqa.boot.actuate.resources.MetricsResources;
+
 import java.util.Collection;
 
 /**
- * Interface to expose specific {@link Metric}s via a {@link MetricsEndpoint}. Implementations should take care that the metrics they
+ * Interface to expose specific {@link Metric}s via a {@link MetricsResources}. Implementations should take care that the metrics they
  * provide have unique names in the application context, but they shouldn't have to care about global uniqueness in the JVM or across a
  * distributed system.
  */

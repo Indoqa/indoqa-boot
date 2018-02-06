@@ -18,6 +18,7 @@ package com.indoqa.boot.actuate.health;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import com.indoqa.boot.actuate.health.Health.Builder;
 import org.slf4j.Logger;
 
 /**
@@ -32,7 +33,7 @@ public abstract class AbstractHealthIndicator implements HealthIndicator {
 
     @Override
     public final Health health() {
-        Health.Builder builder = new Health.Builder();
+        Builder builder = new Builder();
         try {
             this.doHealthCheck(builder);
         } catch (Exception ex) {
@@ -48,6 +49,6 @@ public abstract class AbstractHealthIndicator implements HealthIndicator {
      * @param builder the {@link Builder} to report health status and details
      * @throws Exception any {@link Exception} that should create a {@link Status#DOWN} system status.
      */
-    protected abstract void doHealthCheck(Health.Builder builder) throws Exception;
+    protected abstract void doHealthCheck(Builder builder) throws Exception;
 
 }
