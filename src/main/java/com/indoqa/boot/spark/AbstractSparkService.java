@@ -25,27 +25,25 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
 import javax.inject.Inject;
 
+import com.indoqa.boot.profile.ProfileDetector;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.springframework.core.env.Environment;
-
-import com.indoqa.boot.profile.ProfileDetector;
 
 public abstract class AbstractSparkService {
 
     private static final Logger LOGGER = getLogger(SparkAdminService.class);
 
-    protected static final String PROPERTY_PORT = "port";
-    protected static final String PROPERTY_ADMIN_PORT = "admin.port";
+    private static final String PROPERTY_PORT = "port";
+    private static final String PROPERTY_ADMIN_PORT = "admin.port";
 
     private static final String DEFAULT_SPARK_PORT = "4567";
     private static final String DEFAULT_ADMIN_PORT = "34567";
 
     private static final int SHUTDOWN_REQUEST_TIMEOUT = 250;
-    private static final int SHUTDOWN_CHECK_RETRY_INTERVALL = 50;
+    private static final int SHUTDOWN_CHECK_RETRY_INTERVAL = 50;
     private static final int SHUTDOWN_EXECUTION_TIMEOUT = 500;
 
     @Inject
@@ -67,13 +65,18 @@ public abstract class AbstractSparkService {
 
             HttpURLConnection httpConnection = connect(shutdownUrl);
             httpConnection.connect();
-            IOUtils.toString(httpConnection.getInputStream(), UTF_8);
+            consume(httpConnection);
+
             httpConnection.disconnect();
 
             LOGGER.info("A shutdown request was sent successfully to {}", shutdownUrl);
         } catch (IOException e) {
             LOGGER.info("A shutdown request to {} failed.", shutdownUrl);
         }
+    }
+
+    private static void consume(HttpURLConnection httpConnection) throws IOException {
+        IOUtils.toString(httpConnection.getInputStream(), UTF_8);
     }
 
     private static void sleep(int sleep) {
@@ -84,7 +87,7 @@ public abstract class AbstractSparkService {
         }
     }
 
-    protected void claimPortOrShutdown(int checkPort, int shutdownPort) {
+    void claimPortOrShutdown(int checkPort, int shutdownPort) {
         if (isPortAvailable(checkPort)) {
             return;
         }
@@ -108,7 +111,7 @@ public abstract class AbstractSparkService {
                 break;
             }
 
-            sleep(SHUTDOWN_CHECK_RETRY_INTERVALL);
+            sleep(SHUTDOWN_CHECK_RETRY_INTERVAL);
 
             if (runUntil < currentTimeMillis()) {
                 LOGGER.error(
@@ -118,12 +121,12 @@ public abstract class AbstractSparkService {
         }
     }
 
-    protected int getAdminPort() {
+    int getAdminPort() {
         String portProperty = this.environment.getProperty(PROPERTY_ADMIN_PORT, DEFAULT_ADMIN_PORT);
         return parseIntegerProperty(portProperty, PROPERTY_ADMIN_PORT);
     }
 
-    protected int getPort() {
+    int getPort() {
         String portProperty = this.environment.getProperty(PROPERTY_PORT, DEFAULT_SPARK_PORT);
         return parseIntegerProperty(portProperty, PROPERTY_PORT);
     }

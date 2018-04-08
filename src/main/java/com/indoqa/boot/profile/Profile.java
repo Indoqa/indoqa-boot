@@ -21,11 +21,12 @@ package com.indoqa.boot.profile;
  */
 public enum Profile {
 
-    PROD("prod"), DEV("dev");
+    PROD("prod"),
+    DEV("dev");
 
-    private String name;
+    private final String name;
 
-    private Profile(String name) {
+    Profile(String name) {
         this.name = name;
     }
 

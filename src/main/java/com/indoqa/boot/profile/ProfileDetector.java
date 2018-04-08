@@ -39,7 +39,7 @@ public final class ProfileDetector {
         return isProfileAvailable(environment, PROD);
     }
 
-    protected static boolean isProfileAvailable(Environment environment, Profile profile) {
+    private static boolean isProfileAvailable(Environment environment, Profile profile) {
         return Arrays.stream(environment.getActiveProfiles()).anyMatch(eachProfile -> profile.getName().equals(eachProfile));
     }
 }

@@ -27,7 +27,7 @@ import com.indoqa.boot.ApplicationInitializationException;
 /**
  * Utility class to find out if a particular port is available.
  */
-public final class PortUtils {
+final class PortUtils {
 
     private PortUtils() {
         // hide utility class constructor
@@ -35,11 +35,11 @@ public final class PortUtils {
 
     /**
      * Find out if the provided port is available.
-     * 
+     *
      * @param port The port to be inspected.
      * @return true if the port is avaiable.
      */
-    public static boolean isPortAvailable(int port) {
+    static boolean isPortAvailable(int port) {
         ServerSocket ss = null;
         try {
             ss = new ServerSocket(port);
@@ -52,7 +52,7 @@ public final class PortUtils {
         }
     }
 
-    protected static int parseIntegerProperty(String value, String name) {
+    static int parseIntegerProperty(String value, String name) {
         try {
             return parseInt(value);
         } catch (NumberFormatException e) {
