@@ -45,15 +45,14 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.PropertySource;
 
 import spark.Service;
+import spark.Spark;
 
 public class SystemInfo extends AbstractSystemInfo {
 
     private static final Logger LOGGER = getLogger(SystemInfo.class);
     private static final String INDOQA_BOOT_PROPERTIES_PATH = "/META-INF/maven/com.indoqa/indoqa-boot/pom.properties";
     private static final String UNKNOWN_VALUE = "[unknown]";
-
     private final Map<String, String> more = new HashMap<>();
-
     private Date started;
     private long initializationDuration;
     private String applicationName;
@@ -285,11 +284,11 @@ public class SystemInfo extends AbstractSystemInfo {
     }
 
     public void recheckForRandomlyAssignedPorts() {
-        this.port = Integer.toString(JettyPortReader.getPort());
+        this.port = Integer.toString(Spark.port());
 
         Service adminServiceInstance = this.sparkAdminService.instance();
         if (adminServiceInstance != null) {
-            this.adminPort = Integer.toString(JettyPortReader.getAdminPort(adminServiceInstance));
+            this.adminPort = Integer.toString(adminServiceInstance.port());
         }
     }
 }
