@@ -32,19 +32,17 @@ import java.util.Map.Entry;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.EnumerablePropertySource;
-import org.springframework.core.env.PropertySource;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.indoqa.boot.spark.SparkAdminService;
 import com.indoqa.boot.version.VersionProvider;
+import org.slf4j.Logger;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.PropertySource;
 
 import spark.Service;
 
@@ -53,6 +51,8 @@ public class SystemInfo extends AbstractSystemInfo {
     private static final Logger LOGGER = getLogger(SystemInfo.class);
     private static final String INDOQA_BOOT_PROPERTIES_PATH = "/META-INF/maven/com.indoqa/indoqa-boot/pom.properties";
     private static final String UNKNOWN_VALUE = "[unknown]";
+
+    private final Map<String, String> more = new HashMap<>();
 
     private Date started;
     private long initializationDuration;
@@ -66,7 +66,6 @@ public class SystemInfo extends AbstractSystemInfo {
     private String adminPort;
     private String hostname;
     private String indoqaBootVersion;
-    private Map<String, String> more = new HashMap<>();
 
     @JsonIgnore
     private String asciiLogo;
@@ -84,13 +83,12 @@ public class SystemInfo extends AbstractSystemInfo {
     private SparkAdminService sparkAdminService;
 
     private static Map<String, SpringProperty> filterSystemAndEnvironmentProperties(Map<String, SpringProperty> springProperties) {
-        return new TreeMap<>(
-            springProperties
-                .entrySet()
-                .stream()
-                .filter(isSingleEntryOfSource(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME).negate())
-                .filter(isSingleEntryOfSource(SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME).negate())
-                .collect(toMap(Entry::getKey, Entry::getValue)));
+        return new TreeMap<>(springProperties
+            .entrySet()
+            .stream()
+            .filter(isSingleEntryOfSource(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME).negate())
+            .filter(isSingleEntryOfSource(SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME).negate())
+            .collect(toMap(Entry::getKey, Entry::getValue)));
     }
 
     private static String[] initActiveProfiles(ConfigurableEnvironment springEnvironment) {
@@ -186,16 +184,26 @@ public class SystemInfo extends AbstractSystemInfo {
         this.more.put(key, value);
     }
 
+    @JsonProperty("admin-port")
     public String getAdminPort() {
         return this.adminPort;
     }
 
+    @JsonProperty("application-name")
     public String getApplicationName() {
         return this.applicationName;
     }
 
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
+    }
+
     public String getAsciiLogo() {
         return this.asciiLogo;
+    }
+
+    public void setAsciiLogo(String asciiLogo) {
+        this.asciiLogo = asciiLogo;
     }
 
     public String getHostname() {
@@ -210,6 +218,10 @@ public class SystemInfo extends AbstractSystemInfo {
     @JsonProperty("initialization-duration")
     public long getInitializationDuration() {
         return this.initializationDuration;
+    }
+
+    public void setInitializationDuration(long duration) {
+        this.initializationDuration = duration;
     }
 
     @JsonProperty("environment")
@@ -234,6 +246,7 @@ public class SystemInfo extends AbstractSystemInfo {
         return this.springProperties;
     }
 
+    @JsonProperty("spring-property-sources")
     public List<String> getSpringPropertySources() {
         return this.springPropertySources;
     }
@@ -244,6 +257,10 @@ public class SystemInfo extends AbstractSystemInfo {
         }
 
         return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZZ", US).format(this.started);
+    }
+
+    public void setStarted(Date started) {
+        this.started = started;
     }
 
     @JsonProperty("system-properties")
@@ -274,25 +291,5 @@ public class SystemInfo extends AbstractSystemInfo {
         if (adminServiceInstance != null) {
             this.adminPort = Integer.toString(JettyPortReader.getAdminPort(adminServiceInstance));
         }
-    }
-
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
-
-    public void setAsciiLogo(String asciiLogo) {
-        this.asciiLogo = asciiLogo;
-    }
-
-    public void setInitializationDuration(long duration) {
-        this.initializationDuration = duration;
-    }
-
-    public void setStarted(Date started) {
-        this.started = started;
-    }
-
-    public Date started() {
-        return this.started;
     }
 }
