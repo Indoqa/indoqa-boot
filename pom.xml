@@ -26,7 +26,7 @@
     <version>5</version>
   </parent>
   <artifactId>indoqa-boot</artifactId>
-  <version>0.10.1-SNAPSHOT</version>
+  <version>0.9.1-SNAPSHOT</version>
 
   <name>Indoqa Boot</name>
   <url>https://github.com/indoqa/indoqa-boot</url>
