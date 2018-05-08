@@ -22,6 +22,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.*;
 import static javax.servlet.http.HttpServletResponse.*;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -32,11 +33,14 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.indoqa.boot.actuate.health.Health;
 import com.indoqa.boot.actuate.health.HealthIndicator;
+import org.slf4j.Logger;
 
 import spark.Response;
 import spark.Spark;
 
 public class HealthResources extends AbstractAdminResources {
+
+    private static final Logger LOGGER = getLogger(HealthResources.class);
 
     private static final String PATH_HEALTH = "/health";
     private static final int RELOAD_INTERVAL = 5;
@@ -68,7 +72,7 @@ public class HealthResources extends AbstractAdminResources {
 
     @PostConstruct
     public void enableReloadHealthStatusTask() {
-        new Timer().scheduleAtFixedRate(new HealthCheckerTask(), 0, SECONDS.toMillis(RELOAD_INTERVAL));
+        new Timer().schedule(new HealthCheckerTask(), 0, SECONDS.toMillis(RELOAD_INTERVAL));
     }
 
     private void setHealthHttpStatus(Response res) {
@@ -142,7 +146,11 @@ public class HealthResources extends AbstractAdminResources {
 
         @Override
         public void run() {
-            resetHealthStatus();
+            try {
+                resetHealthStatus();
+            } catch (Exception e) {
+                LOGGER.error("Error while resetting the health status.", e);
+            }
         }
     }
 }
