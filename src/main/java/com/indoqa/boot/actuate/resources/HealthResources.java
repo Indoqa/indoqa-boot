@@ -81,6 +81,7 @@ public class HealthResources extends AbstractAdminResources {
 
     private String sendHeadHealthCheckResult(Response res) {
         setHealthHttpStatus(res);
+        res.header("Indoqa-Boot-Health", Boolean.toString(this.allUp));
         return EMPTY;
     }
 
