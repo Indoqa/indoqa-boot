@@ -43,8 +43,8 @@ public abstract class AbstractSparkService {
     private static final String DEFAULT_ADMIN_PORT = "34567";
 
     private static final int SHUTDOWN_REQUEST_TIMEOUT = 250;
-    private static final int SHUTDOWN_CHECK_RETRY_INTERVAL = 50;
-    private static final int SHUTDOWN_EXECUTION_TIMEOUT = 500;
+    private static final int SHUTDOWN_CHECK_RETRY_INTERVAL = 100;
+    private static final int SHUTDOWN_EXECUTION_TIMEOUT = 1500;
 
     @Inject
     protected Environment environment;
@@ -106,10 +106,7 @@ public abstract class AbstractSparkService {
 
         // check if the other application was shut down, otherwise stop the initialization process here
         long runUntil = currentTimeMillis() + SHUTDOWN_EXECUTION_TIMEOUT;
-        while (true) {
-            if (isPortAvailable(checkPort)) {
-                break;
-            }
+        while (!isPortAvailable(checkPort)) {
 
             sleep(SHUTDOWN_CHECK_RETRY_INTERVAL);
 
