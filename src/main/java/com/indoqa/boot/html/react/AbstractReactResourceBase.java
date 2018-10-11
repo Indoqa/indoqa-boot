@@ -18,22 +18,31 @@ package com.indoqa.boot.html.react;
 
 import static com.indoqa.boot.html.react.WebpackAssetsUtils.*;
 import static java.util.concurrent.TimeUnit.DAYS;
+import static org.apache.commons.lang3.StringUtils.isNumeric;
 import static org.slf4j.LoggerFactory.getLogger;
 import static spark.Spark.*;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 
-import org.slf4j.Logger;
-import org.springframework.core.env.Environment;
-
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.html.resources.AbstractHtmlResourcesBase;
 import com.indoqa.boot.html.resources.HtmlResponseModifier;
 import com.indoqa.boot.profile.ProfileDetector;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.springframework.core.env.Environment;
 
 import spark.Spark;
 
@@ -44,6 +53,8 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
 
     private static final Logger LOGGER = getLogger(AbstractReactResourceBase.class);
     private static final long EXPIRE_TIME = DAYS.toSeconds(1000);
+    private static final JsonFactory JSON_FACTORY = new JsonFactory();
+    private static final String NAME_ASSET_MANIFEST_JSON = "asset-manifest.json";
 
     @Inject
     private Environment environment;
@@ -61,7 +72,8 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
             throw new ApplicationInitializationException(
                 "The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " is not readable.");
         }
-        if (fileSystemLocationPath.toFile().list().length == 0) {
+        String[] files = fileSystemLocationPath.toFile().list();
+        if (files == null || files.length == 0) {
             LOGGER.error("The fileSystemLocation " + fileSystemLocationPath.toAbsolutePath() + " does not contain any resources.");
             return false;
         }
@@ -74,26 +86,121 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
 
         staticFileLocation(classPathLocation);
 
-        findWebpackAssetsInClasspath(mountPath, classPathLocation, htmlBuilder::setMainCssPath, htmlBuilder::setMainJavascriptPath);
+        if (StringUtils.isBlank(classPathLocation)) {
+            throw new ApplicationInitializationException("The classpath location is empty or null.");
+        }
+
+        String assetManifestPath = classPathLocation.substring(1) + "/" + NAME_ASSET_MANIFEST_JSON;
+        URL assetManifestUrl = AbstractReactResourceBase.class.getClassLoader().getResource(assetManifestPath);
+        if (assetManifestUrl != null) {
+            LOGGER.info("Found asset manifest in the classpath: {}", assetManifestPath);
+            findWebpackAssetsByManifest(htmlBuilder, assetManifestUrl);
+        }
+        else {
+            LOGGER.warn("There is no asset manifest in the classpath. Falling back to classpath detection.");
+            findWebpackAssetsInClasspath(mountPath,
+                classPathLocation,
+                htmlBuilder::setMainCssPath,
+                htmlBuilder::setMainJavascriptPath
+            );
+        }
+    }
+
+    private static void findWebpackAssetsByManifest(ReactHtmlBuilder htmlBuilder, URL assetManifestUrl) {
+        try (InputStream assetManifest = assetManifestUrl.openStream()) {
+            try (JsonParser jp = JSON_FACTORY.createParser(assetManifest)) {
+                Map<String, String> artifacts = getArtifacts(jp);
+                if (artifacts.isEmpty()) {
+                    throw new ApplicationInitializationException("The asset manifest in {} is empty: " + assetManifestUrl.getPath());
+                }
+                findMainJavascriptAsset(htmlBuilder, artifacts);
+                findMainCSSAsset(htmlBuilder, artifacts);
+            }
+        } catch (IOException ioe) {
+            throw new ApplicationInitializationException("Error while reading the " + NAME_ASSET_MANIFEST_JSON + ".", ioe);
+        }
+    }
+
+    private static void findMainJavascriptAsset(ReactHtmlBuilder htmlBuilder, Map<String, String> artifacts) {
+        artifacts
+            .keySet()
+            .stream()
+            .filter(artifactName -> artifactName.length() > 0)
+            .filter(artifactName -> !isNumeric(artifactName.substring(0, 1)))
+            .filter(artifactName -> !artifactName.startsWith("vendors"))
+            .filter(artifactName -> !artifactName.startsWith("~runtime"))
+            .filter(artifactName -> artifactName.endsWith(".js"))
+            .findFirst()
+            .ifPresent(artifactKey -> {
+                String artifactPath = artifacts.get(artifactKey);
+                LOGGER.info("Found root javascript entry: {}:{}", artifactKey, artifactPath);
+                htmlBuilder.setMainJavascriptPath(artifactPath);
+            });
+    }
+
+    private static void findMainCSSAsset(ReactHtmlBuilder htmlBuilder, Map<String, String> artifacts) {
+        artifacts
+            .keySet()
+            .stream()
+            .filter(artifactName -> artifactName.length() > 0)
+            .filter(artifactName -> !isNumeric(artifactName.substring(0, 1)))
+            .filter(artifactName -> artifactName.endsWith(".css"))
+            .findFirst()
+            .ifPresent(artifactKey -> {
+                String artifactPath = artifacts.get(artifactKey);
+                LOGGER.info("Found root CSS entry: {}:{}", artifactKey, artifactPath);
+                htmlBuilder.setMainCssPath(artifactPath);
+            });
     }
 
     private static void configureFileSystemAssets(String mountPath, String fileSystemLocation, ReactHtmlBuilder htmlBuilder) {
         String assetsFolder = getAssetsFolder(fileSystemLocation, mountPath);
-        boolean localResourcesAvailable = checkFileSystemLocation(Paths.get(assetsFolder));
+        Path assetsFolderPath = Paths.get(assetsFolder);
+        boolean localResourcesAvailable = checkFileSystemLocation(assetsFolderPath);
 
         if (!localResourcesAvailable) {
             return;
         }
 
         externalStaticFileLocation(fileSystemLocation);
-        findWebpackAssetsInFilesystem(
-            assetsFolder,
-            fileSystemLocation,
-            htmlBuilder::setMainCssPath,
-            htmlBuilder::setMainJavascriptPath);
+
+        Path assetManifestPath = assetsFolderPath.getParent().resolve(NAME_ASSET_MANIFEST_JSON);
+        if (Files.exists(assetManifestPath)) {
+            LOGGER.info("Found asset manifest in the filesystem: {}", assetManifestPath);
+            findWebpackAssetsByManifest(htmlBuilder, toUrl(assetManifestPath));
+        }
+        else {
+            LOGGER.warn("There is no asset manifest in the filesystem at {}. Falling back to filesystem search.", assetManifestPath);
+            findWebpackAssetsInFilesystem(assetsFolder,
+                fileSystemLocation,
+                htmlBuilder::setMainCssPath,
+                htmlBuilder::setMainJavascriptPath
+            );
+        }
     }
 
-    protected void configureHtmlBuilder(@SuppressWarnings("unused") ReactHtmlBuilder reactHtmlBuilder) {
+    private static URL toUrl(Path assetManifestPath) {
+        try {
+            return assetManifestPath.toUri().toURL();
+        } catch (MalformedURLException e) {
+            throw new ApplicationInitializationException("Error while translating the path " + assetManifestPath + " to an URL.");
+        }
+    }
+
+    private static Map<String, String> getArtifacts(JsonParser jp) throws IOException {
+        if (jp.nextToken() != JsonToken.START_OBJECT) {
+            throw new IOException("Expected data to start with an Object");
+        }
+        Map<String, String> artifacts = new ConcurrentHashMap<>();
+        while (jp.nextToken() != JsonToken.END_OBJECT) {
+            String fieldName = jp.getCurrentName();
+            jp.nextToken();
+            artifacts.put(fieldName, jp.getValueAsString());
+        }
+        return artifacts;
+    }
+
+    protected void configureHtmlBuilder(ReactHtmlBuilder reactHtmlBuilder) {
         // default does nothing
     }
 
@@ -110,7 +217,8 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
 
         if (ProfileDetector.isDev(this.environment)) {
             configureFileSystemAssets(mountPath, fileSystemLocation, htmlBuilder);
-        } else {
+        }
+        else {
             configureClasspathAssets(mountPath, classPathLocation, htmlBuilder);
         }
 
