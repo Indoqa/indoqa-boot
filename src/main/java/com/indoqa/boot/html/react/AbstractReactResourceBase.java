@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 
@@ -122,7 +123,7 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
     }
 
     private static void findMainJavascriptAsset(ReactHtmlBuilder htmlBuilder, Map<String, String> artifacts) {
-        artifacts
+        Optional<String> rootJavascriptArtifactKey = artifacts
             .keySet()
             .stream()
             .filter(artifactName -> artifactName.length() > 0)
@@ -130,27 +131,35 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
             .filter(artifactName -> !artifactName.startsWith("vendors"))
             .filter(artifactName -> !artifactName.startsWith("~runtime"))
             .filter(artifactName -> artifactName.endsWith(".js"))
-            .findFirst()
-            .ifPresent(artifactKey -> {
-                String artifactPath = artifacts.get(artifactKey);
-                LOGGER.info("Found root javascript entry: {}:{}", artifactKey, artifactPath);
-                htmlBuilder.setMainJavascriptPath(artifactPath);
-            });
+            .findFirst();
+
+        if (rootJavascriptArtifactKey.isPresent()) {
+            String path = artifacts.get(rootJavascriptArtifactKey.get());
+            htmlBuilder.setMainJavascriptPath(path);
+            LOGGER.info("Found root javascript entry: {}:{}", rootJavascriptArtifactKey, path);
+        }
+        else {
+            throw new ApplicationInitializationException("Did not find a suitable root Javascript file in the asset manifest.");
+        }
     }
 
     private static void findMainCSSAsset(ReactHtmlBuilder htmlBuilder, Map<String, String> artifacts) {
-        artifacts
+        Optional<String> rootCssArtifactKey = artifacts
             .keySet()
             .stream()
             .filter(artifactName -> artifactName.length() > 0)
             .filter(artifactName -> !isNumeric(artifactName.substring(0, 1)))
             .filter(artifactName -> artifactName.endsWith(".css"))
-            .findFirst()
-            .ifPresent(artifactKey -> {
-                String artifactPath = artifacts.get(artifactKey);
-                LOGGER.info("Found root CSS entry: {}:{}", artifactKey, artifactPath);
-                htmlBuilder.setMainCssPath(artifactPath);
-            });
+            .findFirst();
+
+        if (rootCssArtifactKey.isPresent()) {
+            String path = artifacts.get(rootCssArtifactKey.get());
+            htmlBuilder.setMainJavascriptPath(path);
+            LOGGER.info("Found root CSS entry: {}:{}", rootCssArtifactKey, path);
+        }
+        else {
+            LOGGER.info("Did not find a suitable root CSS file in the asset manifest.");
+        }
     }
 
     private static void configureFileSystemAssets(String mountPath, String fileSystemLocation, ReactHtmlBuilder htmlBuilder) {
