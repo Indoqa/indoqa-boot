@@ -99,6 +99,7 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
         }
         else {
             LOGGER.warn("There is no asset manifest in the classpath. Falling back to classpath detection.");
+            LOGGER.warn("The classpath scan for asset manifests is DEPRECATED and will be removed in  v0.13.0");
             findWebpackAssetsInClasspath(mountPath,
                 classPathLocation,
                 htmlBuilder::setMainCssPath,
