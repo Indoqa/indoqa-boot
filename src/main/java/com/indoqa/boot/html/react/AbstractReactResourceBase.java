@@ -16,7 +16,7 @@
  */
 package com.indoqa.boot.html.react;
 
-import static com.indoqa.boot.html.react.WebpackAssetsUtils.*;
+import static com.indoqa.boot.html.react.WebpackAssetsUtils.getAssetsFolder;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static org.apache.commons.lang3.StringUtils.isNumeric;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -29,9 +29,11 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -82,14 +84,13 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
         return true;
     }
 
-    private static void configureClasspathAssets(String mountPath, String classPathLocation, ReactHtmlBuilder htmlBuilder) {
-        Spark.staticFiles.expireTime(EXPIRE_TIME);
-
-        staticFileLocation(classPathLocation);
-
+    private static void configureClasspathAssets(String classPathLocation, ReactHtmlBuilder htmlBuilder) {
         if (StringUtils.isBlank(classPathLocation)) {
             throw new ApplicationInitializationException("The classpath location is empty or null.");
         }
+
+        Spark.staticFiles.expireTime(EXPIRE_TIME);
+        staticFileLocation(classPathLocation);
 
         String assetManifestPath = classPathLocation.substring(1) + "/" + NAME_ASSET_MANIFEST_JSON;
         URL assetManifestUrl = AbstractReactResourceBase.class.getClassLoader().getResource(assetManifestPath);
@@ -98,13 +99,7 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
             findWebpackAssetsByManifest(htmlBuilder, assetManifestUrl);
         }
         else {
-            LOGGER.warn("There is no asset manifest in the classpath. Falling back to classpath detection.");
-            LOGGER.warn("The classpath scan for asset manifests is DEPRECATED and will be removed in  v0.13.0");
-            findWebpackAssetsInClasspath(mountPath,
-                classPathLocation,
-                htmlBuilder::setMainCssPath,
-                htmlBuilder::setMainJavascriptPath
-            );
+            LOGGER.warn("There is no asset manifest in the classpath.");
         }
     }
 
@@ -115,7 +110,7 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
                 if (artifacts.isEmpty()) {
                     throw new ApplicationInitializationException("The asset manifest in {} is empty: " + assetManifestUrl.getPath());
                 }
-                findMainJavascriptAsset(htmlBuilder, artifacts);
+                findJavascriptAsset(htmlBuilder, artifacts);
                 findMainCSSAsset(htmlBuilder, artifacts);
             }
         } catch (IOException ioe) {
@@ -123,25 +118,30 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
         }
     }
 
-    private static void findMainJavascriptAsset(ReactHtmlBuilder htmlBuilder, Map<String, String> artifacts) {
-        Optional<String> rootJavascriptArtifactKey = artifacts
+    private static void findJavascriptAsset(ReactHtmlBuilder htmlBuilder, Map<String, String> artifacts) {
+        List<String> javascriptPaths = artifacts
             .keySet()
             .stream()
             .filter(artifactName -> artifactName.length() > 0)
-            .filter(artifactName -> !isNumeric(artifactName.substring(0, 1)))
-            .filter(artifactName -> !artifactName.startsWith("vendors"))
-            .filter(artifactName -> !artifactName.startsWith("~runtime"))
             .filter(artifactName -> artifactName.endsWith(".js"))
-            .findFirst();
+            .filter(artifactName -> !isNumeric(artifactName.substring(0, 1)))
+            .sorted(AbstractReactResourceBase::sortArtifacts)
+            .map(artifacts::get)
+            .collect(Collectors.toList());
 
-        if (rootJavascriptArtifactKey.isPresent()) {
-            String path = artifacts.get(rootJavascriptArtifactKey.get());
-            htmlBuilder.setMainJavascriptPath(path);
-            LOGGER.info("Found root javascript entry: {}:{}", rootJavascriptArtifactKey, path);
+        if (!javascriptPaths.isEmpty()) {
+            htmlBuilder.setMainJavascriptPaths(javascriptPaths);
+            LOGGER.info("Found javascript paths: {}", javascriptPaths);
         }
         else {
             throw new ApplicationInitializationException("Did not find a suitable root Javascript file in the asset manifest.");
         }
+    }
+
+    private static int sortArtifacts(String name1, String name2) {
+        Artifact artifact1 = Artifact.create(name1);
+        Artifact artifact2 = Artifact.create(name2);
+        return artifact1.compareTo(artifact2);
     }
 
     private static void findMainCSSAsset(ReactHtmlBuilder htmlBuilder, Map<String, String> artifacts) {
@@ -155,7 +155,7 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
 
         if (rootCssArtifactKey.isPresent()) {
             String path = artifacts.get(rootCssArtifactKey.get());
-            htmlBuilder.setMainJavascriptPath(path);
+            htmlBuilder.setMainCssPath(path);
             LOGGER.info("Found root CSS entry: {}:{}", rootCssArtifactKey, path);
         }
         else {
@@ -180,12 +180,7 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
             findWebpackAssetsByManifest(htmlBuilder, toUrl(assetManifestPath));
         }
         else {
-            LOGGER.warn("There is no asset manifest in the filesystem at {}. Falling back to filesystem search.", assetManifestPath);
-            findWebpackAssetsInFilesystem(assetsFolder,
-                fileSystemLocation,
-                htmlBuilder::setMainCssPath,
-                htmlBuilder::setMainJavascriptPath
-            );
+            LOGGER.warn("There is no asset manifest in the filesystem at {}.", assetManifestPath);
         }
     }
 
@@ -229,11 +224,28 @@ public abstract class AbstractReactResourceBase extends AbstractHtmlResourcesBas
             configureFileSystemAssets(mountPath, fileSystemLocation, htmlBuilder);
         }
         else {
-            configureClasspathAssets(mountPath, classPathLocation, htmlBuilder);
+            configureClasspathAssets(classPathLocation, htmlBuilder);
         }
 
         this.configureHtmlBuilder(htmlBuilder);
 
         this.html(mountPath + "/*", htmlBuilder, responseModifier);
+    }
+
+    private enum Artifact {
+
+        RUNTIME,
+        VENDORS,
+        APP;
+
+        static Artifact create(String name) {
+            if (name.startsWith("runtime~")) {
+                return RUNTIME;
+            }
+            if (name.startsWith("vendors.js")) {
+                return VENDORS;
+            }
+            return APP;
+        }
     }
 }

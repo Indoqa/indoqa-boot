@@ -19,13 +19,13 @@ package com.indoqa.boot.html.react;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import java.util.*;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang3.StringUtils;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import com.indoqa.boot.html.builder.HtmlBuilder;
 import com.indoqa.boot.json.transformer.HtmlEscapingAwareJsonTransformer;
+import org.apache.commons.lang3.StringUtils;
 
 import spark.Request;
 
@@ -38,21 +38,16 @@ public class ReactHtmlBuilder implements HtmlBuilder {
     private static final String CONTENT_TYPE_HTML = "text/html; charset=utf-8";
     private static final String EMPTY_INITIAL_STATE = "{}";
 
-    private String mainCssPath;
-    private String mainJavascriptPath;
-    private String rootElementId = "app";
+    private final List<HtmlBuilder> headHtml = new ArrayList<>();
+    private final List<HtmlBuilder> postAppHtml = new ArrayList<>();
+    private final List<HtmlBuilder> preAppHtml = new ArrayList<>();
 
+    private String mainCssPath;
+    private List<String> javascriptPaths;
+
+    private String rootElementId = "app";
     private InitialStateProvider initialStateProvider = req -> null;
     private HtmlEscapingAwareJsonTransformer jsonTransformer;
-    private Map<String, String> proxyUrlMappings = new HashMap<>();
-
-    private List<HtmlBuilder> headHtml = new ArrayList<>();
-    private List<HtmlBuilder> postAppHtml = new ArrayList<>();
-    private List<HtmlBuilder> preAppHtml = new ArrayList<>();
-
-    public ReactHtmlBuilder() {
-        this.initialStateProvider = req -> null;
-    }
 
     private static CharSequence createCssLink(String cssPath) {
         if (StringUtils.isBlank(cssPath)) {
@@ -101,18 +96,13 @@ public class ReactHtmlBuilder implements HtmlBuilder {
             .append("<script>window.__INITIAL_STATE__ = ")
             .append(this.createInitialStateJson(request))
             .append(";</script>")
-            .append("<script>")
-            .append(this.createProxyMappingScript())
-            .append(";</script>")
-            .append("<script src=\"")
-            .append(this.mainJavascriptPath)
-            .append("\"></script>")
+            .append(this.createJavascriptReferences())
             .append("</body></html>")
             .toString();
     }
 
     public ReactHtmlBuilder initialStateProvider(InitialStateProvider initialStateProvider,
-            HtmlEscapingAwareJsonTransformer jsonTransformer) {
+        HtmlEscapingAwareJsonTransformer jsonTransformer) {
         this.initialStateProvider = initialStateProvider;
         this.jsonTransformer = jsonTransformer;
         return this;
@@ -123,14 +113,24 @@ public class ReactHtmlBuilder implements HtmlBuilder {
         return this;
     }
 
-    public ReactHtmlBuilder setMainCssPath(String mainCssPath) {
+    ReactHtmlBuilder setMainCssPath(String mainCssPath) {
         this.mainCssPath = mainCssPath;
         return this;
     }
 
-    public ReactHtmlBuilder setMainJavascriptPath(String mainJavascriptPath) {
-        this.mainJavascriptPath = mainJavascriptPath;
+    ReactHtmlBuilder setMainJavascriptPaths(List<String> javascriptPaths) {
+        this.javascriptPaths = javascriptPaths;
         return this;
+    }
+
+    private StringBuilder createJavascriptReferences() {
+        StringBuilder javascriptReferences = new StringBuilder();
+        for (String eachJavascriptPath : this.javascriptPaths) {
+            javascriptReferences.append("<script src=\"");
+            javascriptReferences.append(eachJavascriptPath);
+            javascriptReferences.append("\"></script>");
+        }
+        return javascriptReferences;
     }
 
     private String createInitialStateJson(Request request) {
@@ -143,25 +143,5 @@ public class ReactHtmlBuilder implements HtmlBuilder {
             }
         }
         return initialStateJson;
-    }
-
-    private String createProxyMappingEntryScript(Entry<String, String> entry) {
-        return new StringBuilder()
-            .append("window.")
-            .append(entry.getKey())
-            .append(" = ")
-            .append("'")
-            .append(entry.getValue())
-            .append("'")
-            .append(";")
-            .toString();
-    }
-
-    private String createProxyMappingScript() {
-        if (this.proxyUrlMappings == null) {
-            return "";
-        }
-
-        return this.proxyUrlMappings.entrySet().stream().map(this::createProxyMappingEntryScript).collect(joining("\n"));
     }
 }
