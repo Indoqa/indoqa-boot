@@ -30,6 +30,9 @@ import spark.utils.MimeParse;
  */
 public abstract class AbstractHtmlResourcesBase {
 
+    private static final String RESPONSE_HEADER_ACCEPT = "Accept";
+    private static final String RESPONSE_HEADER_CACHE_CONTROL = "Cache-Control";
+    private static final String RESPONSE_HEADER_EXPIRES = "Expires";
     private static final String CONTENT_TYPE_HTML = "text/html; charset=utf-8";
     private static final Set<String> ACCEPTED_TYPES = Collections.singleton("text/html");
 
@@ -43,7 +46,7 @@ public abstract class AbstractHtmlResourcesBase {
                 return;
             }
 
-            String acceptHeader = req.headers("Accept");
+            String acceptHeader = req.headers(RESPONSE_HEADER_ACCEPT);
             if (acceptHeader == null) {
                 return;
             }
@@ -52,6 +55,9 @@ public abstract class AbstractHtmlResourcesBase {
             if (bestMatch.equals(MimeParse.NO_MIME_TYPE)) {
                 return;
             }
+
+            res.header(RESPONSE_HEADER_CACHE_CONTROL, "no-store, must-revalidate");
+            res.header(RESPONSE_HEADER_EXPIRES, "0");
 
             if (responseModifier != null) {
                 responseModifier.modify(req, res);
