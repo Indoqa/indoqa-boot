@@ -124,13 +124,16 @@ public class ReactHtmlBuilder implements HtmlBuilder {
     }
 
     private StringBuilder createJavascriptReferences() {
-        StringBuilder javascriptReferences = new StringBuilder();
-        for (String eachJavascriptPath : this.javascriptPaths) {
-            javascriptReferences.append("<script src=\"");
-            javascriptReferences.append(eachJavascriptPath);
-            javascriptReferences.append("\"></script>");
+        StringBuilder javascriptReferencesBuilder = new StringBuilder();
+        if (this.javascriptPaths == null) {
+            return javascriptReferencesBuilder;
         }
-        return javascriptReferences;
+        for (String eachJavascriptPath : this.javascriptPaths) {
+            javascriptReferencesBuilder.append("<script src=\"");
+            javascriptReferencesBuilder.append(eachJavascriptPath);
+            javascriptReferencesBuilder.append("\"></script>");
+        }
+        return javascriptReferencesBuilder;
     }
 
     private String createInitialStateJson(Request request) {
