@@ -12,6 +12,9 @@ mvn archetype:generate \
   -DarchetypeVersion=0.11.0.1
 ```
 
+## Changelog
+[Learn about the lastest improvements](./CHANGELOG.md)
+
 ## Motivation and history
 
 In 2015 [Indoqa](https://www.indoqa.com) started to look for alternatives to traditional Java web application frameworks like JSF, Apache Wicket or Vaadin. During this journey we decided to give up Java for building web frontends and switch to Javascript. This had brought us to the question how we wanted to implement the frontend-backend application. One alternative would have been to use node.js for the frontend-backend implementation but in our opinion the Java platform is still years ahead in terms of stability and available libraries and tools for the development of server side applications.
