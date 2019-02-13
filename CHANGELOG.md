@@ -1,13 +1,14 @@
 # v0.12.0 | TBD
 * fix npe if there are no javascript assets
 * fully support webpack code splitting
-* remove classpath scanning for webpack assets
+* remove classpath scanning for webpack assets completely
 
 # v0.11.0 | 2018-10-12
-* use asset-manifest.json if avaiable (to avoid classpath scanning operations
+* use asset-manifest.json if available (to avoid classpath scanning operations
 * set response header 'Indoqa-Boot-Health' with the result of the health check
 * increase shutdown check period
-* HealthCheckResources: catch exceptions in timeThread; no fixedRate scheduling
+* HealthCheckResources: catch exceptions in timeThread;
+* HealthCheckResources: no fixedRate scheduling
 
 # v0.10.0 | 2018-04-19
 * Java9 support
@@ -22,9 +23,9 @@
 * support heap dumps (via admin port)
 * support thread dumps (via admin port)
 * error mapping
-* expose git.properties if avaible as system-ifno
+* expose git.properties if available as system-info
 * remove spring-web dependency
-* add HtmlResponseModifier to optionally modiy html response headers
+* add HtmlResponseModifier to optionally modify html response headers
 * use HtmlBuilder to create snippets in frontend resource
 
 # v0.8.0 | 2017-06-22
