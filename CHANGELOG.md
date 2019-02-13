@@ -1,4 +1,4 @@
-# v0.12.0 | TBD
+# v0.12.0 | 2019-02-13
 * fix npe if there are no javascript assets
 * fully support webpack code splitting
 * remove classpath scanning for webpack assets completely
