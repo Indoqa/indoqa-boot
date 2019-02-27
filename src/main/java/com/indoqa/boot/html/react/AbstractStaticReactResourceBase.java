@@ -16,14 +16,22 @@
  */
 package com.indoqa.boot.html.react;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import javax.inject.Inject;
 
+import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.html.resources.AbstractHtmlResourcesBase;
 import com.indoqa.boot.profile.ProfileDetector;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.springframework.core.env.Environment;
 
 import spark.Request;
@@ -35,6 +43,8 @@ import spark.staticfiles.StaticFilesConfiguration;
  * Use this base implementation for STATIC React/Redux single-page applications that are build by e.g. CreateReactApp.
  */
 public abstract class AbstractStaticReactResourceBase extends AbstractHtmlResourcesBase {
+
+    private static final Logger LOGGER = getLogger(AbstractStaticReactResourceBase.class);
 
     private static final String RESPONSE_HEADER_CACHE_CONTROL = "Cache-Control";
     private static final String RESPONSE_HEADER_EXPIRES = "Expires";
@@ -70,8 +80,18 @@ public abstract class AbstractStaticReactResourceBase extends AbstractHtmlResour
         }
     }
 
+    private static void sendIndexHtml(String indexHtml, Response response) {
+        response.body(indexHtml);
+        response.header("Content-Type", "text/html; charset=utf-8");
+    }
+
+    /*
+     * TODO response modifier
+     * TODO initial state
+     */
     protected void html(String classPathLocation, String fileSystemLocation) {
         StaticFilesConfiguration staticHandler = new StaticFilesConfiguration();
+        final String indexHtml = readIndexHtml(classPathLocation, fileSystemLocation);
 
         if (ProfileDetector.isDev(this.environment)) {
             staticHandler.configureExternal(fileSystemLocation);
@@ -81,8 +101,52 @@ public abstract class AbstractStaticReactResourceBase extends AbstractHtmlResour
         }
 
         Spark.after((request, response) -> {
+            // always set expiry headers
             setExpiryHeaders(request, response);
-            staticHandler.consume(request.raw(), response.raw());
+
+            // if some Spark resource has already produced a result, stop here
+            if (StringUtils.isNotEmpty(request.body())) {
+                return;
+            }
+
+            String pathInfo = request.pathInfo();
+
+            // request to the root path
+            if ("/".equals(pathInfo)) {
+                sendIndexHtml(indexHtml, response);
+            }
+
+            // look for static resources
+            boolean staticResourceSent = staticHandler.consume(request.raw(), response.raw());
+
+            // otherwise send the index.html
+            if (!staticResourceSent) {
+                sendIndexHtml(indexHtml, response);
+            }
         });
+    }
+
+    private String readIndexHtml(String classPathLocation, String fileSystemLocation) {
+        if (ProfileDetector.isDev(this.environment)) {
+            File filesystemIndexHtml = new File(fileSystemLocation, "index.html");
+
+            if (!filesystemIndexHtml.exists()) {
+                LOGGER.warn("There was no index.html found: " + filesystemIndexHtml.getAbsolutePath());
+                return "<html><head><title>Error: index.html missing</title></head><body>Error: index.html missing</body></html>";
+            }
+
+            try {
+                return FileUtils.readFileToString(filesystemIndexHtml, UTF_8);
+            } catch (IOException e) {
+                throw new ApplicationInitializationException(
+                    "Error while reading index.html from the file system: " + filesystemIndexHtml.getAbsolutePath());
+            }
+        }
+        String classpathIndexHtml = classPathLocation + "/index.html";
+        try {
+            return IOUtils.toString(this.getClass().getResourceAsStream(classpathIndexHtml), UTF_8);
+        } catch (IOException e) {
+            throw new ApplicationInitializationException("Error while reading index.html from classpath: " + classpathIndexHtml);
+        }
     }
 }
