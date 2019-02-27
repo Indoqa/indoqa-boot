@@ -16,22 +16,17 @@
  */
 package com.indoqa.boot.html.react;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.*;
-import static org.slf4j.LoggerFactory.getLogger;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import javax.inject.Inject;
 
-import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.html.resources.AbstractHtmlResourcesBase;
+import com.indoqa.boot.html.resources.HtmlResponseModifier;
+import com.indoqa.boot.json.transformer.HtmlEscapingAwareJsonTransformer;
+import com.indoqa.boot.json.transformer.HtmlEscapingJacksonTransformer;
 import com.indoqa.boot.profile.ProfileDetector;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.springframework.core.env.Environment;
 
 import spark.Request;
@@ -40,11 +35,9 @@ import spark.Spark;
 import spark.staticfiles.StaticFilesConfiguration;
 
 /**
- * Use this base implementation for STATIC React/Redux single-page applications that are build by e.g. CreateReactApp.
+ * Use this base implementation for React/Redux single-page applications that are build with CreateReactApp.
  */
-public abstract class AbstractStaticReactResourceBase extends AbstractHtmlResourcesBase {
-
-    private static final Logger LOGGER = getLogger(AbstractStaticReactResourceBase.class);
+public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlResourcesBase {
 
     private static final String RESPONSE_HEADER_CACHE_CONTROL = "Cache-Control";
     private static final String RESPONSE_HEADER_EXPIRES = "Expires";
@@ -54,6 +47,7 @@ public abstract class AbstractStaticReactResourceBase extends AbstractHtmlResour
 
     private static final long SHORT_EXPIRY_TIME_SECONDS = HOURS.toSeconds(1);
     private static final long SHORT_EXPIRE_TIME_MS = SHORT_EXPIRY_TIME_SECONDS * 1000;
+    private static final HtmlEscapingAwareJsonTransformer TRANSFORMER = new HtmlEscapingJacksonTransformer();
 
     @Inject
     private Environment environment;
@@ -80,25 +74,42 @@ public abstract class AbstractStaticReactResourceBase extends AbstractHtmlResour
         }
     }
 
-    private static void sendIndexHtml(String indexHtml, Response response) {
-        response.body(indexHtml);
+    private static void sendIndexHtml(Request request, Response response, IndexHtmlBuilder indexHtmlBuilder,
+        InitialStateProvider initialStateProvider, HtmlResponseModifier responseModifier) {
+        response.body(indexHtmlBuilder.html(request, initialStateProvider));
         response.header("Content-Type", "text/html; charset=utf-8");
+        responseModifier.modify(request, response);
     }
 
-    /*
-     * TODO response modifier
-     * TODO initial state
-     */
-    protected void html(String classPathLocation, String fileSystemLocation) {
+    private static StaticFilesConfiguration createStaticHandler(String classPathLocation, String fileSystemLocation, boolean isDev) {
         StaticFilesConfiguration staticHandler = new StaticFilesConfiguration();
-        final String indexHtml = readIndexHtml(classPathLocation, fileSystemLocation);
-
-        if (ProfileDetector.isDev(this.environment)) {
+        if (isDev) {
             staticHandler.configureExternal(fileSystemLocation);
         }
         else {
             staticHandler.configure(classPathLocation);
         }
+        return staticHandler;
+    }
+
+    protected void html(String classPathLocation, String fileSystemLocation) {
+        this.html(classPathLocation, fileSystemLocation, null);
+    }
+
+    protected void html(String classPathLocation, String fileSystemLocation, InitialStateProvider initialStateProvider) {
+        this.html(classPathLocation, fileSystemLocation, initialStateProvider, null);
+    }
+
+    protected void html(String classPathLocation, String fileSystemLocation, InitialStateProvider initialStateProvider,
+        HtmlResponseModifier responseModifier) {
+        this.html(classPathLocation, fileSystemLocation, initialStateProvider, responseModifier, TRANSFORMER);
+    }
+
+    protected void html(String classPathLocation, String fileSystemLocation, InitialStateProvider initialStateProvider,
+        HtmlResponseModifier responseModifier, HtmlEscapingAwareJsonTransformer transformer) {
+        boolean isDev = ProfileDetector.isDev(this.environment);
+        IndexHtmlBuilder indexHtmlBuilder = new IndexHtmlBuilder(classPathLocation, fileSystemLocation, transformer, isDev);
+        StaticFilesConfiguration staticHandler = createStaticHandler(classPathLocation, fileSystemLocation, isDev);
 
         Spark.after((request, response) -> {
             // always set expiry headers
@@ -113,7 +124,7 @@ public abstract class AbstractStaticReactResourceBase extends AbstractHtmlResour
 
             // request to the root path
             if ("/".equals(pathInfo)) {
-                sendIndexHtml(indexHtml, response);
+                sendIndexHtml(request, response, indexHtmlBuilder, initialStateProvider, responseModifier);
             }
 
             // look for static resources
@@ -121,32 +132,8 @@ public abstract class AbstractStaticReactResourceBase extends AbstractHtmlResour
 
             // otherwise send the index.html
             if (!staticResourceSent) {
-                sendIndexHtml(indexHtml, response);
+                sendIndexHtml(request, response, indexHtmlBuilder, initialStateProvider, responseModifier);
             }
         });
-    }
-
-    private String readIndexHtml(String classPathLocation, String fileSystemLocation) {
-        if (ProfileDetector.isDev(this.environment)) {
-            File filesystemIndexHtml = new File(fileSystemLocation, "index.html");
-
-            if (!filesystemIndexHtml.exists()) {
-                LOGGER.warn("There was no index.html found: " + filesystemIndexHtml.getAbsolutePath());
-                return "<html><head><title>Error: index.html missing</title></head><body>Error: index.html missing</body></html>";
-            }
-
-            try {
-                return FileUtils.readFileToString(filesystemIndexHtml, UTF_8);
-            } catch (IOException e) {
-                throw new ApplicationInitializationException(
-                    "Error while reading index.html from the file system: " + filesystemIndexHtml.getAbsolutePath());
-            }
-        }
-        String classpathIndexHtml = classPathLocation + "/index.html";
-        try {
-            return IOUtils.toString(this.getClass().getResourceAsStream(classpathIndexHtml), UTF_8);
-        } catch (IOException e) {
-            throw new ApplicationInitializationException("Error while reading index.html from classpath: " + classpathIndexHtml);
-        }
     }
 }
