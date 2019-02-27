@@ -39,7 +39,7 @@ import spark.staticfiles.StaticFilesConfiguration;
  */
 public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlResourcesBase {
 
-    public static final String RESPONSE_HEADER_CONTENT_TYPE = "Content-Type";
+    private static final String RESPONSE_HEADER_CONTENT_TYPE = "Content-Type";
     private static final String RESPONSE_HEADER_CACHE_CONTROL = "Cache-Control";
     private static final String RESPONSE_HEADER_EXPIRES = "Expires";
     private static final long LONG_EXPIRY_TIME_SECONDS = DAYS.toSeconds(1000);
@@ -47,6 +47,7 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
     private static final long SHORT_EXPIRY_TIME_SECONDS = HOURS.toSeconds(1);
     private static final long SHORT_EXPIRE_TIME_MS = SHORT_EXPIRY_TIME_SECONDS * 1000;
     private static final HtmlEscapingAwareJsonTransformer TRANSFORMER = new HtmlEscapingJacksonTransformer();
+
     @Inject
     private Environment environment;
 

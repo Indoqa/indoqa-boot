@@ -1,3 +1,6 @@
+# v0.13.0 | to be released
+* add AbstractCreateReactAppResourceBase for serving React applications created by CreateReactApp
+
 # v0.12.0 | 2019-02-13
 * fix npe if there are no javascript assets
 * fully support webpack code splitting
