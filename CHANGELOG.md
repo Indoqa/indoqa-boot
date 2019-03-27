@@ -1,4 +1,6 @@
-# v0.13.0 | to be released
+# v0.14.0 | TBA
+
+# v0.13.0 | 2019-03-27
 * add AbstractCreateReactAppResourceBase for serving React applications created by CreateReactApp
 
 # v0.12.0 | 2019-02-13
