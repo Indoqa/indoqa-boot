@@ -19,15 +19,17 @@ package com.indoqa.boot.html.react;
 import static java.util.concurrent.TimeUnit.*;
 
 import java.util.Date;
+
 import javax.inject.Inject;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.env.Environment;
 
 import com.indoqa.boot.html.resources.AbstractHtmlResourcesBase;
 import com.indoqa.boot.html.resources.HtmlResponseModifier;
 import com.indoqa.boot.json.transformer.HtmlEscapingAwareJsonTransformer;
 import com.indoqa.boot.json.transformer.HtmlEscapingJacksonTransformer;
 import com.indoqa.boot.profile.ProfileDetector;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.env.Environment;
 
 import spark.Request;
 import spark.Response;
@@ -51,6 +53,26 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
     @Inject
     private Environment environment;
 
+    private static StaticFilesConfiguration createStaticHandler(String classPathLocation, String fileSystemLocation, boolean isDev) {
+        StaticFilesConfiguration staticHandler = new StaticFilesConfiguration();
+        if (isDev) {
+            staticHandler.configureExternal(fileSystemLocation);
+        } else {
+            staticHandler.configure(classPathLocation);
+        }
+        return staticHandler;
+    }
+
+    private static void sendIndexHtml(Request request, Response response, IndexHtmlBuilder indexHtmlBuilder,
+            InitialStateProvider initialStateProvider, HtmlResponseModifier responseModifier) {
+        String indexHtml = indexHtmlBuilder.html(request, initialStateProvider);
+        response.body(indexHtml);
+        response.header(RESPONSE_HEADER_CONTENT_TYPE, "text/html; charset=utf-8");
+        if (responseModifier != null) {
+            responseModifier.modify(request, response);
+        }
+    }
+
     private static void setExpiryHeaders(Request request, Response response) {
         String path = request.pathInfo();
 
@@ -73,27 +95,6 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
         }
     }
 
-    private static void sendIndexHtml(Request request, Response response, IndexHtmlBuilder indexHtmlBuilder,
-        InitialStateProvider initialStateProvider, HtmlResponseModifier responseModifier) {
-        String indexHtml = indexHtmlBuilder.html(request, initialStateProvider);
-        response.body(indexHtml);
-        response.header(RESPONSE_HEADER_CONTENT_TYPE, "text/html; charset=utf-8");
-        if (responseModifier != null) {
-            responseModifier.modify(request, response);
-        }
-    }
-
-    private static StaticFilesConfiguration createStaticHandler(String classPathLocation, String fileSystemLocation, boolean isDev) {
-        StaticFilesConfiguration staticHandler = new StaticFilesConfiguration();
-        if (isDev) {
-            staticHandler.configureExternal(fileSystemLocation);
-        }
-        else {
-            staticHandler.configure(classPathLocation);
-        }
-        return staticHandler;
-    }
-
     protected void html(String classPathLocation, String fileSystemLocation) {
         this.html(classPathLocation, fileSystemLocation, null);
     }
@@ -103,12 +104,12 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
     }
 
     protected void html(String classPathLocation, String fileSystemLocation, InitialStateProvider initialStateProvider,
-        HtmlResponseModifier responseModifier) {
+            HtmlResponseModifier responseModifier) {
         this.html(classPathLocation, fileSystemLocation, initialStateProvider, responseModifier, TRANSFORMER);
     }
 
     protected void html(String classPathLocation, String fileSystemLocation, InitialStateProvider initialStateProvider,
-        HtmlResponseModifier responseModifier, HtmlEscapingAwareJsonTransformer transformer) {
+            HtmlResponseModifier responseModifier, HtmlEscapingAwareJsonTransformer transformer) {
         boolean isDev = ProfileDetector.isDev(this.environment);
         IndexHtmlBuilder indexHtmlBuilder = new IndexHtmlBuilder(classPathLocation, fileSystemLocation, transformer, isDev);
         StaticFilesConfiguration staticHandler = createStaticHandler(classPathLocation, fileSystemLocation, isDev);
@@ -118,7 +119,7 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
             setExpiryHeaders(request, response);
 
             // if some Spark resource has already produced a result, stop here
-            if (StringUtils.isNotEmpty(request.body())) {
+            if (!"GET".equalsIgnoreCase(request.requestMethod()) || StringUtils.isNotEmpty(response.body())) {
                 return;
             }
 
