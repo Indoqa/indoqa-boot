@@ -1,4 +1,5 @@
 # v0.14.0 | TBA
+* only send HTML response when the request was a GET
 
 # v0.13.0 | 2019-03-27
 * add AbstractCreateReactAppResourceBase for serving React applications created by CreateReactApp
