@@ -19,17 +19,17 @@ package com.indoqa.boot.html.react;
 import static java.util.concurrent.TimeUnit.*;
 
 import java.util.Date;
-
+import java.util.Objects;
 import javax.inject.Inject;
 
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.env.Environment;
-
+import com.indoqa.boot.html.builder.HtmlBuilder;
 import com.indoqa.boot.html.resources.AbstractHtmlResourcesBase;
 import com.indoqa.boot.html.resources.HtmlResponseModifier;
 import com.indoqa.boot.json.transformer.HtmlEscapingAwareJsonTransformer;
 import com.indoqa.boot.json.transformer.HtmlEscapingJacksonTransformer;
 import com.indoqa.boot.profile.ProfileDetector;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.env.Environment;
 
 import spark.Request;
 import spark.Response;
@@ -44,11 +44,15 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
     private static final String RESPONSE_HEADER_CONTENT_TYPE = "Content-Type";
     private static final String RESPONSE_HEADER_CACHE_CONTROL = "Cache-Control";
     private static final String RESPONSE_HEADER_EXPIRES = "Expires";
+
     private static final long LONG_EXPIRY_TIME_SECONDS = DAYS.toSeconds(1000);
     private static final long LONG_EXPIRE_TIME_MS = LONG_EXPIRY_TIME_SECONDS * 1000;
     private static final long SHORT_EXPIRY_TIME_SECONDS = HOURS.toSeconds(1);
     private static final long SHORT_EXPIRE_TIME_MS = SHORT_EXPIRY_TIME_SECONDS * 1000;
-    private static final HtmlEscapingAwareJsonTransformer TRANSFORMER = new HtmlEscapingJacksonTransformer();
+
+    private static final ResponseEnhancementsProvider DEFAULT_REQUEST_ENHANCEMENTS_PROVIDER = (req, res) -> {
+        return new ResponseEnhancements();
+    };
 
     @Inject
     private Environment environment;
@@ -57,19 +61,23 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
         StaticFilesConfiguration staticHandler = new StaticFilesConfiguration();
         if (isDev) {
             staticHandler.configureExternal(fileSystemLocation);
-        } else {
+        }
+        else {
             staticHandler.configure(classPathLocation);
         }
         return staticHandler;
     }
 
     private static void sendIndexHtml(Request request, Response response, IndexHtmlBuilder indexHtmlBuilder,
-            InitialStateProvider initialStateProvider, HtmlResponseModifier responseModifier) {
-        String indexHtml = indexHtmlBuilder.html(request, initialStateProvider);
-        response.body(indexHtml);
+        ResponseEnhancements responseEnhancements) {
+        response.body(indexHtmlBuilder.html(request, responseEnhancements));
         response.header(RESPONSE_HEADER_CONTENT_TYPE, "text/html; charset=utf-8");
-        if (responseModifier != null) {
-            responseModifier.modify(request, response);
+        if (responseEnhancements == null) {
+            return;
+        }
+        HtmlResponseModifier htmlResponseModifier = responseEnhancements.getHtmlResponseModifier();
+        if (htmlResponseModifier != null) {
+            htmlResponseModifier.modify(request, response);
         }
     }
 
@@ -96,23 +104,16 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
     }
 
     protected void html(String classPathLocation, String fileSystemLocation) {
-        this.html(classPathLocation, fileSystemLocation, null);
+        this.html(classPathLocation, fileSystemLocation, DEFAULT_REQUEST_ENHANCEMENTS_PROVIDER);
     }
 
-    protected void html(String classPathLocation, String fileSystemLocation, InitialStateProvider initialStateProvider) {
-        this.html(classPathLocation, fileSystemLocation, initialStateProvider, null);
-    }
+    protected void html(String classPathLocation, String fileSystemLocation,
+        ResponseEnhancementsProvider responseEnhancementsProvider) {
+        Objects.requireNonNull(responseEnhancementsProvider, "ResponseEnhancementsProvider must not be null.");
 
-    protected void html(String classPathLocation, String fileSystemLocation, InitialStateProvider initialStateProvider,
-            HtmlResponseModifier responseModifier) {
-        this.html(classPathLocation, fileSystemLocation, initialStateProvider, responseModifier, TRANSFORMER);
-    }
-
-    protected void html(String classPathLocation, String fileSystemLocation, InitialStateProvider initialStateProvider,
-            HtmlResponseModifier responseModifier, HtmlEscapingAwareJsonTransformer transformer) {
         boolean isDev = ProfileDetector.isDev(this.environment);
-        IndexHtmlBuilder indexHtmlBuilder = new IndexHtmlBuilder(classPathLocation, fileSystemLocation, transformer, isDev);
         StaticFilesConfiguration staticHandler = createStaticHandler(classPathLocation, fileSystemLocation, isDev);
+        IndexHtmlBuilder indexHtmlBuilder = new IndexHtmlBuilder(classPathLocation, fileSystemLocation, isDev);
 
         Spark.after((request, response) -> {
             // always set expiry headers
@@ -124,10 +125,11 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
             }
 
             String pathInfo = request.pathInfo();
+            ResponseEnhancements responseEnhancements = responseEnhancementsProvider.enhance(request, response);
 
             // request to the root path
             if ("/".equals(pathInfo)) {
-                sendIndexHtml(request, response, indexHtmlBuilder, initialStateProvider, responseModifier);
+                sendIndexHtml(request, response, indexHtmlBuilder, responseEnhancements);
                 return;
             }
 
@@ -136,8 +138,76 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
 
             // otherwise send the index.html
             if (!staticResourceSent) {
-                sendIndexHtml(request, response, indexHtmlBuilder, initialStateProvider, responseModifier);
+                sendIndexHtml(request, response, indexHtmlBuilder, responseEnhancements);
             }
         });
+    }
+
+    @FunctionalInterface
+    public interface ResponseEnhancementsProvider {
+
+        ResponseEnhancements enhance(Request req, Response res);
+    }
+
+    public static class ResponseEnhancements {
+
+        private static final HtmlEscapingAwareJsonTransformer JSON_TRANSFORMER = new HtmlEscapingJacksonTransformer();
+
+        private final String title;
+        private final InitialStateProvider initialStateProvider;
+        private final HtmlBuilder headerBuilder;
+        private final HtmlResponseModifier htmlResponseModifier;
+        private final HtmlEscapingAwareJsonTransformer jsonTransformer;
+
+        public ResponseEnhancements() {
+            this(null);
+        }
+
+        public ResponseEnhancements(InitialStateProvider initialStateProvider) {
+            this(initialStateProvider, null);
+        }
+
+        public ResponseEnhancements(InitialStateProvider initialStateProvider, HtmlResponseModifier responseModifier) {
+            this(initialStateProvider, responseModifier, null);
+        }
+
+        public ResponseEnhancements(InitialStateProvider initialStateProvider, HtmlResponseModifier responseModifier,
+            HtmlBuilder headerBuilder) {
+            this(initialStateProvider, responseModifier, headerBuilder, null);
+        }
+
+        public ResponseEnhancements(InitialStateProvider initialStateProvider, HtmlResponseModifier responseModifier,
+            HtmlBuilder headerBuilder, String title) {
+            this(initialStateProvider, responseModifier, headerBuilder, title, null);
+        }
+
+        public ResponseEnhancements(InitialStateProvider initialStateProvider, HtmlResponseModifier htmlResponseModifier,
+            HtmlBuilder headerBuilder, String title, HtmlEscapingAwareJsonTransformer jsonTransformer) {
+            this.title = title;
+            this.initialStateProvider = initialStateProvider;
+            this.headerBuilder = headerBuilder;
+            this.htmlResponseModifier = htmlResponseModifier;
+            this.jsonTransformer = jsonTransformer == null ? JSON_TRANSFORMER : jsonTransformer;
+        }
+
+        HtmlEscapingAwareJsonTransformer getJsonTransformer() {
+            return this.jsonTransformer;
+        }
+
+        HtmlResponseModifier getHtmlResponseModifier() {
+            return this.htmlResponseModifier;
+        }
+
+        String getTitle() {
+            return this.title;
+        }
+
+        InitialStateProvider getInitialStateProvider() {
+            return this.initialStateProvider;
+        }
+
+        HtmlBuilder getHeaderBuilder() {
+            return this.headerBuilder;
+        }
     }
 }

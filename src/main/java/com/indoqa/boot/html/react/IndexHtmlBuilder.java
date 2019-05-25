@@ -17,15 +17,21 @@
 package com.indoqa.boot.html.react;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.indoqa.boot.ApplicationInitializationException;
+import com.indoqa.boot.html.builder.HtmlBuilder;
+import com.indoqa.boot.html.react.AbstractCreateReactAppResourceBase.ResponseEnhancements;
 import com.indoqa.boot.json.transformer.HtmlEscapingAwareJsonTransformer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import spark.Request;
@@ -37,50 +43,81 @@ public class IndexHtmlBuilder {
 
     private final String classPathLocation;
     private final String fileSystemLocation;
-    private final HtmlEscapingAwareJsonTransformer jsonTransformer;
     private final boolean isDev;
 
-    private String indexHtmlPart1;
-    private String indexHtmlPart2;
+    private HtmlParts htmlParts = null;
 
-    IndexHtmlBuilder(String classPathLocation, String fileSystemLocation, HtmlEscapingAwareJsonTransformer jsonTransformer,
-        boolean isDev) {
+    IndexHtmlBuilder(String classPathLocation, String fileSystemLocation, boolean isDev) {
         this.classPathLocation = classPathLocation;
         this.fileSystemLocation = fileSystemLocation;
-        this.jsonTransformer = jsonTransformer;
         this.isDev = isDev;
-        splitIndexHtml(classPathLocation, fileSystemLocation);
+        parseIndexHtml(classPathLocation, fileSystemLocation);
     }
 
-    public String html(Request request, InitialStateProvider initialStateProvider) {
-        if (this.isDev) {
-            splitIndexHtml(this.classPathLocation, this.fileSystemLocation);
+    private static String appendInitialStateScript(Request request, ResponseEnhancements responseEnhancements) {
+        String initialStateJson = EMPTY_INITIAL_STATE;
+        if (responseEnhancements != null) {
+            InitialStateProvider initialStateProvider = responseEnhancements.getInitialStateProvider();
+            HtmlEscapingAwareJsonTransformer jsonTransformer = responseEnhancements.getJsonTransformer();
+            if (initialStateProvider != null && jsonTransformer != null) {
+                Object initialStateObject = initialStateProvider.initialState(request);
+                if (initialStateObject != null) {
+                    initialStateJson = jsonTransformer.render(initialStateObject);
+                }
+            }
         }
         return new StringBuilder()
-            .append(this.indexHtmlPart1)
             .append("<script>window.__INITIAL_STATE__ = ")
-            .append(this.createInitialStateJson(request, initialStateProvider))
+            .append(initialStateJson)
             .append(";</script>")
-            .append(this.indexHtmlPart2)
             .toString();
     }
 
-    private void splitIndexHtml(String localClassPathLocation, String localFileSystemLocation) {
-        String indexHtml = readIndexHtml(localClassPathLocation, localFileSystemLocation);
-        int posFirstScript = indexHtml.indexOf("<script>");
-        this.indexHtmlPart1 = indexHtml.substring(0, posFirstScript);
-        this.indexHtmlPart2 = indexHtml.substring(posFirstScript);
+    private static String appendAdditionalHeadContent(Request request, ResponseEnhancements responseEnhancements) {
+        if (responseEnhancements == null) {
+            return EMPTY;
+        }
+
+        HtmlBuilder headerBuilder = responseEnhancements.getHeaderBuilder();
+        if (headerBuilder == null) {
+            return EMPTY;
+        }
+        return headerBuilder.html(request);
     }
 
-    private String createInitialStateJson(Request request, InitialStateProvider initialStateProvider) {
-        String initialStateJson = EMPTY_INITIAL_STATE;
-        if (initialStateProvider != null && this.jsonTransformer != null) {
-            Object initialStateObject = initialStateProvider.initialState(request);
-            if (initialStateObject != null) {
-                initialStateJson = this.jsonTransformer.render(initialStateObject);
-            }
+    private static String appendTitle(String staticTitle, ResponseEnhancements responseEnhancements) {
+        if (responseEnhancements == null) {
+            return staticTitle;
         }
-        return initialStateJson;
+
+        String title = responseEnhancements.getTitle();
+        if (title != null) {
+            return "<title>" + title + "</title>";
+        }
+        return staticTitle;
+    }
+
+    public String html(Request request, ResponseEnhancements responseEnhancements) {
+        if (this.isDev) {
+            parseIndexHtml(this.classPathLocation, this.fileSystemLocation);
+        }
+        return new StringBuilder()
+            .append(this.htmlParts.getBeforeHeadContent())
+            .append(this.htmlParts.getHeadElement())
+            .append(this.htmlParts.getHeadContent())
+            .append(appendAdditionalHeadContent(request, responseEnhancements))
+            .append(appendTitle(this.htmlParts.getTitle(), responseEnhancements))
+            .append("</head>")
+            .append(this.htmlParts.getBodyElement())
+            .append(appendInitialStateScript(request, responseEnhancements))
+            .append(this.htmlParts.getBodyContent())
+            .append("</body>")
+            .append("</html>")
+            .toString();
+    }
+
+    private void parseIndexHtml(String localClassPathLocation, String localFileSystemLocation) {
+        this.htmlParts = new HtmlParts(readIndexHtml(localClassPathLocation, localFileSystemLocation));
     }
 
     private String readIndexHtml(String localClassPathLocation, String localFileSystemLocation) {
@@ -104,6 +141,72 @@ public class IndexHtmlBuilder {
             return IOUtils.toString(this.getClass().getResourceAsStream(classpathIndexHtml), UTF_8);
         } catch (IOException e) {
             throw new ApplicationInitializationException("Error while reading index.html from classpath: " + classpathIndexHtml);
+        }
+    }
+
+    static class HtmlParts {
+
+        private static final Pattern HEAD_PATTERN = Pattern.compile(
+            "((<head(?:\\s+[a-z]+(?:\\s*=\\s*(?:\"[^\"]*\"|'[^']*'|[^\\s>]+)))*\\s*>)([\\S\\s]*)</head>)");
+        private static final Pattern BODY_PATTERN = Pattern.compile(
+            "((<body(?:\\s+[a-z]+(?:\\s*=\\s*(?:\"[^\"]*\"|'[^']*'|[^\\s>]+)))*\\s*>)([\\S\\s]*)</body>)");
+        private static final Pattern TITLE_PATTERN = Pattern.compile(
+            "((<title(?:\\s+[a-z]+(?:\\s*=\\s*(?:\"[^\"]*\"|'[^']*'|[^\\s>]+)))*\\s*>)([\\S\\s]*)</title>)");
+
+        private String beforeHeadContent = "<!DOCTYPE html>\n<html lang=\"de\">";
+        private String headContent;
+        private String headElement = "<head>";
+        private String title;
+        private String bodyElement = "<body>";
+        private String bodyContent;
+
+        HtmlParts(String html) {
+            if (StringUtils.isBlank(html)) {
+                return;
+            }
+            Matcher headerMatcher = HEAD_PATTERN.matcher(html);
+            if (headerMatcher.find()) {
+                this.headElement = headerMatcher.group(2);
+                String headContent = headerMatcher.group(3);
+                Matcher titleMatcher = TITLE_PATTERN.matcher(headContent);
+                if (titleMatcher.find()) {
+                    this.title = titleMatcher.group(0);
+                }
+                this.headContent = titleMatcher.replaceFirst("");
+            }
+            Matcher bodyMatcher = BODY_PATTERN.matcher(html);
+            if (bodyMatcher.find()) {
+                this.bodyElement = bodyMatcher.group(2);
+                this.bodyContent = bodyMatcher.group(3);
+            }
+            int posHead = html.indexOf("<head");
+            if (posHead > 0) {
+                this.beforeHeadContent = html.substring(0, posHead);
+            }
+        }
+
+        String getBeforeHeadContent() {
+            return this.beforeHeadContent;
+        }
+
+        String getTitle() {
+            return this.title;
+        }
+
+        String getHeadElement() {
+            return this.headElement;
+        }
+
+        String getHeadContent() {
+            return this.headContent;
+        }
+
+        String getBodyElement() {
+            return this.bodyElement;
+        }
+
+        String getBodyContent() {
+            return this.bodyContent;
         }
     }
 }
