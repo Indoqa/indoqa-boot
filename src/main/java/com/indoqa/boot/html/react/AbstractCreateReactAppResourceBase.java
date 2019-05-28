@@ -23,6 +23,7 @@ import java.util.Objects;
 import javax.inject.Inject;
 
 import com.indoqa.boot.html.builder.HtmlBuilder;
+import com.indoqa.boot.html.react.AbstractCreateReactAppResourceBase.ResponseEnhancements.ResponseEnhancementsBuilder;
 import com.indoqa.boot.html.resources.AbstractHtmlResourcesBase;
 import com.indoqa.boot.html.resources.HtmlResponseModifier;
 import com.indoqa.boot.json.transformer.HtmlEscapingAwareJsonTransformer;
@@ -51,7 +52,7 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
     private static final long SHORT_EXPIRE_TIME_MS = SHORT_EXPIRY_TIME_SECONDS * 1000;
 
     private static final ResponseEnhancementsProvider DEFAULT_REQUEST_ENHANCEMENTS_PROVIDER = (req, res) -> {
-        return new ResponseEnhancements();
+        return new ResponseEnhancementsBuilder().build();
     };
 
     @Inject
@@ -154,40 +155,19 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
         private static final HtmlEscapingAwareJsonTransformer JSON_TRANSFORMER = new HtmlEscapingJacksonTransformer();
 
         private final String title;
+        private final String lang;
         private final InitialStateProvider initialStateProvider;
         private final HtmlBuilder headerBuilder;
         private final HtmlResponseModifier htmlResponseModifier;
         private final HtmlEscapingAwareJsonTransformer jsonTransformer;
 
-        public ResponseEnhancements() {
-            this(null);
-        }
-
-        public ResponseEnhancements(InitialStateProvider initialStateProvider) {
-            this(initialStateProvider, null);
-        }
-
-        public ResponseEnhancements(InitialStateProvider initialStateProvider, HtmlResponseModifier responseModifier) {
-            this(initialStateProvider, responseModifier, null);
-        }
-
-        public ResponseEnhancements(InitialStateProvider initialStateProvider, HtmlResponseModifier responseModifier,
-            HtmlBuilder headerBuilder) {
-            this(initialStateProvider, responseModifier, headerBuilder, null);
-        }
-
-        public ResponseEnhancements(InitialStateProvider initialStateProvider, HtmlResponseModifier responseModifier,
-            HtmlBuilder headerBuilder, String title) {
-            this(initialStateProvider, responseModifier, headerBuilder, title, null);
-        }
-
-        public ResponseEnhancements(InitialStateProvider initialStateProvider, HtmlResponseModifier htmlResponseModifier,
-            HtmlBuilder headerBuilder, String title, HtmlEscapingAwareJsonTransformer jsonTransformer) {
-            this.title = title;
-            this.initialStateProvider = initialStateProvider;
-            this.headerBuilder = headerBuilder;
-            this.htmlResponseModifier = htmlResponseModifier;
-            this.jsonTransformer = jsonTransformer == null ? JSON_TRANSFORMER : jsonTransformer;
+        ResponseEnhancements(ResponseEnhancementsBuilder builder) {
+            this.title = builder.title;
+            this.lang = builder.lang;
+            this.initialStateProvider = builder.initialStateProvider;
+            this.headerBuilder = builder.headerBuilder;
+            this.htmlResponseModifier = builder.htmlResponseModifier;
+            this.jsonTransformer = builder.jsonTransformer;
         }
 
         HtmlEscapingAwareJsonTransformer getJsonTransformer() {
@@ -202,12 +182,60 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
             return this.title;
         }
 
+        String getLang() {
+            return this.lang;
+        }
+
         InitialStateProvider getInitialStateProvider() {
             return this.initialStateProvider;
         }
 
         HtmlBuilder getHeaderBuilder() {
             return this.headerBuilder;
+        }
+
+        public static class ResponseEnhancementsBuilder {
+
+            private String title;
+            private String lang;
+            private InitialStateProvider initialStateProvider;
+            private HtmlBuilder headerBuilder;
+            private HtmlResponseModifier htmlResponseModifier;
+            private HtmlEscapingAwareJsonTransformer jsonTransformer = JSON_TRANSFORMER;
+
+            public ResponseEnhancementsBuilder setTitle(String title) {
+                this.title = title;
+                return this;
+            }
+
+            public ResponseEnhancementsBuilder setLang(String lang) {
+                this.lang = lang;
+                return this;
+            }
+
+            public ResponseEnhancementsBuilder setInitialStateProvider(InitialStateProvider initialStateProvider) {
+                this.initialStateProvider = initialStateProvider;
+                return this;
+            }
+
+            public ResponseEnhancementsBuilder setHeaderBuilder(HtmlBuilder headerBuilder) {
+                this.headerBuilder = headerBuilder;
+                return this;
+            }
+
+            public ResponseEnhancementsBuilder setHtmlResponseModifier(HtmlResponseModifier htmlResponseModifier) {
+                this.htmlResponseModifier = htmlResponseModifier;
+                return this;
+            }
+
+            public ResponseEnhancementsBuilder setJsonTransformer(HtmlEscapingAwareJsonTransformer jsonTransformer) {
+                this.jsonTransformer = jsonTransformer;
+                return this;
+            }
+
+            public ResponseEnhancements build() {
+                return new ResponseEnhancements(this);
+            }
         }
     }
 }
