@@ -26,8 +26,9 @@ public class HtmlPartsTest {
     @Test
     public void findAllParts() {
         HtmlParts htmlParts = new HtmlParts(
-            "<html>\n<head>foo<title>bar</title><meta name=\"a\" content=\"b\"/></head><body class=\"abc\"><h1>test</h1></body></html>");
-        assertEquals("<html>\n", htmlParts.getBeforeHeadContent());
+            "<!DOCTYPE html><html lang=\"en\">\n<head>foo<title>bar</title><meta name=\"a\" content=\"b\"/></head><body class=\"abc\"><h1>test</h1></body></html>");
+        assertEquals("<!DOCTYPE html>", htmlParts.getBeforeHtmlContent());
+        assertEquals("<html lang=\"en\">", htmlParts.getHtmlElement());
         assertEquals("<head>", htmlParts.getHeadElement());
         assertEquals("foo<meta name=\"a\" content=\"b\"/>", htmlParts.getHeadContent());
         assertEquals("<body class=\"abc\">", htmlParts.getBodyElement());
@@ -39,7 +40,8 @@ public class HtmlPartsTest {
     @Test
     public void findNoParts() {
         HtmlParts htmlParts = new HtmlParts("foo");
-        assertEquals("<!DOCTYPE html>\n<html lang=\"de\">", htmlParts.getBeforeHeadContent());
+        assertEquals("<!DOCTYPE html>\n", htmlParts.getBeforeHtmlContent());
+        assertEquals("<html lang=\"en\">", htmlParts.getHtmlElement());
         assertEquals("<head>", htmlParts.getHeadElement());
         assertNull(htmlParts.getHeadContent());
         assertEquals("<body>", htmlParts.getBodyElement());
@@ -50,7 +52,8 @@ public class HtmlPartsTest {
     @Test
     public void nullInput() {
         HtmlParts htmlParts = new HtmlParts(null);
-        assertEquals("<!DOCTYPE html>\n<html lang=\"de\">", htmlParts.getBeforeHeadContent());
+        assertEquals("<!DOCTYPE html>\n", htmlParts.getBeforeHtmlContent());
+        assertEquals("<html lang=\"en\">", htmlParts.getHtmlElement());
         assertEquals("<head>", htmlParts.getHeadElement());
         assertNull(htmlParts.getHeadContent());
         assertEquals("<body>", htmlParts.getBodyElement());

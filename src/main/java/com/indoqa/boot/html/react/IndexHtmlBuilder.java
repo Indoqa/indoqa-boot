@@ -40,6 +40,7 @@ public class IndexHtmlBuilder {
 
     private static final Logger LOGGER = getLogger(IndexHtmlBuilder.class);
     private static final String EMPTY_INITIAL_STATE = "{}";
+    private static final Pattern LANG_PATTERN = Pattern.compile("lang=\"(\\w*)\"");
 
     private final String classPathLocation;
     private final String fileSystemLocation;
@@ -97,12 +98,27 @@ public class IndexHtmlBuilder {
         return staticTitle;
     }
 
+    private static String appendHtmlElement(String htmlElement, ResponseEnhancements responseEnhancements) {
+        if (responseEnhancements == null) {
+            return htmlElement;
+        }
+        String lang = responseEnhancements.getLang();
+        if (StringUtils.isNotEmpty(lang)) {
+            Matcher langMatcher = LANG_PATTERN.matcher(htmlElement);
+            if (langMatcher.find()) {
+                return langMatcher.replaceFirst("lang=\"" + lang + "\"");
+            }
+        }
+        return htmlElement;
+    }
+
     public String html(Request request, ResponseEnhancements responseEnhancements) {
         if (this.isDev) {
             parseIndexHtml(this.classPathLocation, this.fileSystemLocation);
         }
         return new StringBuilder()
-            .append(this.htmlParts.getBeforeHeadContent())
+            .append(this.htmlParts.getBeforeHtmlContent())
+            .append(appendHtmlElement(this.htmlParts.getHtmlElement(), responseEnhancements))
             .append(this.htmlParts.getHeadElement())
             .append(this.htmlParts.getHeadContent())
             .append(appendAdditionalHeadContent(request, responseEnhancements))
@@ -146,14 +162,16 @@ public class IndexHtmlBuilder {
 
     static class HtmlParts {
 
+        private static final Pattern HTML_PATTERN = Pattern.compile(
+            "((<html(?:\\s+[a-z]+(?:\\s*=\\s*(?:\"[^\"]*\"|'[^']*'|[^\\s>]+)))*\\s*>)([\\S\\s]*)</html>)");
         private static final Pattern HEAD_PATTERN = Pattern.compile(
             "((<head(?:\\s+[a-z]+(?:\\s*=\\s*(?:\"[^\"]*\"|'[^']*'|[^\\s>]+)))*\\s*>)([\\S\\s]*)</head>)");
         private static final Pattern BODY_PATTERN = Pattern.compile(
             "((<body(?:\\s+[a-z]+(?:\\s*=\\s*(?:\"[^\"]*\"|'[^']*'|[^\\s>]+)))*\\s*>)([\\S\\s]*)</body>)");
         private static final Pattern TITLE_PATTERN = Pattern.compile(
             "((<title(?:\\s+[a-z]+(?:\\s*=\\s*(?:\"[^\"]*\"|'[^']*'|[^\\s>]+)))*\\s*>)([\\S\\s]*)</title>)");
-
-        private String beforeHeadContent = "<!DOCTYPE html>\n<html lang=\"de\">";
+        private String htmlElement = "<html lang=\"en\">";
+        private String beforeHtmlContent = "<!DOCTYPE html>\n";
         private String headContent;
         private String headElement = "<head>";
         private String title;
@@ -164,6 +182,11 @@ public class IndexHtmlBuilder {
             if (StringUtils.isBlank(html)) {
                 return;
             }
+            Matcher htmlMatcher = HTML_PATTERN.matcher(html);
+            if (htmlMatcher.find()) {
+                this.htmlElement = htmlMatcher.group(2);
+            }
+
             Matcher headerMatcher = HEAD_PATTERN.matcher(html);
             if (headerMatcher.find()) {
                 this.headElement = headerMatcher.group(2);
@@ -179,14 +202,18 @@ public class IndexHtmlBuilder {
                 this.bodyElement = bodyMatcher.group(2);
                 this.bodyContent = bodyMatcher.group(3);
             }
-            int posHead = html.indexOf("<head");
+            int posHead = html.indexOf("<html");
             if (posHead > 0) {
-                this.beforeHeadContent = html.substring(0, posHead);
+                this.beforeHtmlContent = html.substring(0, posHead);
             }
         }
 
-        String getBeforeHeadContent() {
-            return this.beforeHeadContent;
+        String getHtmlElement() {
+            return this.htmlElement;
+        }
+
+        String getBeforeHtmlContent() {
+            return this.beforeHtmlContent;
         }
 
         String getTitle() {
