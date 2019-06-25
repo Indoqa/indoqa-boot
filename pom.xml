@@ -186,7 +186,8 @@
       <dependency>
         <groupId>com.indoqa</groupId>
         <artifactId>indoqa-boot-bom</artifactId>
-        <version>${project.version}</version>
+        <version>0.14.0</version>
+        <!--<version>${project.version}</version>-->
         <scope>import</scope>
         <type>pom</type>
       </dependency>
