@@ -1,6 +1,7 @@
-# v0.14.0 | TBA
+# v0.14.0 | 2019-06-25
 * only send HTML response when the request was a GET
 * introduce ResponseEnhancements to dynamically adapt the HML produced by AbstractCreateReactAppResourceBase
+* Log4j2LoggingResource (admin port)
 
 # v0.13.0 | 2019-03-27
 * add AbstractCreateReactAppResourceBase for serving React applications created by CreateReactApp
