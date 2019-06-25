@@ -49,6 +49,7 @@ import org.slf4j.Logger;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.support.ResourcePropertySource;
+import org.springframework.util.ClassUtils;
 
 import spark.ResponseTransformer;
 import spark.Spark;
@@ -278,6 +279,14 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.context.register(SpringBeansResources.class);
         this.context.register(MetricsResources.class);
         this.context.register(ActuatorGzipInterceptor.class);
+
+        if (isClassAvailable("org.apache.logging.log4j.LogManager")) {
+            this.context.register(Log4j2LoggingResource.class);
+        }
+    }
+
+    private boolean isClassAvailable(String className) {
+        return ClassUtils.isPresent(className, this.context.getClassLoader());
     }
 
     private void initializeApplicationContext() {
