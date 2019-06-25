@@ -23,13 +23,11 @@ import static org.apache.commons.lang3.StringUtils.*;
 
 import java.util.Date;
 import java.util.function.Supplier;
-
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
-import org.springframework.core.env.Environment;
-
 import com.indoqa.boot.actuate.systeminfo.SystemInfo;
+import org.springframework.core.env.Environment;
 
 import spark.Response;
 
@@ -76,7 +74,7 @@ public class OverviewResources extends AbstractAdminResources {
         return new StringBuilder()
             .append("<style>")
             .append("body {")
-            .append("  background-color: #000033;")
+            .append("  background-color: #000;")
             .append("  color: #fff;")
             .append("  font-family: monospace;")
             .append("  font-size: 14px;")
@@ -102,7 +100,8 @@ public class OverviewResources extends AbstractAdminResources {
         StringBuilder headerBuilder = new StringBuilder();
         if (isBlank(asciiLogo)) {
             headerBuilder.append("<h1>").append(systemInfo.getApplicationName()).append("</h1>");
-        } else {
+        }
+        else {
             headerBuilder.append("<pre>").append(asciiLogo).append("</pre>");
         }
         return headerBuilder
@@ -123,6 +122,8 @@ public class OverviewResources extends AbstractAdminResources {
             .append(createLinkItem("System info", "./system-info"))
             .append(createLinkItem("Spring beans", "./spring-beans"))
             .append(createLinkItem("Health checks", "./health"))
+            .append(createLinkItem("Logging: Level (@root)", "./logging/level?logger=@root"))
+            .append(createLinkItem("Logging: Modifications", "./logging/modifications"))
             .append(createLinkItem("Metrics", "./metrics"))
             .append(createLinkItem("Thread dump", "./thread-dump"))
             .append(createDownloadLinkItem("Heap dump", "./heap-dump"))
