@@ -9,7 +9,7 @@ The best way to bootstrap an Indoqa-Boot application is using the [indoqa-quicks
 mvn archetype:generate \
   -DarchetypeGroupId=com.indoqa.quickstart \
   -DarchetypeArtifactId=quickstart-boot-archetype \
-  -DarchetypeVersion=0.13.0
+  -DarchetypeVersion=0.14.0
 ```
 
 ## Changelog
@@ -27,7 +27,7 @@ The first obvious choice would have been using [Spring Boot](https://projects.sp
 
  * Simple project setup, cover HTTP endpoints, JSON, dependency injection and logging
 
- * Seamless integration of [React](https://facebook.github.io/react/)/[Redux](http://redux.js.org/) single page applications based on [indoqa-react-app](https://github.com/Indoqa/indoqa-react-app) and [indoqa-webpack](https://github.com/Indoqa/indoqa-webpack).
+ * Seamless integration of [React](https://facebook.github.io/react/)/[Redux](http://redux.js.org/) single page applications based on [@indoqa/react-app](https://github.com/Indoqa/indoqa-react) and [Create-React-App](https://facebook.github.io/create-react-app/).
 
  * Reduce the usage of annotations to a minimum. We are not strictly against annotations (we use them e.g. for the mapping of Java objects to JSON) but for the most other use cases (e.g. configuration of Indoqa-Boot, creation of HTTP endpoints) we prefer to write plain Java code.
 
