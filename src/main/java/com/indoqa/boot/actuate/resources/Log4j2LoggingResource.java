@@ -235,7 +235,8 @@ public class Log4j2LoggingResource extends AbstractAdminResources {
             return LogLevelResponse.modified(loggerName, restoreTimerTask.getLevel().name());
         }
 
-        return LogLevelResponse.original(existingLogger.getName(), existingLogger.getLevel().name());
+        String existingLoggerName = StringUtils.isBlank(existingLogger.getName()) ? ROOT_LOGGER_NAME : existingLogger.getName();
+        return LogLevelResponse.original(existingLoggerName, existingLogger.getLevel().name());
     }
 
     private synchronized void resetLogLevel(RestoreTimerTask restoreTimerTask) {
