@@ -26,7 +26,7 @@
     <version>6</version>
   </parent>
   <artifactId>indoqa-boot</artifactId>
-  <version>0.14.0</version>
+  <version>0.15.0-SNAPSHOT</version>
 
   <name>Indoqa Boot</name>
   <url>https://github.com/indoqa/indoqa-boot</url>
@@ -36,7 +36,7 @@
     <connection>scm:git:git@github.com:Indoqa/indoqa-boot.git</connection>
     <developerConnection>scm:git:git@github.com:Indoqa/indoqa-boot.git</developerConnection>
     <url>https://github.com/Indoqa/indoqa-boot</url>
-    <tag>indoqa-boot-0.14.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <dependencies>
