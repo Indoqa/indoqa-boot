@@ -64,6 +64,16 @@ public abstract class AbstractAdminResources extends AbstractJsonResourcesBase {
         }
     }
 
+    protected void putActuator(String path, Route route) {
+        if (this.isAdminServiceAvailable()) {
+            this.sparkAdminService.instance().put(path, CONTENT_TYPE_JSON, route, this.getTransformer());
+        }
+
+        else if (this.isEnabledViaDefaultService()) {
+            this.put(resolveAdminPath(path), route);
+        }
+    }
+
     protected void getActuatorHtml(String path, Route route) {
         if (this.isAdminServiceAvailable()) {
             this.getSparkAdminService().get(path, CONTENT_TYPE_HTML, route);
@@ -71,6 +81,16 @@ public abstract class AbstractAdminResources extends AbstractJsonResourcesBase {
 
         else if (this.isEnabledViaDefaultService()) {
             Spark.get(resolveAdminPath(path), CONTENT_TYPE_HTML, route);
+        }
+    }
+
+    protected void putActuatorHtml(String path, Route route) {
+        if (this.isAdminServiceAvailable()) {
+            this.sparkAdminService.instance().put(path, CONTENT_TYPE_HTML, route, this.getTransformer());
+        }
+
+        else if (this.isEnabledViaDefaultService()) {
+            Spark.put(resolveAdminPath(path), CONTENT_TYPE_HTML, route);
         }
     }
 
