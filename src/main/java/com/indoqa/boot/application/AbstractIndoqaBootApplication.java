@@ -373,10 +373,6 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     private void logInitializationFinished(Optional<CharSequence> additionalStatusMessages) {
-        if (this.isDevEnvironment()) {
-            return;
-        }
-
         StringBuilder statusMessages = new StringBuilder()
             .append(this.getApplicationName())
             .append(" ")
@@ -388,17 +384,21 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             .append(" ms")
             .append(", listening on port ")
             .append(this.systemInfo.getPort())
-            .append(", listening on admin-port ")
+            .append(" and on admin-port ")
             .append(this.printAdminPort())
             .append(", active profile(s): ")
             .append(join("|", asList(this.systemInfo.getProfiles())))
             .append(", running on Java ")
-            .append(this.systemInfo.getSystemProperties().get("java.version"));
-
+            .append(this.systemInfo.getSystemProperties().get("java.version"))
+            .append(" and Indoqa-Boot ")
+            .append(this.systemInfo.getIndoqaBootVersion());
         additionalStatusMessages.ifPresent(message -> statusMessages.append(", ").append(message));
-
         statusMessages.append(")");
 
+        LOGGER.info(statusMessages.toString());
+        if (this.isDevEnvironment()) {
+            return;
+        }
         getInitializationLogger().info(statusMessages.toString());
     }
 
