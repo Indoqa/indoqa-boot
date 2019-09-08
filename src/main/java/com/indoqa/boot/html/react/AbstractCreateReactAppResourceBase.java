@@ -18,7 +18,9 @@ package com.indoqa.boot.html.react;
 
 import static java.util.concurrent.TimeUnit.*;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import javax.inject.Inject;
 
@@ -112,11 +114,20 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
         ResponseEnhancementsProvider responseEnhancementsProvider) {
         Objects.requireNonNull(responseEnhancementsProvider, "ResponseEnhancementsProvider must not be null.");
 
-        boolean isDev = ProfileDetector.isDev(this.environment);
-        StaticFilesConfiguration staticHandler = createStaticHandler(classPathLocation, fileSystemLocation, isDev);
-        IndexHtmlBuilder indexHtmlBuilder = new IndexHtmlBuilder(classPathLocation, fileSystemLocation, isDev);
+        ReactApplications reactApplications = new ReactApplications();
+        reactApplications.add(classPathLocation, fileSystemLocation, responseEnhancementsProvider, (req, res) -> true);
+        this.html(reactApplications);
+    }
 
+    protected void html(ReactApplications reactApplications) {
+        Objects.requireNonNull(reactApplications, "ReactApplications must not be null.");
         Spark.after((request, response) -> {
+            ReactApplication reactApplication = reactApplications.lookup(request, response);
+            if (reactApplication == null) {
+                Spark.notFound("No React application available.");
+                return;
+            }
+
             // always set expiry headers
             setExpiryHeaders(request, response);
 
@@ -126,20 +137,20 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
             }
 
             String pathInfo = request.pathInfo();
-            ResponseEnhancements responseEnhancements = responseEnhancementsProvider.enhance(request, response);
+            ResponseEnhancements responseEnhancements = reactApplication.getResponseEnhancementsProvider().enhance(request, response);
 
             // request to the root path
             if ("/".equals(pathInfo)) {
-                sendIndexHtml(request, response, indexHtmlBuilder, responseEnhancements);
+                sendIndexHtml(request, response, reactApplication.getIndexHtmlBuilder(), responseEnhancements);
                 return;
             }
 
             // look for static resources
-            boolean staticResourceSent = staticHandler.consume(request.raw(), response.raw());
+            boolean staticResourceSent = reactApplication.getStaticFilesConfiguration().consume(request.raw(), response.raw());
 
             // otherwise send the index.html
             if (!staticResourceSent) {
-                sendIndexHtml(request, response, indexHtmlBuilder, responseEnhancements);
+                sendIndexHtml(request, response, reactApplication.getIndexHtmlBuilder(), responseEnhancements);
             }
         });
     }
@@ -150,6 +161,63 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
         ResponseEnhancements enhance(Request req, Response res);
     }
 
+    @FunctionalInterface
+    public interface TestReactApplication {
+
+        boolean invoke(Request req, Response res);
+    }
+
+    private class ReactApplication {
+
+        private final StaticFilesConfiguration staticFilesConfiguration;
+        private final IndexHtmlBuilder indexHtmlBuilder;
+        private final ResponseEnhancementsProvider responseEnhancementsProvider;
+        private final TestReactApplication testReactApplication;
+
+        ReactApplication(StaticFilesConfiguration conf, IndexHtmlBuilder indexHtmlBuilder, ResponseEnhancementsProvider provider,
+            TestReactApplication testReactApplication) {
+            this.staticFilesConfiguration = conf;
+            this.indexHtmlBuilder = indexHtmlBuilder;
+            this.responseEnhancementsProvider = provider;
+            this.testReactApplication = testReactApplication;
+        }
+
+        ResponseEnhancementsProvider getResponseEnhancementsProvider() {
+            return this.responseEnhancementsProvider;
+        }
+
+        StaticFilesConfiguration getStaticFilesConfiguration() {
+            return this.staticFilesConfiguration;
+        }
+
+        IndexHtmlBuilder getIndexHtmlBuilder() {
+            return this.indexHtmlBuilder;
+        }
+    }
+
+    public class ReactApplications {
+
+        private final List<ReactApplication> apps = new ArrayList<>();
+
+        public void add(String classPathLocation, String fileSystemLocation, ResponseEnhancementsProvider responseEnhancementsProvider,
+            TestReactApplication testReactApplication) {
+            boolean isDev = ProfileDetector.isDev(AbstractCreateReactAppResourceBase.this.environment);
+            StaticFilesConfiguration staticHandler = createStaticHandler(classPathLocation, fileSystemLocation, isDev);
+            IndexHtmlBuilder indexHtmlBuilder = new IndexHtmlBuilder(classPathLocation, fileSystemLocation, isDev);
+            this.apps.add(new ReactApplication(staticHandler, indexHtmlBuilder, responseEnhancementsProvider, testReactApplication));
+        }
+
+        ReactApplication lookup(Request req, Response res) {
+            for (ReactApplication app : this.apps) {
+                if (app.testReactApplication.invoke(req, res)) {
+                    return app;
+                }
+            }
+            return null;
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
     public static class ResponseEnhancements {
 
         private static final HtmlEscapingAwareJsonTransformer JSON_TRANSFORMER = new HtmlEscapingJacksonTransformer();
@@ -194,6 +262,7 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
             return this.headerBuilder;
         }
 
+        @SuppressWarnings("unused")
         public static class ResponseEnhancementsBuilder {
 
             private String title;
@@ -201,7 +270,7 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
             private InitialStateProvider initialStateProvider;
             private HtmlBuilder headerBuilder;
             private HtmlResponseModifier htmlResponseModifier;
-            private HtmlEscapingAwareJsonTransformer jsonTransformer = JSON_TRANSFORMER;
+            private HtmlEscapingAwareJsonTransformer jsonTransformer = ResponseEnhancements.JSON_TRANSFORMER;
 
             public ResponseEnhancementsBuilder setTitle(String title) {
                 this.title = title;
