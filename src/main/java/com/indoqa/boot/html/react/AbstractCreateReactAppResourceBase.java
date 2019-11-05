@@ -132,7 +132,7 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
             setExpiryHeaders(request, response);
 
             // if some Spark resource has already produced a result, stop here
-            if (!"GET".equalsIgnoreCase(request.requestMethod()) || StringUtils.isNotEmpty(response.body())) {
+            if (ReactAppHelper.shouldIgnoreRequest(request) || StringUtils.isNotEmpty(response.body())) {
                 return;
             }
 
