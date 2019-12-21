@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.inject.Inject;
 
+import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.html.builder.HtmlBuilder;
 import com.indoqa.boot.html.react.AbstractCreateReactAppResourceBase.ResponseEnhancements.ResponseEnhancementsBuilder;
 import com.indoqa.boot.html.resources.AbstractHtmlResourcesBase;
@@ -121,10 +122,13 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
 
     protected void html(ReactApplications reactApplications) {
         Objects.requireNonNull(reactApplications, "ReactApplications must not be null.");
+        if (reactApplications.isEmpty()) {
+            throw new ApplicationInitializationException("At least one ReactApplication has to be provided.");
+        }
         Spark.after((request, response) -> {
             ReactApplication reactApplication = reactApplications.lookup(request, response);
             if (reactApplication == null) {
-                Spark.notFound("No React application available.");
+                Spark.notFound("Any of the registered React applications can answer this request.");
                 return;
             }
 
@@ -205,6 +209,10 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
             StaticFilesConfiguration staticHandler = createStaticHandler(classPathLocation, fileSystemLocation, isDev);
             IndexHtmlBuilder indexHtmlBuilder = new IndexHtmlBuilder(classPathLocation, fileSystemLocation, isDev);
             this.apps.add(new ReactApplication(staticHandler, indexHtmlBuilder, responseEnhancementsProvider, testReactApplication));
+        }
+
+        private boolean isEmpty() {
+            return this.apps.isEmpty();
         }
 
         ReactApplication lookup(Request req, Response res) {
