@@ -16,7 +16,9 @@
  */
 package com.indoqa.boot.html.react;
 
+import static com.indoqa.boot.html.react.ReactAppHelper.shouldIgnoreRequest;
 import static java.util.concurrent.TimeUnit.*;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -57,6 +59,10 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
     private static final ResponseEnhancementsProvider DEFAULT_REQUEST_ENHANCEMENTS_PROVIDER = (req, res) -> {
         return new ResponseEnhancementsBuilder().build();
     };
+    private static final TestReactApplication ALWAYS_MATCHING = (req, res) -> true;
+
+    private int applicationsRegisteredCount;
+    private int simpleHtmlInvocationsCount;
 
     @Inject
     private Environment environment;
@@ -88,14 +94,8 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
     private static void setExpiryHeaders(Request request, Response response) {
         String path = request.pathInfo();
 
-        // no caching for HTML resources and dynamically created responses (e.g. JSON)
-        if (response.body() != null || StringUtils.startsWith(request.headers("Accept"), "text/html")) {
-            response.header(RESPONSE_HEADER_CACHE_CONTROL, "no-store, must-revalidate");
-            response.header(RESPONSE_HEADER_EXPIRES, "0");
-        }
-
         // long caching for Javascript and CSS files
-        else if (StringUtils.endsWith(path, ".js") || StringUtils.endsWith(path, ".css")) {
+        if (StringUtils.endsWith(path, ".js") || StringUtils.endsWith(path, ".css")) {
             response.header(RESPONSE_HEADER_CACHE_CONTROL, "private, max-age=" + LONG_EXPIRY_TIME_SECONDS);
             response.header(RESPONSE_HEADER_EXPIRES, new Date(System.currentTimeMillis() + LONG_EXPIRE_TIME_MS).toString());
         }
@@ -113,18 +113,27 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
 
     protected void html(String classPathLocation, String fileSystemLocation,
         ResponseEnhancementsProvider responseEnhancementsProvider) {
+        if (this.simpleHtmlInvocationsCount > 0) {
+            throw new ApplicationInitializationException(
+                "Only one React application can be registered using " + this.getClass().getSimpleName() + ".html(...");
+        }
+        this.simpleHtmlInvocationsCount++;
+
         Objects.requireNonNull(responseEnhancementsProvider, "ResponseEnhancementsProvider must not be null.");
 
         ReactApplications reactApplications = new ReactApplications();
-        reactApplications.add(classPathLocation, fileSystemLocation, responseEnhancementsProvider, (req, res) -> true);
-        this.html(reactApplications);
+        reactApplications.add(classPathLocation, fileSystemLocation, responseEnhancementsProvider, ALWAYS_MATCHING);
+        this.register(reactApplications);
     }
 
-    protected void html(ReactApplications reactApplications) {
+    protected void register(ReactApplications reactApplications) {
         Objects.requireNonNull(reactApplications, "ReactApplications must not be null.");
-        if (reactApplications.isEmpty()) {
-            throw new ApplicationInitializationException("At least one ReactApplication has to be provided.");
+        if (this.applicationsRegisteredCount > 0) {
+            throw new ApplicationInitializationException(
+                "React applications may only be registered once. Check all " + this.getClass().getSimpleName()
+                    + ".register(...) invocations.");
         }
+        this.applicationsRegisteredCount++;
         Spark.after((request, response) -> {
             ReactApplication reactApplication = reactApplications.lookup(request, response);
             if (reactApplication == null) {
@@ -132,13 +141,15 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
                 return;
             }
 
-            // always set expiry headers
-            setExpiryHeaders(request, response);
-
-            // if some Spark resource has already produced a result, stop here
-            if (ReactAppHelper.shouldIgnoreRequest(request) || StringUtils.isNotEmpty(response.body())) {
+            // if some Spark resource has already produced a result, stop here and provide no-caching headers
+            if (shouldIgnoreRequest(request) || isNotEmpty(response.body())) {
+                response.header(RESPONSE_HEADER_CACHE_CONTROL, "no-store, must-revalidate");
+                response.header(RESPONSE_HEADER_EXPIRES, "0");
                 return;
             }
+
+            // always set expiry headers
+            setExpiryHeaders(request, response);
 
             String pathInfo = request.pathInfo();
             ResponseEnhancements responseEnhancements = reactApplication.getResponseEnhancementsProvider().enhance(request, response);
@@ -171,7 +182,7 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
         boolean invoke(Request req, Response res);
     }
 
-    private class ReactApplication {
+    private static class ReactApplication {
 
         private final StaticFilesConfiguration staticFilesConfiguration;
         private final IndexHtmlBuilder indexHtmlBuilder;
@@ -199,11 +210,35 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
         }
     }
 
+    @SuppressWarnings("unused")
+    public class ReactApplicationsBuilder {
+
+        private final ReactApplications reactApplications = new ReactApplications();
+
+        public ReactApplicationsBuilder add(String classPathLocation, String fileSystemLocation) {
+            return this.add(classPathLocation, fileSystemLocation, DEFAULT_REQUEST_ENHANCEMENTS_PROVIDER, ALWAYS_MATCHING);
+        }
+
+        public ReactApplicationsBuilder add(String classPathLocation, String fileSystemLocation,
+            ResponseEnhancementsProvider responseEnhancementsProvider, TestReactApplication testReactApplication) {
+            this.reactApplications.add(classPathLocation, fileSystemLocation, responseEnhancementsProvider, testReactApplication);
+            return this;
+        }
+
+        public ReactApplications build() {
+            if (this.reactApplications.isEmpty()) {
+                throw new ApplicationInitializationException("At least one ReactApplication has to be registered.");
+            }
+            return this.reactApplications;
+        }
+
+    }
+
     public class ReactApplications {
 
         private final List<ReactApplication> apps = new ArrayList<>();
 
-        public void add(String classPathLocation, String fileSystemLocation, ResponseEnhancementsProvider responseEnhancementsProvider,
+        void add(String classPathLocation, String fileSystemLocation, ResponseEnhancementsProvider responseEnhancementsProvider,
             TestReactApplication testReactApplication) {
             boolean isDev = ProfileDetector.isDev(AbstractCreateReactAppResourceBase.this.environment);
             StaticFilesConfiguration staticHandler = createStaticHandler(classPathLocation, fileSystemLocation, isDev);
@@ -211,7 +246,7 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
             this.apps.add(new ReactApplication(staticHandler, indexHtmlBuilder, responseEnhancementsProvider, testReactApplication));
         }
 
-        private boolean isEmpty() {
+        boolean isEmpty() {
             return this.apps.isEmpty();
         }
 
