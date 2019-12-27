@@ -17,16 +17,15 @@
 package com.indoqa.boot.html.react;
 
 import static com.indoqa.boot.html.react.ReactAppHelper.shouldIgnoreRequest;
+import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.*;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import javax.inject.Inject;
 
-import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.html.builder.HtmlBuilder;
 import com.indoqa.boot.html.react.AbstractCreateReactAppResourceBase.ResponseEnhancements.ResponseEnhancementsBuilder;
 import com.indoqa.boot.html.resources.AbstractHtmlResourcesBase;
@@ -61,8 +60,7 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
     };
     private static final TestReactApplication ALWAYS_MATCHING = (req, res) -> true;
 
-    private int applicationsRegisteredCount;
-    private int simpleHtmlInvocationsCount;
+    private final ReactApplications reactApplications = new ReactApplications();
 
     @Inject
     private Environment environment;
@@ -113,29 +111,27 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
 
     protected void html(String classPathLocation, String fileSystemLocation,
         ResponseEnhancementsProvider responseEnhancementsProvider) {
-        if (this.simpleHtmlInvocationsCount > 0) {
-            throw new ApplicationInitializationException(
-                "Only one React application can be registered using " + this.getClass().getSimpleName() + ".html(...");
-        }
-        this.simpleHtmlInvocationsCount++;
-
-        Objects.requireNonNull(responseEnhancementsProvider, "ResponseEnhancementsProvider must not be null.");
-
-        ReactApplications reactApplications = new ReactApplications();
-        reactApplications.add(classPathLocation, fileSystemLocation, responseEnhancementsProvider, ALWAYS_MATCHING);
-        this.register(reactApplications);
+        this.html(classPathLocation, fileSystemLocation, responseEnhancementsProvider, ALWAYS_MATCHING);
     }
 
-    protected void register(ReactApplications reactApplications) {
-        Objects.requireNonNull(reactApplications, "ReactApplications must not be null.");
-        if (this.applicationsRegisteredCount > 0) {
-            throw new ApplicationInitializationException(
-                "React applications may only be registered once. Check all " + this.getClass().getSimpleName()
-                    + ".register(...) invocations.");
+    protected void html(String classPathLocation, String fileSystemLocation, ResponseEnhancementsProvider responseEnhancementsProvider,
+        TestReactApplication testReactApplication) {
+        requireNonNull(classPathLocation, "classPathLocation must not be null.");
+        requireNonNull(fileSystemLocation, "fileSystemLocation must not be null.");
+        requireNonNull(responseEnhancementsProvider, "ResponseEnhancementsProvider must not be null.");
+        requireNonNull(testReactApplication, "testReactApplication must not be null.");
+
+        this.reactApplications.add(classPathLocation, fileSystemLocation, responseEnhancementsProvider, testReactApplication);
+        this.register();
+    }
+
+    private void register() {
+        // already registered
+        if (this.reactApplications.size() > 1) {
+            return;
         }
-        this.applicationsRegisteredCount++;
         Spark.after((request, response) -> {
-            ReactApplication reactApplication = reactApplications.lookup(request, response);
+            ReactApplication reactApplication = this.reactApplications.lookup(request, response);
             if (reactApplication == null) {
                 Spark.notFound("Any of the registered React applications can answer this request.");
                 return;
@@ -210,31 +206,7 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
         }
     }
 
-    @SuppressWarnings("unused")
-    public class ReactApplicationsBuilder {
-
-        private final ReactApplications reactApplications = new ReactApplications();
-
-        public ReactApplicationsBuilder add(String classPathLocation, String fileSystemLocation) {
-            return this.add(classPathLocation, fileSystemLocation, DEFAULT_REQUEST_ENHANCEMENTS_PROVIDER, ALWAYS_MATCHING);
-        }
-
-        public ReactApplicationsBuilder add(String classPathLocation, String fileSystemLocation,
-            ResponseEnhancementsProvider responseEnhancementsProvider, TestReactApplication testReactApplication) {
-            this.reactApplications.add(classPathLocation, fileSystemLocation, responseEnhancementsProvider, testReactApplication);
-            return this;
-        }
-
-        public ReactApplications build() {
-            if (this.reactApplications.isEmpty()) {
-                throw new ApplicationInitializationException("At least one ReactApplication has to be registered.");
-            }
-            return this.reactApplications;
-        }
-
-    }
-
-    public class ReactApplications {
+    private class ReactApplications {
 
         private final List<ReactApplication> apps = new ArrayList<>();
 
@@ -246,8 +218,8 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
             this.apps.add(new ReactApplication(staticHandler, indexHtmlBuilder, responseEnhancementsProvider, testReactApplication));
         }
 
-        boolean isEmpty() {
-            return this.apps.isEmpty();
+        int size() {
+            return this.apps.size();
         }
 
         ReactApplication lookup(Request req, Response res) {
