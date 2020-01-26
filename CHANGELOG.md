@@ -1,5 +1,5 @@
-# v0.15.0 | TBA
-* register multiple React applications in FrontendResource with test functions to select one at request time
+# v0.15.0 | 2020-01-26
+* register multiple React applications in FrontendResource with matcher functions to select one at request time
 
 # v0.14.0 | 2019-06-25
 * only send HTML response when the request was a GET

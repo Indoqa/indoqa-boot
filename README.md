@@ -9,7 +9,7 @@ The best way to bootstrap an Indoqa-Boot application is using the [indoqa-quicks
 mvn archetype:generate \
   -DarchetypeGroupId=com.indoqa.quickstart \
   -DarchetypeArtifactId=quickstart-boot-archetype \
-  -DarchetypeVersion=0.14.0
+  -DarchetypeVersion=0.15.0
 ```
 
 ## Changelog
