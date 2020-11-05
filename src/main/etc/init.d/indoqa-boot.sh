@@ -46,7 +46,7 @@ OPTIONS=$OPTIONS" -Dlog-path=/path/to/logs"
 RUNNABLE=$BASE_PATH/indoqa-boot-main-runnable.jar
 
 getPid(){
-  PID=`pgrep -f $RUNNABLE`
+  PID=`pgrep -u $RUN_AS -f $RUNNABLE`
 }
 
 start(){
