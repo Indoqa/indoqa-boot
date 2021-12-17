@@ -18,17 +18,40 @@ package com.indoqa.boot.html.react;
 
 import static java.lang.Boolean.TRUE;
 
+import org.apache.commons.lang3.StringUtils;
+
 import spark.Request;
 
 public final class ReactAppHelper {
 
     private static final String ATTRIBUTE_IGNORE = "com.indoqa.boot.IGNORE";
 
+    private ReactAppHelper() {
+        // utility class
+    }
+
     public static void ignoreRequest(Request request) {
         request.attribute(ATTRIBUTE_IGNORE, TRUE);
     }
 
     public static boolean shouldIgnoreRequest(Request request) {
-        return !"GET".equalsIgnoreCase(request.requestMethod()) || TRUE.equals(request.attribute(ATTRIBUTE_IGNORE));
+        boolean unsupportedRequestMethod = isUnSupportedRequestMethod(request);
+        boolean websocketUpgradeRequest = isWebsocketUpgradeRequest(request);
+        boolean explicitlyIgnoredRequest = TRUE.equals(request.attribute(ATTRIBUTE_IGNORE));
+        return unsupportedRequestMethod || websocketUpgradeRequest || explicitlyIgnoredRequest;
+    }
+
+    private static boolean isWebsocketUpgradeRequest(Request request) {
+        return StringUtils.equalsIgnoreCase(request.headers("Upgrade"), "websocket");
+    }
+
+    private static boolean isUnSupportedRequestMethod(Request request) {
+        switch (request.requestMethod()) {
+            case "GET":
+            case "HEAD":
+                return false;
+            default:
+                return true;
+        }
     }
 }

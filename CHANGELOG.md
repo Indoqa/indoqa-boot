@@ -1,20 +1,30 @@
+# v.0.16.0 | TBD
+
+* AbstractCreateReactAppResourceBase ignores HEAD requests
+* AbstractCreateReactAppResourceBase ignores WebSocket upgrade requests
+
 # v0.15.0 | 2020-01-26
+
 * register multiple React applications in FrontendResource with matcher functions to select one at request time
 
 # v0.14.0 | 2019-06-25
+
 * only send HTML response when the request was a GET
 * introduce ResponseEnhancements to dynamically adapt the HML produced by AbstractCreateReactAppResourceBase
 * Log4j2LoggingResource (admin port)
 
 # v0.13.0 | 2019-03-27
+
 * add AbstractCreateReactAppResourceBase for serving React applications created by CreateReactApp
 
 # v0.12.0 | 2019-02-13
+
 * fix npe if there are no javascript assets
 * fully support webpack code splitting
 * remove classpath scanning for webpack assets completely
 
 # v0.11.0 | 2018-10-12
+
 * use asset-manifest.json if available (to avoid classpath scanning operations
 * set response header 'Indoqa-Boot-Health' with the result of the health check
 * increase shutdown check period
@@ -22,6 +32,7 @@
 * HealthCheckResources: no fixedRate scheduling
 
 # v0.10.0 | 2018-04-19
+
 * Java9 support
 * SystemInfo: consistent property names
 * health status by head request via business rest service port
@@ -29,6 +40,7 @@
 * Fix health check json output
 
 # v0.9.0 | 2017-12-17
+
 * introduce health checking (via admin port)
 * introduce metrics info (via admin port)
 * support heap dumps (via admin port)
@@ -40,15 +52,18 @@
 * use HtmlBuilder to create snippets in frontend resource
 
 # v0.8.0 | 2017-06-22
+
 * Application: default implementation for isDevEnvironment
 * expose admin-port via SystemInfo
 * fix bug if admin port is null
 
 # v0.7.0 | 2017-06-08
+
 * ReactHtmlBulder: allow setting the jsonTransformer
 * refactor react html integration
 
 # v0.6.0 | 2017-02-15
+
 * warn if the HtmlEscapingJacksonTransformer is not used
 * shut down if the default port OR the admin port is in use
 * register the shutdown resource as admin service if available otherwise as default service
