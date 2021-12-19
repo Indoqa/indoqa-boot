@@ -41,7 +41,7 @@
   </scm>
 
   <properties>
-    <indoqa-boot-bom-version>0.16.0-SNAPSHOT</indoqa-boot-bom-version>
+    <indoqa-boot-bom-version>0.16.0</indoqa-boot-bom-version>
   </properties>
 
   <dependencies>
