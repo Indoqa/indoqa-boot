@@ -137,8 +137,13 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
                 return;
             }
 
+            // move the decision on caching headers to the user space
+            if (shouldIgnoreRequest(request)) {
+                return;
+            }
+
             // if some Spark resource has already produced a result, stop here and provide no-caching headers
-            if (shouldIgnoreRequest(request) || isNotEmpty(response.body())) {
+            if (isNotEmpty(response.body())) {
                 response.header(RESPONSE_HEADER_CACHE_CONTROL, "no-store, must-revalidate");
                 response.header(RESPONSE_HEADER_EXPIRES, "0");
                 return;
@@ -159,7 +164,7 @@ public abstract class AbstractCreateReactAppResourceBase extends AbstractHtmlRes
             // look for static resources
             boolean staticResourceSent = reactApplication.getStaticFilesConfiguration().consume(request.raw(), response.raw());
 
-            // otherwise send the index.html
+            // otherwise, send the index.html
             if (!staticResourceSent) {
                 sendIndexHtml(request, response, reactApplication.getIndexHtmlBuilder(), responseEnhancements);
             }
