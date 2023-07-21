@@ -8,3 +8,4 @@ cocoon-files
 .recommenders
 .idea
 *.iml
+.java-version
