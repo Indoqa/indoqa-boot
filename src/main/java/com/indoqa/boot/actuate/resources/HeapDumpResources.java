@@ -33,7 +33,7 @@ import java.util.Date;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -85,7 +85,7 @@ public class HeapDumpResources extends AbstractAdminResources {
 
     /**
      * Factory method used to create the {@link HeapDumper}.
-     * 
+     *
      * @return the heap dumper to use
      * @throws HeapDumperUnavailableException if the heap dumper cannot be created
      */
@@ -117,7 +117,7 @@ public class HeapDumpResources extends AbstractAdminResources {
 
         /**
          * Dump the current heap to the specified file.
-         * 
+         *
          * @param file the file to dump the heap to
          * @param live if only <em>live</em> objects (i.e. objects that are reachable from others) should be dumped
          * @throws IOException on IO error
@@ -140,8 +140,8 @@ public class HeapDumpResources extends AbstractAdminResources {
     }
 
     /**
-     * {@link HeapDumper} that uses {@code com.sun.management.HotSpotDiagnosticMXBean} available on Oracle and OpenJDK to dump the heap
-     * to a file.
+     * {@link HeapDumper} that uses {@code com.sun.management.HotSpotDiagnosticMXBean} available on Oracle and OpenJDK to dump the heap to a
+     * file.
      */
     protected static class HotSpotDiagnosticMXBeanHeapDumper implements HeapDumper {
 

@@ -19,7 +19,7 @@ package com.indoqa.boot.spark;
 import static org.slf4j.LoggerFactory.getLogger;
 import static spark.globalstate.ServletFlag.isRunningFromServlet;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 

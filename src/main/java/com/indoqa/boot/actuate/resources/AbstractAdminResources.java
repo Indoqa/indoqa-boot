@@ -18,12 +18,12 @@ package com.indoqa.boot.actuate.resources;
 
 import static java.lang.Boolean.FALSE;
 
-import javax.inject.Inject;
+import org.springframework.core.env.Environment;
 
 import com.indoqa.boot.json.resources.AbstractJsonResourcesBase;
 import com.indoqa.boot.spark.SparkAdminService;
-import org.springframework.core.env.Environment;
 
+import jakarta.inject.Inject;
 import spark.Route;
 import spark.Service;
 import spark.Spark;
@@ -54,6 +54,20 @@ public abstract class AbstractAdminResources extends AbstractJsonResourcesBase {
         }
     }
 
+    protected void getActuatorHtml(String path, Route route) {
+        if (this.isAdminServiceAvailable()) {
+            this.getSparkAdminService().get(path, CONTENT_TYPE_HTML, route);
+        }
+
+        else if (this.isEnabledViaDefaultService()) {
+            Spark.get(resolveAdminPath(path), CONTENT_TYPE_HTML, route);
+        }
+    }
+
+    protected Service getSparkAdminService() {
+        return this.sparkAdminService.instance();
+    }
+
     protected void headActuator(String path, Route route) {
         if (this.isAdminServiceAvailable()) {
             this.sparkAdminService.instance().head(path, route);
@@ -62,6 +76,14 @@ public abstract class AbstractAdminResources extends AbstractJsonResourcesBase {
         else if (this.isEnabledViaDefaultService()) {
             this.head(resolveAdminPath(path), route);
         }
+    }
+
+    protected boolean isAdminServiceAvailable() {
+        return this.sparkAdminService.isAvailable();
+    }
+
+    protected Boolean isEnabledViaDefaultService() {
+        return this.environment.getProperty(PROPERTY_ADMIN_ENABLED_VIA_DEFAULT_SERVICE, Boolean.class, FALSE);
     }
 
     protected void putActuator(String path, Route route) {
@@ -74,16 +96,6 @@ public abstract class AbstractAdminResources extends AbstractJsonResourcesBase {
         }
     }
 
-    protected void getActuatorHtml(String path, Route route) {
-        if (this.isAdminServiceAvailable()) {
-            this.getSparkAdminService().get(path, CONTENT_TYPE_HTML, route);
-        }
-
-        else if (this.isEnabledViaDefaultService()) {
-            Spark.get(resolveAdminPath(path), CONTENT_TYPE_HTML, route);
-        }
-    }
-
     protected void putActuatorHtml(String path, Route route) {
         if (this.isAdminServiceAvailable()) {
             this.sparkAdminService.instance().put(path, CONTENT_TYPE_HTML, route, this.getTransformer());
@@ -92,17 +104,5 @@ public abstract class AbstractAdminResources extends AbstractJsonResourcesBase {
         else if (this.isEnabledViaDefaultService()) {
             Spark.put(resolveAdminPath(path), CONTENT_TYPE_HTML, route);
         }
-    }
-
-    protected Service getSparkAdminService() {
-        return this.sparkAdminService.instance();
-    }
-
-    protected boolean isAdminServiceAvailable() {
-        return this.sparkAdminService.isAvailable();
-    }
-
-    protected Boolean isEnabledViaDefaultService() {
-        return this.environment.getProperty(PROPERTY_ADMIN_ENABLED_VIA_DEFAULT_SERVICE, Boolean.class, FALSE);
     }
 }

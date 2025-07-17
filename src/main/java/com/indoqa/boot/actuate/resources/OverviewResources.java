@@ -23,10 +23,12 @@ import static org.apache.commons.lang3.StringUtils.*;
 
 import java.util.Date;
 import java.util.function.Supplier;
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 
 import com.indoqa.boot.actuate.systeminfo.SystemInfo;
+
 import org.springframework.core.env.Environment;
 
 import spark.Response;
@@ -100,8 +102,7 @@ public class OverviewResources extends AbstractAdminResources {
         StringBuilder headerBuilder = new StringBuilder();
         if (isBlank(asciiLogo)) {
             headerBuilder.append("<h1>").append(systemInfo.getApplicationName()).append("</h1>");
-        }
-        else {
+        } else {
             headerBuilder.append("<pre>").append(asciiLogo).append("</pre>");
         }
         return headerBuilder

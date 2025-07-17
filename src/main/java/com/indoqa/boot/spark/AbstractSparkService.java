@@ -24,13 +24,15 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URL;
-import javax.inject.Inject;
+import java.net.URI;
 
-import com.indoqa.boot.profile.ProfileDetector;
+import jakarta.inject.Inject;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.springframework.core.env.Environment;
+
+import com.indoqa.boot.profile.ProfileDetector;
 
 public abstract class AbstractSparkService {
 
@@ -49,8 +51,8 @@ public abstract class AbstractSparkService {
     @Inject
     protected Environment environment;
 
-    private static HttpURLConnection connect(URL shutdownUrl) throws IOException {
-        HttpURLConnection httpConnection = (HttpURLConnection) shutdownUrl.openConnection();
+    private static HttpURLConnection connect(URI shutdownUri) throws IOException {
+        HttpURLConnection httpConnection = (HttpURLConnection) shutdownUri.toURL().openConnection();
         HttpURLConnection.setFollowRedirects(false);
         httpConnection.setConnectTimeout(SHUTDOWN_REQUEST_TIMEOUT);
         httpConnection.setReadTimeout(SHUTDOWN_REQUEST_TIMEOUT);
@@ -58,10 +60,14 @@ public abstract class AbstractSparkService {
         return httpConnection;
     }
 
+    private static void consume(HttpURLConnection httpConnection) throws IOException {
+        IOUtils.toString(httpConnection.getInputStream(), UTF_8);
+    }
+
     private static void shutdownRunningApplication(int port) {
-        URL shutdownUrl = null;
+        URI shutdownUrl = null;
         try {
-            shutdownUrl = new URL("http://localhost:" + port + "/shutdown");
+            shutdownUrl = new URI("http://localhost:" + port + "/shutdown");
 
             HttpURLConnection httpConnection = connect(shutdownUrl);
             httpConnection.connect();
@@ -70,13 +76,9 @@ public abstract class AbstractSparkService {
             httpConnection.disconnect();
 
             LOGGER.info("A shutdown request was sent successfully to {}", shutdownUrl);
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOGGER.info("A shutdown request to {} failed.", shutdownUrl);
         }
-    }
-
-    private static void consume(HttpURLConnection httpConnection) throws IOException {
-        IOUtils.toString(httpConnection.getInputStream(), UTF_8);
     }
 
     private static void sleep(int sleep) {

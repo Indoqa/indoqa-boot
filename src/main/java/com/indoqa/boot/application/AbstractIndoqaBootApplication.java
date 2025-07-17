@@ -43,6 +43,7 @@ import com.indoqa.boot.json.transformer.JacksonTransformer;
 import com.indoqa.boot.spark.SparkAdminService;
 import com.indoqa.boot.spark.SparkDefaultService;
 import com.indoqa.boot.version.VersionProvider;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -151,8 +152,7 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     /**
-     * Provide a custom application name. The default is the simple name of the class extending the
-     * this class.
+     * Provide a custom application name. The default is the simple name of the class extending the this class.
      *
      * @return The custom application name.
      */
@@ -161,8 +161,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     /**
-     * Provide the path to a resource containing the ascii logo which will be printed to the console at startup. The resource is looked
-     * up in the classpath.
+     * Provide the path to a resource containing the ascii logo which will be printed to the console at startup. The resource is looked up
+     * in the classpath.
      *
      * @return The resource path of the ascii logo.
      */
@@ -192,8 +192,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     /**
      * Provide an alternative {@link VersionProvider} which will be used to lookup the jar manifest that contains the
-     * Implementation-Version. The version information is provided by the {@link SystemInfoResource} and is printed as part of the
-     * status message printed to the console at startup.
+     * Implementation-Version. The version information is provided by the {@link SystemInfoResource} and is printed as part of the status
+     * message printed to the console at startup.
      *
      * @return An alternative {@link VersionProvider}.
      */
@@ -202,9 +202,8 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
     }
 
     /**
-     * Indoqa-Boot uses this method to decided whether the application runs in production or development mode. The default
-     * implementation detects if the application runs from within a runnable Java archive (jar) and if this is true, <code>false</code>
-     * is returned.
+     * Indoqa-Boot uses this method to decided whether the application runs in production or development mode. The default implementation
+     * detects if the application runs from within a runnable Java archive (jar) and if this is true, <code>false</code> is returned.
      *
      * @return True if the application should run in development mode.
      */
@@ -235,8 +234,9 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
         // check if Hotswap-Agent is available at all
         if (!this.isHotswapAgentInstalled()) {
-            LOGGER.info("Application reloading is NOT enabled. Install Hotswap Agent by following "
-                + "the instructions at https://github.com/HotswapProjects/HotswapAgent");
+            LOGGER.info(
+                "Application reloading is NOT enabled. Install Hotswap Agent by following "
+                    + "the instructions at https://github.com/HotswapProjects/HotswapAgent");
             return;
         }
 
@@ -276,17 +276,12 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
         this.context.register(HealthResources.class);
         this.context.register(ThreadDumpResources.class);
         this.context.register(HeapDumpResources.class);
-        this.context.register(SpringBeansResources.class);
         this.context.register(MetricsResources.class);
         this.context.register(ActuatorGzipInterceptor.class);
 
-        if (isClassAvailable("org.apache.logging.log4j.LogManager")) {
+        if (this.isClassAvailable("org.apache.logging.log4j.LogManager")) {
             this.context.register(Log4j2LoggingResource.class);
         }
-    }
-
-    private boolean isClassAvailable(String className) {
-        return ClassUtils.isPresent(className, this.context.getClassLoader());
     }
 
     private void initializeApplicationContext() {
@@ -318,10 +313,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
             ResourcePropertySource propertySource = getProperties(propertiesLocation);
             this.context.getEnvironment().getPropertySources().addFirst(propertySource);
             LOGGER.info("Using external properties from {}", propertiesLocation);
-        }
-        else {
-            LOGGER.info("No external properties set. Use the system property 'properties' "
-                + "to provide application properties as a Java properties file.");
+        } else {
+            LOGGER.info(
+                "No external properties set. Use the system property 'properties' "
+                    + "to provide application properties as a Java properties file.");
         }
     }
 
@@ -361,6 +356,10 @@ public abstract class AbstractIndoqaBootApplication implements VersionProvider {
 
     private void initializeVersionProvider() {
         this.context.getBeanFactory().registerSingleton(VersionProvider.class.getName(), this.getVersionProvider());
+    }
+
+    private boolean isClassAvailable(String className) {
+        return ClassUtils.isPresent(className, this.context.getClassLoader());
     }
 
     private boolean isHotswapAgentInstalled() {

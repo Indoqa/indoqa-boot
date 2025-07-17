@@ -18,7 +18,7 @@ package com.indoqa.boot.spark;
 
 import static spark.globalstate.ServletFlag.isRunningFromServlet;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import spark.Spark;
 

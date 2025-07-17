@@ -23,10 +23,10 @@
   <parent>
     <groupId>com.indoqa</groupId>
     <artifactId>indoqa-oss-parent</artifactId>
-    <version>6</version>
+    <version>16</version>
   </parent>
   <artifactId>indoqa-boot</artifactId>
-  <version>0.16.1-SNAPSHOT</version>
+  <version>0.17.0-SNAPSHOT</version>
 
   <name>Indoqa Boot</name>
   <url>https://github.com/indoqa/indoqa-boot</url>
@@ -40,30 +40,38 @@
   </scm>
 
   <properties>
-    <indoqa-boot-bom-version>0.16.1-SNAPSHOT</indoqa-boot-bom-version>
+    <project.build.compiler.version>21</project.build.compiler.version>
+
+    <indoqa-boot-bom-version>0.17.0-SNAPSHOT</indoqa-boot-bom-version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.indoqa</groupId>
+        <artifactId>indoqa-boot-bom</artifactId>
+        <version>${indoqa-boot-bom-version}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <!-- Spark -->
     <dependency>
-      <groupId>com.sparkjava</groupId>
+      <groupId>org.zoomba-lang</groupId>
       <artifactId>spark-core</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-simple</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <!-- Dependency Injection -->
     <dependency>
-      <groupId>javax.inject</groupId>
-      <artifactId>javax.inject</artifactId>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.annotation</groupId>
-      <artifactId>javax.annotation-api</artifactId>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
     </dependency>
 
     <!-- Spring Framework -->
@@ -114,6 +122,12 @@
     <dependency>
       <groupId>com.indoqa</groupId>
       <artifactId>indoqa-spring</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.inject</groupId>
+          <artifactId>javax.inject</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- HTTP Proxy -->
@@ -128,22 +142,10 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
 
-    <!-- JCL over sl4fj -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>jcl-over-slf4j</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-
-    <!-- Log4j impl -->
+    <!-- Log4j -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j-impl</artifactId>
+      <artifactId>log4j-slf4j2-impl</artifactId>
       <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -184,18 +186,6 @@
     </dependency>
   </dependencies>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>com.indoqa</groupId>
-        <artifactId>indoqa-boot-bom</artifactId>
-        <version>${indoqa-boot-bom-version}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <build>
     <plugins>
       <plugin>
@@ -209,5 +199,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

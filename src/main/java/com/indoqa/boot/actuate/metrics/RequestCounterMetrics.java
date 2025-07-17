@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -44,8 +44,12 @@ public class RequestCounterMetrics implements PublicMetrics {
     private static final String STATUS_CODE_GROUP_3xx = "3xx";
     private static final String STATUS_CODE_GROUP_4xx = "4xx";
     private static final String STATUS_CODE_GROUP_5xx = "5xx";
-    private static final String[] STATUS_CODE_GROUPS = {STATUS_CODE_GROUP_1xx, STATUS_CODE_GROUP_2xx, STATUS_CODE_GROUP_3xx,
-        STATUS_CODE_GROUP_4xx, STATUS_CODE_GROUP_5xx};
+    private static final String[] STATUS_CODE_GROUPS = {
+        STATUS_CODE_GROUP_1xx,
+        STATUS_CODE_GROUP_2xx,
+        STATUS_CODE_GROUP_3xx,
+        STATUS_CODE_GROUP_4xx,
+        STATUS_CODE_GROUP_5xx};
 
     private static final String METRIC_MINUTE = "minute";
     private static final String METRIC_HOUR = "hour";
@@ -147,12 +151,12 @@ public class RequestCounterMetrics implements PublicMetrics {
             }
             total += count;
 
-            Metric<Integer> minuteStatusMetric = new Metric<Integer>(getMetricPerMinuteName(currentMinute, status), count);
+            Metric<Integer> minuteStatusMetric = new Metric<>(getMetricPerMinuteName(currentMinute, status), count);
             metricsPerMinute.add(minuteStatusMetric);
         }
 
         // add total metric
-        metricsPerMinute.add(new Metric<Integer>(getMetricPerMinuteName(currentMinute, METRIC_TOTAL), total));
+        metricsPerMinute.add(new Metric<>(getMetricPerMinuteName(currentMinute, METRIC_TOTAL), total));
         return metricsPerMinute;
     }
 

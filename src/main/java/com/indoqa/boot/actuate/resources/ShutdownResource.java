@@ -22,7 +22,7 @@ import static spark.globalstate.ServletFlag.isRunningFromServlet;
 
 import java.util.TimerTask;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 
@@ -30,8 +30,8 @@ import spark.Response;
 import spark.Spark;
 
 /**
- * An resource to shutdown the Indoqa-Boot application. By default this method is only available via the admin service. Be careful if
- * you expose this method publicly.
+ * An resource to shutdown the Indoqa-Boot application. By default this method is only available via the admin service. Be careful if you
+ * expose this method publicly.
  */
 public class ShutdownResource extends AbstractAdminResources {
 

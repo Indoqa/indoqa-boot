@@ -16,7 +16,7 @@
  */
 package com.indoqa.boot.json.resources;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.indoqa.boot.json.transformer.JacksonTransformer;
 import com.indoqa.boot.json.transformer.JsonTransformer;

@@ -24,7 +24,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.indoqa.boot.html.builder.HtmlBuilder;
 import com.indoqa.boot.html.react.AbstractCreateReactAppResourceBase.ResponseEnhancements.ResponseEnhancementsBuilder;

@@ -19,13 +19,12 @@ package com.indoqa.boot.json.interceptor;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static spark.Spark.after;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import spark.Response;
 
 /**
- * Use this interceptor to make sure that <code>application/json</code> is set as response type in the case the response type is
- * missing.
+ * Use this interceptor to make sure that <code>application/json</code> is set as response type in the case the response type is missing.
  */
 public class DefaultContentTypeAfterInterceptor {
 

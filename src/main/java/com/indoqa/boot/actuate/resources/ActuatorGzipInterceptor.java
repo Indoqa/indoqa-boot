@@ -16,7 +16,7 @@
  */
 package com.indoqa.boot.actuate.resources;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 public class ActuatorGzipInterceptor extends AbstractAdminResources {
 

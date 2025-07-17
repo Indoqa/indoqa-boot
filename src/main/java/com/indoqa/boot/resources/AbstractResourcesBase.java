@@ -18,9 +18,9 @@ package com.indoqa.boot.resources;
 
 import static org.apache.commons.lang3.StringUtils.*;
 
-import javax.annotation.PostConstruct;
-
 import com.indoqa.boot.ApplicationInitializationException;
+
+import jakarta.annotation.PostConstruct;
 
 /**
  * A base implementation that exposes the method {@link #getResourceBase()} to conveniently initialize resources to a particular base path.

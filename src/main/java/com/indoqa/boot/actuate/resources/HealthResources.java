@@ -17,22 +17,24 @@
 package com.indoqa.boot.actuate.resources;
 
 import static com.indoqa.boot.actuate.health.Status.UP;
+import static jakarta.servlet.http.HttpServletResponse.*;
 import static java.util.Locale.US;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.*;
-import static javax.servlet.http.HttpServletResponse.*;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.*;
 import java.util.Map.Entry;
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.indoqa.boot.actuate.health.Health;
 import com.indoqa.boot.actuate.health.HealthIndicator;
+
 import org.slf4j.Logger;
 
 import spark.Response;
@@ -59,6 +61,11 @@ public class HealthResources extends AbstractAdminResources {
     }
 
     @PostConstruct
+    public void enableReloadHealthStatusTask() {
+        new Timer().schedule(new HealthCheckerTask(), 0, SECONDS.toMillis(RELOAD_INTERVAL));
+    }
+
+    @PostConstruct
     public void mount() {
         // send live health status
         this.getActuator(PATH_HEALTH, (req, res) -> this.sendHealthCheckResult(res));
@@ -70,17 +77,15 @@ public class HealthResources extends AbstractAdminResources {
         Spark.head(PATH_HEALTH, (req, res) -> this.sendHeadHealthCheckResult(res));
     }
 
-    @PostConstruct
-    public void enableReloadHealthStatusTask() {
-        new Timer().schedule(new HealthCheckerTask(), 0, SECONDS.toMillis(RELOAD_INTERVAL));
-    }
-
-    private void setHealthHttpStatus(Response res) {
-        res.status(this.allUp ? SC_OK : SC_INTERNAL_SERVER_ERROR);
+    private void resetHealthStatus() {
+        HealthResources.this.allUp = HealthResources.this.healthIndicators
+            .stream()
+            .map(healthIndicator -> healthIndicator.health().getStatus())
+            .allMatch(UP::equals);
     }
 
     private String sendHeadHealthCheckResult(Response res) {
-        setHealthHttpStatus(res);
+        this.setHealthHttpStatus(res);
         res.header("Indoqa-Boot-Health", Boolean.toString(this.allUp));
         return EMPTY;
     }
@@ -117,11 +122,20 @@ public class HealthResources extends AbstractAdminResources {
         return actuatorResults;
     }
 
-    private void resetHealthStatus() {
-        HealthResources.this.allUp = HealthResources.this.healthIndicators
-            .stream()
-            .map(healthIndicator -> healthIndicator.health().getStatus())
-            .allMatch(UP::equals);
+    private void setHealthHttpStatus(Response res) {
+        res.status(this.allUp ? SC_OK : SC_INTERNAL_SERVER_ERROR);
+    }
+
+    public class HealthCheckerTask extends TimerTask {
+
+        @Override
+        public void run() {
+            try {
+                HealthResources.this.resetHealthStatus();
+            } catch (Exception e) {
+                LOGGER.error("Error while resetting the health status.", e);
+            }
+        }
     }
 
     protected static class ActuatorResults {
@@ -140,18 +154,6 @@ public class HealthResources extends AbstractAdminResources {
         @JsonAnyGetter
         public Map<String, Object> getResults() {
             return this.results;
-        }
-    }
-
-    public class HealthCheckerTask extends TimerTask {
-
-        @Override
-        public void run() {
-            try {
-                resetHealthStatus();
-            } catch (Exception e) {
-                LOGGER.error("Error while resetting the health status.", e);
-            }
         }
     }
 }

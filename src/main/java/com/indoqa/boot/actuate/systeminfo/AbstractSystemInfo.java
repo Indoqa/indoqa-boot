@@ -30,13 +30,13 @@ import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.indoqa.boot.ApplicationInitializationException;
 import com.indoqa.boot.version.VersionProvider;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 
 public abstract class AbstractSystemInfo {
 
@@ -122,8 +122,11 @@ public abstract class AbstractSystemInfo {
     }
 
     private Map<String, String> filterGitPropertiesInternal(Properties allGitProperties) {
-        return allGitProperties.entrySet().stream().filter(entry -> this.filterGitProperty(entry.getKey())).collect(
-            toMap(AbstractSystemInfo::getKey, entry -> (String) entry.getValue()));
+        return allGitProperties.entrySet()
+            .stream()
+            .filter(entry -> this.filterGitProperty(entry.getKey()))
+            .collect(
+                toMap(AbstractSystemInfo::getKey, entry -> (String) entry.getValue()));
     }
 
     private Map<String, String> initGitProperties() {

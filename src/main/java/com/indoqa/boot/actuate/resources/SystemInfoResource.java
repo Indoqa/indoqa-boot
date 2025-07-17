@@ -18,8 +18,8 @@ package com.indoqa.boot.actuate.resources;
 
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 
 import com.indoqa.boot.actuate.systeminfo.BasicSystemInfo;
 import com.indoqa.boot.actuate.systeminfo.SystemInfo;

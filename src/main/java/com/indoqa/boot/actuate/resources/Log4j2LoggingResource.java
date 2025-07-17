@@ -16,15 +16,17 @@
  */
 package com.indoqa.boot.actuate.resources;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.PostConstruct;
+
+import jakarta.annotation.PostConstruct;
 
 import com.indoqa.boot.actuate.logging.*;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,41 +55,6 @@ public class Log4j2LoggingResource extends AbstractAdminResources {
 
     private final Timer timer = new Timer(true);
 
-    @PostConstruct
-    public void mapResources() {
-        this.getActuator(PATH_LEVEL, this::getLogLevel);
-        this.getActuatorHtml(PATH_LEVEL, this::getLogLevel);
-
-        this.getActuator(PATH_MODIFICATIONS, this::getModifications);
-        this.getActuatorHtml(PATH_MODIFICATIONS, this::getModifications);
-
-        this.putActuator(PATH_LEVEL, this::setLogLevel);
-        this.putActuatorHtml(PATH_LEVEL, this::setLogLevel);
-
-        this.putActuator(PATH_RESET, this::resetLogLevel);
-        this.putActuatorHtml(PATH_RESET, this::resetLogLevel);
-
-        this.putActuator(PATH_RESET_ALL, this::resetAllLogLevels);
-        this.putActuatorHtml(PATH_RESET_ALL, this::resetAllLogLevels);
-    }
-
-    private ResetLoggers resetAllLogLevels(@SuppressWarnings("unused") Request request,
-        @SuppressWarnings("unused") Response response) {
-        if (this.restoreTasks.isEmpty()) {
-            return ResetLoggers.nonReset();
-        }
-
-        ResetLoggers result = ResetLoggers.reset();
-
-        for (RestoreTimerTask eachTask : this.restoreTasks.values()) {
-            eachTask.execute();
-
-            result.add(eachTask.getLoggerName(), eachTask.getLevelName());
-        }
-
-        return result;
-    }
-
     private static Logger getExistingLogger(String logger) {
         if (logger == null) {
             return null;
@@ -109,6 +76,88 @@ public class Log4j2LoggingResource extends AbstractAdminResources {
         return null;
     }
 
+    @PostConstruct
+    public void mapResources() {
+        this.getActuator(PATH_LEVEL, this::getLogLevel);
+        this.getActuatorHtml(PATH_LEVEL, this::getLogLevel);
+
+        this.getActuator(PATH_MODIFICATIONS, this::getModifications);
+        this.getActuatorHtml(PATH_MODIFICATIONS, this::getModifications);
+
+        this.putActuator(PATH_LEVEL, this::setLogLevel);
+        this.putActuatorHtml(PATH_LEVEL, this::setLogLevel);
+
+        this.putActuator(PATH_RESET, this::resetLogLevel);
+        this.putActuatorHtml(PATH_RESET, this::resetLogLevel);
+
+        this.putActuator(PATH_RESET_ALL, this::resetAllLogLevels);
+        this.putActuatorHtml(PATH_RESET_ALL, this::resetAllLogLevels);
+    }
+
+    private LogLevelResponse getLogLevel(Request request, Response response) {
+        String loggerName = request.queryParams("logger");
+        if (loggerName == null) {
+            response.status(SC_BAD_REQUEST);
+            response.body("Query parameter 'logger' not set.");
+            return null;
+        }
+        Logger existingLogger = Log4j2LoggingResource.getExistingLogger(loggerName);
+        if (existingLogger == null) {
+            response.status(SC_BAD_REQUEST);
+            return LogLevelResponse.notExising(loggerName);
+        }
+        RestoreTimerTask restoreTimerTask = this.restoreTasks.get(existingLogger.getName());
+        if (restoreTimerTask != null) {
+            return LogLevelResponse.modified(loggerName, restoreTimerTask.getLevel().name());
+        }
+
+        String existingLoggerName = StringUtils.isBlank(existingLogger.getName()) ? ROOT_LOGGER_NAME : existingLogger.getName();
+        return LogLevelResponse.original(existingLoggerName, existingLogger.getLevel().name());
+    }
+
+    private ModifiedLoggers getModifications(@SuppressWarnings("unused") Request request,
+            @SuppressWarnings("unused") Response response) {
+        if (this.restoreTasks.isEmpty()) {
+            return ModifiedLoggers.nonModified();
+        }
+
+        ModifiedLoggers modified = ModifiedLoggers.modified();
+        for (RestoreTimerTask eachTask : this.restoreTasks.values()) {
+            Logger existingLogger = getExistingLogger(eachTask.getLoggerName());
+            if (existingLogger == null) {
+                continue;
+            }
+            String currentLevel = existingLogger.getLevel().name();
+            Duration duration = Duration.ofMillis(eachTask.getRemainingTime());
+            modified.add(
+                eachTask.getLoggerName(),
+                eachTask.getLevelName(),
+                currentLevel,
+                eachTask.getExecutionTime(),
+                duration,
+                eachTask.getModificationKey());
+        }
+
+        return modified;
+    }
+
+    private ResetLoggers resetAllLogLevels(@SuppressWarnings("unused") Request request,
+            @SuppressWarnings("unused") Response response) {
+        if (this.restoreTasks.isEmpty()) {
+            return ResetLoggers.nonReset();
+        }
+
+        ResetLoggers result = ResetLoggers.reset();
+
+        for (RestoreTimerTask eachTask : this.restoreTasks.values()) {
+            eachTask.execute();
+
+            result.add(eachTask.getLoggerName(), eachTask.getLevelName());
+        }
+
+        return result;
+    }
+
     private ResetLogger resetLogLevel(Request request, Response response) {
         String loggerName = request.queryParams("logger");
         RestoreTimerTask restoreTimerTask = this.restoreTasks.get(loggerName);
@@ -119,6 +168,17 @@ public class Log4j2LoggingResource extends AbstractAdminResources {
 
         restoreTimerTask.execute();
         return ResetLogger.reset(loggerName, restoreTimerTask.getLevelName());
+    }
+
+    private synchronized void resetLogLevel(RestoreTimerTask restoreTimerTask) {
+        Logger logger = Log4j2LoggingResource.getExistingLogger(restoreTimerTask.getLoggerName());
+        Configurator.setLevel(logger.getName(), restoreTimerTask.getLevel());
+        this.restoreTasks.remove(restoreTimerTask.getLoggerName());
+
+        logger.error(
+            "Restored log level to '{}' via LoggingResource. Modification-Key: {}",
+            restoreTimerTask.getLevelName(),
+            restoreTimerTask.getModificationKey());
     }
 
     private ModifiedLogger setLogLevel(Request request, Response response) {
@@ -159,8 +219,7 @@ public class Log4j2LoggingResource extends AbstractAdminResources {
         if (restoreTimerTask != null) {
             restoreTimerTask.cancel();
             originalLevel = restoreTimerTask.getLevel();
-        }
-        else {
+        } else {
             originalLevel = logger.getLevel();
         }
 
@@ -187,68 +246,7 @@ public class Log4j2LoggingResource extends AbstractAdminResources {
             level,
             restoreTimerTask.getExecutionTime(),
             Duration.ofMillis(restoreTimerTask.getRemainingTime()),
-            modificationKey
-        );
-    }
-
-    private ModifiedLoggers getModifications(@SuppressWarnings("unused") Request request,
-        @SuppressWarnings("unused") Response response) {
-        if (this.restoreTasks.isEmpty()) {
-            return ModifiedLoggers.nonModified();
-        }
-
-        ModifiedLoggers modified = ModifiedLoggers.modified();
-        for (RestoreTimerTask eachTask : this.restoreTasks.values()) {
-            Logger existingLogger = getExistingLogger(eachTask.getLoggerName());
-            if (existingLogger == null) {
-                continue;
-            }
-            String currentLevel = existingLogger.getLevel().name();
-            Duration duration = Duration.ofMillis(eachTask.getRemainingTime());
-            modified.add(
-                eachTask.getLoggerName(),
-                eachTask.getLevelName(),
-                currentLevel,
-                eachTask.getExecutionTime(),
-                duration,
-                eachTask.getModificationKey()
-            );
-        }
-
-        return modified;
-    }
-
-    private LogLevelResponse getLogLevel(Request request, Response response) {
-        String loggerName = request.queryParams("logger");
-        if (loggerName == null) {
-            response.status(SC_BAD_REQUEST);
-            response.body("Query parameter 'logger' not set.");
-            return null;
-        }
-        Logger existingLogger = Log4j2LoggingResource.getExistingLogger(loggerName);
-        if (existingLogger == null) {
-            response.status(SC_BAD_REQUEST);
-            return LogLevelResponse.notExising(loggerName);
-        }
-        RestoreTimerTask restoreTimerTask = this.restoreTasks.get(existingLogger.getName());
-        if (restoreTimerTask != null) {
-            return LogLevelResponse.modified(loggerName, restoreTimerTask.getLevel().name());
-        }
-
-        String existingLoggerName = StringUtils.isBlank(existingLogger.getName()) ? ROOT_LOGGER_NAME : existingLogger.getName();
-        return LogLevelResponse.original(existingLoggerName, existingLogger.getLevel().name());
-    }
-
-    private synchronized void resetLogLevel(RestoreTimerTask restoreTimerTask) {
-        Logger logger = Log4j2LoggingResource.getExistingLogger(restoreTimerTask.getLoggerName());
-        Configurator.setLevel(logger.getName(), restoreTimerTask.getLevel());
-        this.restoreTasks.remove(restoreTimerTask.getLoggerName());
-
-        logger.error(
-            "Restored log level to '{}' via LoggingResource. Modification-Key: {}",
-            restoreTimerTask.getLevelName(),
-            restoreTimerTask.getModificationKey()
-        );
+            modificationKey);
     }
 
     private class RestoreTimerTask extends TimerTask {
@@ -265,6 +263,15 @@ public class Log4j2LoggingResource extends AbstractAdminResources {
             this.level = level;
             this.executionTime = executionTime;
             this.modificationKey = modificationKey;
+        }
+
+        @Override
+        public void run() {
+            this.execute();
+        }
+
+        void execute() {
+            Log4j2LoggingResource.this.resetLogLevel(this);
         }
 
         long getExecutionTime() {
@@ -293,15 +300,6 @@ public class Log4j2LoggingResource extends AbstractAdminResources {
 
         long getRemainingTime() {
             return this.executionTime - System.currentTimeMillis();
-        }
-
-        @Override
-        public void run() {
-            this.execute();
-        }
-
-        void execute() {
-            Log4j2LoggingResource.this.resetLogLevel(this);
         }
     }
 }

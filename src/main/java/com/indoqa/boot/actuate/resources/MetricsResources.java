@@ -18,8 +18,8 @@ package com.indoqa.boot.actuate.resources;
 
 import java.util.*;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 
 import com.indoqa.boot.actuate.metrics.Metric;
 import com.indoqa.boot.actuate.metrics.PublicMetrics;
