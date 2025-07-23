@@ -34,8 +34,8 @@ pipeline {
   }
 
   tools {
-    maven 'Maven 3.5.x' 
-    jdk 'J2SDK 1.8'
+    maven 'Maven 3.9.6'
+    jdk 'J2SDK 21 (AdoptOpenJdk)'
   }
 
   stages {
